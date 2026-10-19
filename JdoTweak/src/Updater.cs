@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -20,7 +20,7 @@ namespace JdoTweak
             if (string.IsNullOrEmpty(License.ApiBase)) return null;
             try
             {
-                using (var wc = new WebClient())
+                using (var wc = new TimeoutClient())
                 {
                     wc.Headers[HttpRequestHeader.UserAgent] = "JdoTweak/" + App.Version;
                     if (License.Current != null) wc.Headers[HttpRequestHeader.Authorization] = "Bearer " + License.Current.Token;

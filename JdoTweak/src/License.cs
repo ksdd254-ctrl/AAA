@@ -8,9 +8,21 @@ using System.Web.Script.Serialization;
 
 namespace JdoTweak
 {
+    // WebClient has no timeout of its own; without one a dead server freezes sign-in for 100 seconds.
+    public class TimeoutClient : WebClient
+    {
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            var r = base.GetWebRequest(address);
+            if (r != null) r.Timeout = 10000;
+            return r;
+        }
+    }
+
     public class Session
     {
         public string Email, Token, Key;
+        public string LiteUrl;
         public string Role = "user";   // user | owner (owner can post news and releases)
         public bool IsOwner { get { return Role == "owner" || Role == "admin"; } }
         public int Tier;            // 1 Basic, 2 Elite, 3 Ultimate
@@ -87,6 +99,7 @@ namespace JdoTweak
                 Key = key,
                 WithLiteWindows = r.ContainsKey("lite") && r["lite"] is bool && (bool)r["lite"],
                 Role = r.ContainsKey("role") ? Convert.ToString(r["role"]) : "user",
+                LiteUrl = r.ContainsKey("liteUrl") ? Convert.ToString(r["liteUrl"]) : null,
             };
             if (r.ContainsKey("expires") && r["expires"] != null)
             {
@@ -127,7 +140,7 @@ namespace JdoTweak
             {
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | (SecurityProtocolType)12288; // TLS 1.2 / 1.3
                 var js = new JavaScriptSerializer();
-                using (var wc = new WebClient())
+                using (var wc = new TimeoutClient())
                 {
                     wc.Encoding = Encoding.UTF8;
                     wc.Headers[HttpRequestHeader.ContentType] = "application/json";

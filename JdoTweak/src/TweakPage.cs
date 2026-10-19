@@ -22,41 +22,43 @@ namespace JdoTweak
         readonly TextBox search = new TextBox();
         readonly DispatcherTimer debounce = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
         int shownOptions = PageSize, shownLibrary = PageSize;
+        bool showAll;
+        readonly bool embedded;
 
         static int UserTier { get { return License.Current == null ? 0 : License.Current.Tier; } }
 
-        public TweakPage(MainWindow w, Category c)
+        public TweakPage(MainWindow w, Category c, bool embedded = false)
         {
-            win = w; category = c;
+            win = w; category = c; this.embedded = embedded;
             var all = App.Catalog.Tweaks.Where(t => t.Cat == c.Id).ToList();
             best = all.Where(t => t.Curated).ToList();
             options = all.Where(t => !t.Curated && t.HasOptions).OrderByDescending(t => t.Packs).ToList();
             library = all.Where(t => !t.Curated && !t.HasOptions).OrderBy(t => t.Tier).ThenBy(t => t.En).ToList();
 
             var page = new StackPanel();
-            int changes = all.Sum(t => t.HasOptions ? t.Options.Count - 1 : Math.Max(1, t.Apply.Count));
-            page.Children.Add(MainWindow.Header(c.Icon, c.Title, all.Count.ToString("N0") + " " + L.T("tweaksTotal") + "  ·  " + changes.ToString("N0") + " " + L.T("changesTotal")));
+            if (!embedded) page.Children.Add(MainWindow.Header(c.Icon, c.Title, L.T("pageSub")));
 
             // toolbar
             var bar = new DockPanel { Margin = new Thickness(0, 0, 0, 18) };
             var btns = new StackPanel { Orientation = Orientation.Horizontal };
             var rec = UI.IconBtn("", L.T("applyRec"), "Primary", async (o, e) => await ApplyRecommended((Button)o));
             var rev = UI.IconBtn("", L.T("revertAll"), "Ghost", async (o, e) => await RevertAll((Button)o)); rev.Margin = new Thickness(10, 0, 0, 0);
-            btns.Children.Add(rec); btns.Children.Add(rev);
+            if (!embedded) btns.Children.Add(rec);
+            btns.Children.Add(rev);
             DockPanel.SetDock(btns, Dock.Right);
             bar.Children.Add(btns);
             search.Margin = new Thickness(0, 0, 16, 0);
-            search.Tag = L.T("search");
             var hint = new Grid();
             hint.Children.Add(search);
             var ph = UI.Text(L.T("searchHint"), 13.5, "Muted"); ph.IsHitTestVisible = false; ph.Margin = new Thickness(14, 10, 0, 0);
             hint.Children.Add(ph);
             search.TextChanged += (o, e) => { ph.Visibility = search.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed; debounce.Stop(); debounce.Start(); };
             debounce.Tick += (o, e) => { debounce.Stop(); shownOptions = shownLibrary = PageSize; Render(); };
+            Unloaded += (o, e) => debounce.Stop();
             bar.Children.Add(hint);
             page.Children.Add(bar);
             page.Children.Add(list);
-            Children.Add(MainWindow.Page(page));
+            if (embedded) Children.Add(page); else Children.Add(MainWindow.Page(page));
             Render();
         }
 
@@ -74,10 +76,11 @@ namespace JdoTweak
         {
             stagger = 0;
             list.Children.Clear();
+            bool searching = search.Text.Trim().Length > 0;
             var b = Filter(best).ToList();
-            var o = Filter(options).ToList();
-            var l = Filter(library).ToList();
-            if (b.Count > 0) { list.Children.Add(Group("", L.T("secBest"), L.T("secBestD"), b.Count)); foreach (var t in b) list.Children.Add(Card(t)); }
+            var o = (showAll || searching) ? Filter(options).ToList() : new List<Tweak>();
+            var l = (showAll || searching) ? Filter(library).ToList() : new List<Tweak>();
+            if (b.Count > 0) { if (!embedded) list.Children.Add(Group("", L.T("secBest"), L.T("secBestD"), b.Count)); foreach (var t in b) list.Children.Add(Card(t)); }
             if (o.Count > 0)
             {
                 list.Children.Add(Group("", L.T("secOptions"), L.T("secOptionsD"), o.Count));
@@ -91,6 +94,13 @@ namespace JdoTweak
                 if (l.Count > shownLibrary) list.Children.Add(More(l.Count - shownLibrary, () => { shownLibrary += PageSize * 2; Render(); }));
             }
             if (b.Count + o.Count + l.Count == 0) { var n = UI.Text(L.T("noResults"), 14, "Muted"); n.Margin = new Thickness(4, 20, 0, 0); list.Children.Add(n); }
+            int hidden = options.Count + library.Count;
+            if (!searching && hidden > 0)
+            {
+                var more = UI.Btn((showAll ? L.T("hideAdvanced") : L.T("showAdvanced")) + "  (" + hidden.ToString("N0") + ")", "Ghost", (x, y) => { showAll = !showAll; shownOptions = shownLibrary = PageSize; Render(); });
+                more.HorizontalAlignment = HorizontalAlignment.Center; more.Margin = new Thickness(0, 14, 0, 24);
+                list.Children.Add(more);
+            }
         }
 
         static FrameworkElement Group(string icon, string title, string sub, int count)
@@ -212,16 +222,14 @@ namespace JdoTweak
 
             var card = UI.Card(g, 16);
             card.Margin = new Thickness(0, 0, 0, 10);
-            Fx.Enter(card, Math.Min(stagger++ * 28, 420), 10);
             if (locked) card.Opacity = 0.62;
+            Fx.Enter(card, Math.Min(stagger++ * 28, 420), 10);
             card.MouseEnter += (o, e) => card.Background = UI.B("CardHover");
             card.MouseLeave += (o, e) => card.Background = UI.B("Card");
             return card;
         }
 
         // Every value / command inside a hand-picked tweak, each with its own switch.
-        static readonly Dictionary<string, Tweak> subs = new Dictionary<string, Tweak>();
-
         FrameworkElement Details(Tweak t, bool locked)
         {
             var wrap = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
@@ -244,18 +252,7 @@ namespace JdoTweak
 
         FrameworkElement SubRow(Tweak parent, int i, bool locked)
         {
-            string id = parent.Id + "#" + i;
-            Tweak s;
-            if (!subs.TryGetValue(id, out s))
-            {
-                s = new Tweak
-                {
-                    Id = id, Cat = parent.Cat, Tier = parent.Tier, Risk = parent.Risk, Reboot = parent.Reboot,
-                    Apply = new List<TAction> { parent.Apply[i] },
-                    Revert = parent.Revert.Count == parent.Apply.Count ? new List<TAction> { parent.Revert[i] } : new List<TAction>()
-                };
-                subs[id] = s;
-            }
+            var s = Tweak.Sub(parent, i);
             var a = parent.Apply[i];
             var row = new DockPanel { Margin = new Thickness(0, 0, 0, 6) };
             var sw = new ToggleButton { Style = UI.S("Switch"), IsEnabled = !locked, RenderTransform = new ScaleTransform(0.8, 0.8), RenderTransformOrigin = new Point(0.5, 0.5) };
@@ -267,7 +264,9 @@ namespace JdoTweak
                 if (want && !Confirm(s)) { sw.IsChecked = false; return; }
                 sw.IsEnabled = false;
                 await Task.Run(() => { if (want) Engine.ApplyTweak(s); else Engine.RevertTweak(s); });
-                sw.IsEnabled = true;
+                bool now = want;
+                try { var m = Engine.AllMatch(s.Apply); if (m.HasValue) now = m.Value; } catch { }
+                sw.IsChecked = now; sw.IsEnabled = true;
                 if (s.Reboot) win.NeedReboot();
             };
             DockPanel.SetDock(sw, Dock.Right);
@@ -319,11 +318,11 @@ namespace JdoTweak
 
         async Task RevertAll(Button b)
         {
-            var ids = new HashSet<string>(Engine.BackedUpIds());
-            var todo = App.Catalog.Tweaks.Where(t => t.Cat == category.Id && ids.Contains(t.Id)).ToList();
+            var cat = App.Catalog;
+            var todo = Engine.BackedUpIds().Select(id => cat.Find(id)).Where(t => t != null && t.Cat == category.Id).ToList();
             if (todo.Count == 0) return;
             b.IsEnabled = false;
-            await Task.Run(() => { foreach (var t in todo) try { Engine.RevertTweak(t); } catch { } });
+            await Task.Run(() => { foreach (var t in todo) try { Engine.RevertById(cat, t.Id); } catch { } });
             b.IsEnabled = true;
             if (todo.Any(t => t.Reboot)) win.NeedReboot();
             Render();

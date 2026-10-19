@@ -253,9 +253,7 @@ namespace JdoTweak
                 label.Text = PollLabel(pollMax);
                 stats.Text = L.T("pollAvg") + " " + (int)pollSamples.Average() + " Hz  ·  " + L.T("pollMax") + " " + pollMax + " Hz";
             };
-            var page = Page(sp);
-            page.Unloaded += (o, e) => onPoll = null;
-            return page;
+            return Page(sp);
         }
 
         // ------------------------------------------------------------------ account

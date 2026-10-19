@@ -3,14 +3,8 @@
   "categories": [
     { "id": "mouse",    "ar": "الماوس",            "en": "Mouse",            "icon": "" },
     { "id": "keyboard", "ar": "الكيبورد",          "en": "Keyboard",         "icon": "" },
-    { "id": "cpu",      "ar": "المعالج",           "en": "Processor",        "icon": "" },
-    { "id": "ram",      "ar": "الرامات",           "en": "Memory (RAM)",     "icon": "" },
-    { "id": "gpu",      "ar": "كرت الشاشة",        "en": "Graphics (GPU)",   "icon": "" },
-    { "id": "gaming",   "ar": "الألعاب",           "en": "Gaming",           "icon": "" },
     { "id": "network",  "ar": "الإنترنت والبنق",   "en": "Network & Ping",   "icon": "" },
-    { "id": "power",    "ar": "الطاقة",            "en": "Power",            "icon": "" },
-    { "id": "latency",  "ar": "تقليل الديلاي",     "en": "Input Delay",      "icon": "" },
-    { "id": "windows",  "ar": "تخفيف الويندوز",    "en": "Windows Debloat",  "icon": "" },
+    { "id": "windows",  "ar": "تخفيف الويندوز",    "en": "Windows Boost",  "icon": "" },
     { "id": "privacy",  "ar": "الخصوصية",          "en": "Privacy",          "icon": "" },
     { "id": "storage",  "ar": "التخزين",           "en": "Storage",          "icon": "" },
     { "id": "advanced", "ar": "متقدم (حمايات)",    "en": "Advanced (Security)", "icon": "" }
@@ -657,7 +651,7 @@
       "reboot": true
     },
     {
-      "id": "win.spooler", "cat": "windows", "tier": 3, "risk": 1,
+      "id": "win.spooler", "cat": "windows", "tier": 3, "risk": 1, "nopack": true,
       "ar": "إيقاف خدمة الطابعة", "en": "Disable Print Spooler",
       "dar": "فعّله بس إذا ما عندك طابعة. الطباعة توقف لين ترجعه.",
       "den": "Only use this if you have no printer. Printing stops until you revert it.",

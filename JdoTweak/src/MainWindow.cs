@@ -45,6 +45,7 @@ namespace JdoTweak
         void Build()
         {
             Title = L.T("app");
+            Background = UI.B("Bg");     // follows the theme when it changes
             FlowDirection = L.Ar ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
             var root = new Grid();
             root.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(250) });
@@ -71,7 +72,7 @@ namespace JdoTweak
             var navList = new StackPanel();
             navList.Children.Add(Nav("dashboard", "", L.T("dashboard")));
             navList.Children.Add(Section(L.T("tweaks")));
-            foreach (var c in cat.Categories) navList.Children.Add(Nav("cat:" + c.Id, c.Icon, c.Title, cat.Tweaks.Count(t => t.Cat == c.Id)));
+            foreach (var c in cat.Categories) navList.Children.Add(Nav("cat:" + c.Id, c.Icon, c.Title));
             navList.Children.Add(Section(L.T("tools")));
             navList.Children.Add(Nav("repair", "", L.T("repair")));
             navList.Children.Add(Nav("polling", "", L.T("pollTitle")));
@@ -127,16 +128,11 @@ namespace JdoTweak
             return t;
         }
 
-        RadioButton Nav(string id, string icon, string text, int count = -1)
+        RadioButton Nav(string id, string icon, string text)
         {
             var g = new DockPanel();
             var ic = new TextBlock { Text = icon, FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 15, Width = 22, VerticalAlignment = VerticalAlignment.Center };
             g.Children.Add(ic);
-            if (count >= 0)
-            {
-                var c = UI.Text(count.ToString("N0"), 11, "Muted"); c.VerticalAlignment = VerticalAlignment.Center;
-                DockPanel.SetDock(c, Dock.Right); g.Children.Add(c);
-            }
             var tx = new TextBlock { Text = text, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
             g.Children.Add(tx);
             var r = new RadioButton { Content = g, Style = UI.S("Nav"), GroupName = "nav", IsChecked = page == id, Tag = id };
@@ -148,14 +144,17 @@ namespace JdoTweak
         {
             page = id;
             onSample = null;
+            onPoll = null;
             FrameworkElement el;
             if (id == "dashboard") el = Dashboard();
-            else if (id.StartsWith("cat:")) el = new TweakPage(this, cat.Categories.First(c => c.Id == id.Substring(4)));
+            else if (id == "cat:windows") el = new PackPage(this, cat.Categories.First(c => c.Id == "windows"));
+            else if (id.StartsWith("cat:") && cat.Categories.Any(c => c.Id == id.Substring(4))) el = new TweakPage(this, cat.Categories.First(c => c.Id == id.Substring(4)));
             else if (id == "repair") el = RepairPage();
             else if (id == "polling") el = PollingPage();
             else if (id == "account") el = AccountPage();
             else if (id == "owner") el = OwnerPage();
-            else el = SettingsPage();
+            else if (id == "settings") el = SettingsPage();
+            else { page = "dashboard"; el = Dashboard(); }
             content.Content = el;
             Fx.Enter(el, 0, 18);
         }
@@ -208,9 +207,7 @@ namespace JdoTweak
             var ht = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             ht.Children.Add(UI.Text(L.T("welcome") + (user != null ? " " + user.Email.Split('@')[0] : ""), 26, "Text", true));
             int active = cat.Tweaks.Count(t => t.Curated && SafeApplied(t));
-            var stat = UI.Text(cat.Tweaks.Count.ToString("N0") + " " + L.T("tweaksTotal") + "  ·  " +
-                               cat.Tweaks.Sum(t => t.HasOptions ? t.Options.Count : Math.Max(1, t.Apply.Count)).ToString("N0") + " " + L.T("changesTotal") + "  ·  " +
-                               active + " " + L.T("tweaksActive"), 13.5, "Muted");
+var stat = UI.Text(active + " " + L.T("tweaksActive"), 13.5, "Muted");
             stat.Margin = new Thickness(0, 6, 0, 0);
             ht.Children.Add(stat);
             hero.Children.Add(ht);
@@ -258,7 +255,7 @@ namespace JdoTweak
                 Set(gauges["cpu"], m.Cpu, hw.Devices.Where(d => d.Kind == "cpu").Select(d => d.Name).FirstOrDefault());
                 Set(gauges["gpu"], m.Gpu, hw.Devices.Where(d => d.Kind == "gpu").Select(d => d.Name).FirstOrDefault());
                 Set(gauges["ram"], m.Ram, m.RamUsedGb.ToString("0.0") + " / " + m.RamTotalGb.ToString("0") + " GB");
-                Set(gauges["disk"], m.Disk, (m.NetKbps > 1000 ? (m.NetKbps / 1000).ToString("0.0") + " Mbps" : m.NetKbps.ToString("0") + " Kbps") + " · " + L.T("net"));
+                Set(gauges["disk"], m.Disk, hw.Devices.Where(d => d.Kind == "disk").Select(d => d.Name).FirstOrDefault());
             };
 
             // hardware

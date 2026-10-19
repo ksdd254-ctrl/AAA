@@ -65,10 +65,14 @@ namespace JdoTweak
         {
             var tt = new TranslateTransform(0, dy);
             e.RenderTransform = tt;
+            double final = e.Opacity;            // keep the element's own opacity (e.g. dimmed locked cards)
             e.Opacity = 0;
             var begin = TimeSpan.FromMilliseconds(delayMs);
-            var fade = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(320)) { BeginTime = begin, EasingFunction = Ease };
+            var fade = new DoubleAnimation(0, final, TimeSpan.FromMilliseconds(320)) { BeginTime = begin, EasingFunction = Ease };
             var move = new DoubleAnimation(dy, 0, TimeSpan.FromMilliseconds(380)) { BeginTime = begin, EasingFunction = Ease };
+            // Release the animation when done so later changes to Opacity actually take effect.
+            fade.Completed += (o, a) => { e.BeginAnimation(UIElement.OpacityProperty, null); e.Opacity = final; };
+            move.Completed += (o, a) => { tt.BeginAnimation(TranslateTransform.YProperty, null); tt.Y = 0; };
             e.BeginAnimation(UIElement.OpacityProperty, fade);
             tt.BeginAnimation(TranslateTransform.YProperty, move);
         }

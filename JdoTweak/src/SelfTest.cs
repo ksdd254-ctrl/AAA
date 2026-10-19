@@ -119,6 +119,29 @@ namespace JdoTweak
                 Check("catalog: ids unique", cat.Tweaks.Select(t => t.Id).Distinct().Count() == cat.Tweaks.Count);
                 log.WriteLine("catalog scan took " + sw.ElapsedMilliseconds + " ms");
 
+                // --- merged page, de-duplication, single-switch revert
+                Check("no tweak left in the merged categories", !cat.Tweaks.Any(t => new[] { "cpu", "ram", "gpu", "power", "gaming", "latency" }.Contains(t.Cat)));
+                Check("sidebar has no merged categories", !cat.Categories.Any(c => new[] { "cpu", "ram", "gpu", "power", "gaming", "latency" }.Contains(c.Id)));
+                var pk = cat.Tweaks.Where(t => t.Curated && t.Cat == "windows" && t.Risk <= 1 && !t.NoPack).ToList();
+                Check("Basic / Elite / Ultimate boxes all have tweaks (" + pk.Count(t => t.Tier == 1) + "/" + pk.Count(t => t.Tier == 2) + "/" + pk.Count(t => t.Tier == 3) + ")", pk.Any(t => t.Tier == 1) && pk.Any(t => t.Tier == 2) && pk.Any(t => t.Tier == 3));
+                Check("print spooler stays out of the one-click boxes", !pk.Any(t => t.Id == "win.spooler"));
+                Check("duplicates removed from library (" + cat.DuplicatesRemoved + ")", cat.DuplicatesRemoved > 0);
+                var seen = new HashSet<string>(); int dupSetting = 0;
+                foreach (var t in cat.Tweaks.Where(x => x.Library && x.Path != null && !x.Id.StartsWith("c.")))
+                    if (!seen.Add(t.Path.ToLowerInvariant())) { dupSetting++; if (dupSetting <= 8) log.WriteLine("  dup: " + t.Id + " " + t.Path); }
+                Check("no setting appears twice in the library", dupSetting == 0);
+                var sub0 = cat.Find("mouse.accel#0");
+                Check("single switch id resolves", sub0 != null && sub0.Apply.Count == 1);
+                Seed("MouseSpeedX", "keep", RegistryValueKind.String);
+                var sub = new Tweak { Id = "t.parent", Apply = new List<TAction> { A("reg", "MouseSpeedX", "sz", "changed"), A("reg", "Dw", "dw", 99L) }, Revert = new List<TAction>() };
+                Seed("Dw", 7, RegistryValueKind.DWord);
+                var s1 = Tweak.Sub(sub, 0);
+                Engine.ApplyTweak(s1);
+                Check("single switch applied", (string)Get("MouseSpeedX") == "changed" && (int)Get("Dw") == 7);
+                bool backed = Engine.BackedUpIds().Contains(s1.Id);
+                Engine.RevertTweak(s1);
+                Check("single switch is backed up and reverts", backed && (string)Get("MouseSpeedX") == "keep");
+
                 // state reads on real tweaks must not throw (read-only)
                 sw.Restart();
                 int reads = 0;

@@ -37,8 +37,28 @@ namespace JdoTweak
     {
         public string Id, Cat, Ar, En, DescAr, DescEn, Auto, Vendor, Path;
         public int Tier, Risk, MinRam, Packs;
-        public bool Reboot, Library, Curated, NoUndo;
+        public bool Reboot, Library, Curated, NoUndo, NoPack;
         public string SearchText;
+
+        // One switch inside a hand-picked tweak (one value or one command), cached so the
+        // details panel and "revert all" always talk about the same object.
+        static readonly Dictionary<string, Tweak> subs = new Dictionary<string, Tweak>();
+        public static Tweak Sub(Tweak parent, int i)
+        {
+            string id = parent.Id + "#" + i;
+            Tweak s;
+            lock (subs)
+            {
+                if (!subs.TryGetValue(id, out s))
+                    subs[id] = s = new Tweak
+                    {
+                        Id = id, Cat = parent.Cat, Tier = parent.Tier, Risk = parent.Risk, Reboot = parent.Reboot,
+                        Apply = new List<TAction> { parent.Apply[i] },
+                        Revert = parent.Revert.Count == parent.Apply.Count ? new List<TAction> { parent.Revert[i] } : new List<TAction>()
+                    };
+            }
+            return s;
+        }
         public List<TAction> Apply = new List<TAction>();
         public List<TAction> Revert = new List<TAction>();
         public List<TOption> Options;
@@ -79,8 +99,51 @@ namespace JdoTweak
         public List<Tweak> Tweaks = new List<Tweak>();
 
         public string LibraryVersion;
+        public int DuplicatesRemoved;
+
+        // The interface has one "Windows Debloat" page for all performance tweaks.
+        static readonly HashSet<string> Merged = new HashSet<string> { "cpu", "ram", "gpu", "power", "gaming", "latency", "windows" };
+        public static string MapCat(string c) { return c != null && Merged.Contains(c) ? "windows" : c; }
+
+        readonly HashSet<string> curatedSettings = new HashSet<string>();
+        readonly HashSet<string> curatedCommands = new HashSet<string>();
+
+        static string NormPath(string key, string name)
+        {
+            key = System.Text.RegularExpressions.Regex.Replace(key ?? "", @"^HKLM\\", @"HKEY_LOCAL_MACHINE\", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            key = System.Text.RegularExpressions.Regex.Replace(key, @"^HKCU\\", @"HKEY_CURRENT_USER\", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            key = System.Text.RegularExpressions.Regex.Replace(key, @"\\ControlSet00\d\\", @"\CurrentControlSet\", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return (key.TrimEnd('\\') + "|" + (name ?? "")).ToLowerInvariant();
+        }
+        static string NormCmd(string c) { return System.Text.RegularExpressions.Regex.Replace(c ?? "", @"\s+", " ").Trim().ToLowerInvariant(); }
+
+        void IndexCurated()
+        {
+            Action<IEnumerable<TAction>> add = list =>
+            {
+                foreach (var a in list)
+                    if (a.IsRegistry) curatedSettings.Add(NormPath(a.Key, a.Name));
+                    else if (a.Command != null) curatedCommands.Add(NormCmd(a.Command));
+            };
+            foreach (var t in Tweaks)
+            {
+                add(t.Apply); add(t.Revert);
+                if (t.Options != null) foreach (var o in t.Options) add(o.Apply);
+            }
+        }
 
         public static Catalog Parse(string json) { var c = new Catalog(); c.Merge(json, true); return c; }
+
+        Dictionary<string, Tweak> index;
+        public Tweak Find(string id)
+        {
+            if (index == null) { index = new Dictionary<string, Tweak>(); foreach (var t in Tweaks) index[t.Id] = t; }
+            int h = id.IndexOf('#');
+            if (h < 0) { Tweak t; return index.TryGetValue(id, out t) ? t : null; }
+            Tweak parent; int i;
+            if (!index.TryGetValue(id.Substring(0, h), out parent) || !int.TryParse(id.Substring(h + 1), out i) || i < 0 || i >= parent.Apply.Count) return null;
+            return Tweak.Sub(parent, i);
+        }
 
         // Curated catalog first, then the generated library (option + bundle tweaks).
         public void Merge(string json, bool curated)
@@ -96,9 +159,9 @@ namespace JdoTweak
             {
                 var t = new Tweak
                 {
-                    Id = Str(d, "id"), Cat = Str(d, "cat"), Ar = Str(d, "ar"), En = Str(d, "en"),
+                    Id = Str(d, "id"), Cat = MapCat(Str(d, "cat")), Ar = Str(d, "ar"), En = Str(d, "en"),
                     DescAr = Str(d, "dar"), DescEn = Str(d, "den"), Auto = Str(d, "auto"), Vendor = Str(d, "vendor"),
-                    Path = Str(d, "path"),
+                    Path = Str(d, "path"), NoPack = d.ContainsKey("nopack") && (bool)d["nopack"],
                     Tier = Int(d, "tier", 1), Risk = Int(d, "risk", 0), MinRam = Int(d, "minRam", 0), Packs = Int(d, "packs", 0),
                     Reboot = d.ContainsKey("reboot") && (bool)d["reboot"],
                     Library = d.ContainsKey("lib") && (bool)d["lib"],
@@ -121,6 +184,7 @@ namespace JdoTweak
                 }
                 Tweaks.Add(t);
             }
+            if (curated) IndexCurated();
         }
 
         // Library v2: one line per registry value ("S") or command ("C"), tab separated.
@@ -130,16 +194,18 @@ namespace JdoTweak
             if (line == null || !line.StartsWith("#JDOLIB")) return;
             LibraryVersion = line.Split('\t').Last();
             var known = new HashSet<string>(Tweaks.Select(x => x.Id));
+            var byPath = new Dictionary<string, Tweak>();
             while ((line = r.ReadLine()) != null)
             {
                 var f = line.Split('\t');
                 try
                 {
-                    var t = new Tweak { Library = true, Cat = f[1], Tier = int.Parse(f[2]), Risk = int.Parse(f[3]), Packs = int.Parse(f[4]) };
+                    var t = new Tweak { Library = true, Cat = MapCat(f[1]), Tier = int.Parse(f[2]), Risk = int.Parse(f[3]), Packs = int.Parse(f[4]) };
                     if (f[0] == "S")
                     {
                         bool each = f[5] == "1";
                         string key = f[6], name = f[7], src = f[8];
+                        if (curatedSettings.Contains(NormPath(key, name))) { DuplicatesRemoved++; continue; }   // already a hand-picked tweak
                         t.Id = "s." + StableHash((each ? "*" : "") + key + "|" + name);
                         t.Path = key + "\\" + name;
                         string title = name == "(key)" ? Words(key.Substring(key.LastIndexOf('\\') + 1)) + " (key)" : name == "" ? Words(key.Substring(key.LastIndexOf('\\') + 1)) : Words(name);
@@ -168,6 +234,7 @@ namespace JdoTweak
                     else if (f[0] == "C")
                     {
                         string text = f[6];
+                        if (curatedCommands.Contains(NormCmd(text))) { DuplicatesRemoved++; continue; }
                         t.Id = "c." + StableHash(text.ToLowerInvariant());
                         t.Ar = t.En = text.Length > 110 ? text.Substring(0, 107) + "..." : text;
                         t.Path = text.Length > 110 ? text : null;
@@ -178,6 +245,21 @@ namespace JdoTweak
                     }
                     else continue;
                     if (!known.Add(t.Id)) continue;
+                    if (f[0] == "S")
+                    {
+                        // The same value can arrive twice: once as "every adapter under this key" and once
+                        // as a value written on the parent key itself. Keep the one that does the real work.
+                        string pk = NormPath(f[6], f[7]);
+                        bool isEach = f[5] == "1";
+                        Tweak old;
+                        if (byPath.TryGetValue(pk, out old))
+                        {
+                            DuplicatesRemoved++;
+                            if (!isEach || old.Apply.Concat(old.Options == null ? new List<TAction>() : old.Options.SelectMany(o => o.Apply)).Any(a => a.Kind == "each")) continue;
+                            Tweaks.Remove(old);
+                        }
+                        byPath[pk] = t;
+                    }
                     t.SearchText = (t.En + " " + (t.Path ?? "") + " " + t.DescEn).ToLowerInvariant();
                     Tweaks.Add(t);
                 }
@@ -440,6 +522,16 @@ namespace JdoTweak
             }
             else Run(t.Revert);
             SetFlag(t.Id, false);
+        }
+
+        // Reverts anything this app changed, including single switches inside a tweak ("id#2").
+        public static bool RevertById(Catalog cat, string id)
+        {
+            var t = cat.Find(id);
+            if (t == null) return false;
+            if (t.HasOptions) { int d = t.Options.FindIndex(o => o.IsDefault); if (d >= 0) { ApplyOption(t, d); return true; } }
+            RevertTweak(t);
+            return true;
         }
 
         public static void Run(List<TAction> list)

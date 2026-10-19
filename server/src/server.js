@@ -272,7 +272,7 @@ function clientResult(u, lic, sess) {
   const tier = u.role === 'owner' ? 3 : lic ? lic.tier : u.free_tier;
   return {
     ok: true, token: sess, email: u.email, role: u.role, tier,
-    lite: !!(lic && lic.lite), expires: lic && lic.expires_at ? lic.expires_at + 'Z' : null,
+    lite: !!(lic && lic.lite), liteUrl: lic && lic.lite && cfg.liteWindowsUrl ? cfg.liteWindowsUrl : null, expires: lic && lic.expires_at ? lic.expires_at + 'Z' : null,
   };
 }
 
