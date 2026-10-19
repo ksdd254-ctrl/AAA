@@ -16,7 +16,6 @@ namespace JdoTweak
     {
         readonly MainWindow win;
         readonly List<Tweak> pack;
-        readonly TweakPage all;
         readonly ToggleButton[] sw = new ToggleButton[4];
         readonly TextBlock[] st = new TextBlock[4];
         bool busy;
@@ -28,8 +27,7 @@ namespace JdoTweak
         {
             win = w;
             var hw = App.Hardware;
-            pack = App.Catalog.Tweaks.Where(t => t.Curated && t.Cat == c.Id && t.Risk <= 1 && !t.NoPack
-                    && (t.MinRam == 0 || hw.RamGb >= t.MinRam) && (t.Vendor == null || t.Vendor == hw.GpuVendor)).ToList();
+            pack = InPack(App.Catalog, c.Id, hw);
 
             var page = new StackPanel();
             var head = new DockPanel();
@@ -45,19 +43,19 @@ namespace JdoTweak
             grid.Children.Add(LiteBox());
             page.Children.Add(grid);
 
-            // everything else, one by one, for people who want full control
-            all = new TweakPage(w, c, true) { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 10, 0, 0) };
-            int count = App.Catalog.Tweaks.Count(t => t.Cat == c.Id);
-            var more = UI.Btn("", "Ghost", null);
-            Action label = () => more.Content = (all.Visibility == Visibility.Visible ? L.T("hideAll") : L.T("showAll")) + "  (" + count.ToString("N0") + ")";
-            label();
-            more.Click += (o, e) => { all.Visibility = all.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; label(); };
-            more.HorizontalAlignment = HorizontalAlignment.Center; more.Margin = new Thickness(0, 18, 0, 6);
-            page.Children.Add(more);
-            page.Children.Add(all);
-
             Children.Add(MainWindow.Page(page));
             Refresh();
+        }
+
+        // What a box applies: the hand-picked tweaks, plus every library setting that is safe to
+        // switch on in bulk - registry only (so it can be undone exactly), no risk flag, and used
+        // by at least two packs. Commands (no automatic undo) and risky items stay out.
+        public static List<Tweak> InPack(Catalog cat, string catId, HardwareInfo hw)
+        {
+            return cat.Tweaks.Where(t => t.Cat == catId && !t.NoPack && (
+                    (t.Curated && t.Risk <= 1 && (t.MinRam == 0 || hw == null || hw.RamGb >= t.MinRam) && (t.Vendor == null || hw == null || t.Vendor == hw.GpuVendor))
+                    || (t.Library && t.Risk == 0 && !t.NoUndo && t.Packs >= 2 && t.Id.StartsWith("s."))))
+                .ToList();
         }
 
         IEnumerable<Tweak> Level(int k) { return pack.Where(t => t.Tier <= k); }
@@ -66,7 +64,7 @@ namespace JdoTweak
         FrameworkElement LevelBox(int k)
         {
             bool locked = k > UserTier;
-            var own = pack.Where(t => t.Tier == k).ToList();
+            var own = pack.Where(t => t.Tier == k && t.Curated).ToList();
             int total = Level(k).Count();
 
             var sp = new StackPanel();
@@ -81,7 +79,10 @@ namespace JdoTweak
             sp.Children.Add(d);
 
             var names = own.Select(t => t.Title).ToList();
-            string inc = string.Join(L.Ar ? "، " : ", ", names.Take(5)) + (names.Count > 5 ? (L.Ar ? " و" + (names.Count - 5) + " أخرى" : " +" + (names.Count - 5) + " more") : "");
+            int extra = pack.Count(t => t.Tier == k) - names.Count;
+            string inc = string.Join(L.Ar ? "، " : ", ", names.Take(5));
+            int rest = Math.Max(0, names.Count - 5) + extra;
+            if (rest > 0) inc += L.Ar ? " و" + rest.ToString("N0") + " تويك ثاني" : " + " + rest.ToString("N0") + " more";
             var incl = UI.Text(L.T("includes") + ": " + inc, 12, "Muted"); incl.Margin = new Thickness(0, 10, 0, 0); incl.Opacity = 0.85; incl.LineHeight = 18;
             sp.Children.Add(incl);
 
@@ -184,6 +185,9 @@ namespace JdoTweak
             await Task.Run(() =>
             {
                 var list = want ? Level(k).ToList() : pack.Where(t => t.Tier >= k).ToList();
+                Engine.BeginBatch();
+                try
+                {
                 foreach (var t in list)
                 {
                     try
@@ -202,6 +206,8 @@ namespace JdoTweak
                     }
                     catch { }
                 }
+                }
+                finally { Engine.EndBatch(); }
             });
             busy = false;
             for (int i = 0; i < 3; i++) sw[i].IsEnabled = i + 1 <= UserTier;
@@ -214,7 +220,12 @@ namespace JdoTweak
             var cat = App.Catalog;
             var todo = Engine.BackedUpIds().Select(id => cat.Find(id)).Where(t => t != null && t.Cat == "windows").ToList();
             b.IsEnabled = false;
-            await Task.Run(() => { foreach (var t in todo) try { Engine.RevertById(cat, t.Id); } catch { } });
+            await Task.Run(() =>
+            {
+                Engine.BeginBatch();
+                try { foreach (var t in todo) try { Engine.RevertById(cat, t.Id); } catch { } }
+                finally { Engine.EndBatch(); }
+            });
             b.IsEnabled = true;
             if (todo.Any(t => t.Reboot)) win.NeedReboot();
             Refresh();

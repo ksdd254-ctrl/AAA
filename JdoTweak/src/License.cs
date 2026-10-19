@@ -62,7 +62,7 @@ namespace JdoTweak
         {
             if (DevBuild && string.IsNullOrEmpty(ApiBase))
             {
-                Current = new Session { Email = string.IsNullOrEmpty(email) ? "dev@jdo.local" : email, Tier = 3, Token = "dev", Key = "DEV", Role = "owner" };
+                Current = new Session { Email = string.IsNullOrEmpty(email) ? "dev@jdo.local" : email, Tier = 3, Token = "dev", Key = "DEV", Role = "owner", WithLiteWindows = true };
                 return Result.Ok;
             }
             var r = Post("/api/client/login", new Dictionary<string, object> { { "email", email }, { "password", password }, { "key", key }, { "hwid", hwid }, { "version", App.Version } });

@@ -636,8 +636,15 @@ namespace JdoTweak
             backup = new Dictionary<string, object>();
         }
 
+        // While applying a whole box (thousands of tweaks) the backup file is written once at the end,
+        // not after every tweak.
+        static int batch;
+        public static void BeginBatch() { lock (typeof(Engine)) batch++; }
+        public static void EndBatch() { lock (typeof(Engine)) { if (--batch <= 0) { batch = 0; Save(); } } }
+
         static void Save()
         {
+            if (batch > 0) return;
             try
             {
                 Directory.CreateDirectory(Dir);

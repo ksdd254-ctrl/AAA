@@ -122,7 +122,9 @@ namespace JdoTweak
                 // --- merged page, de-duplication, single-switch revert
                 Check("no tweak left in the merged categories", !cat.Tweaks.Any(t => new[] { "cpu", "ram", "gpu", "power", "gaming", "latency" }.Contains(t.Cat)));
                 Check("sidebar has no merged categories", !cat.Categories.Any(c => new[] { "cpu", "ram", "gpu", "power", "gaming", "latency" }.Contains(c.Id)));
-                var pk = cat.Tweaks.Where(t => t.Curated && t.Cat == "windows" && t.Risk <= 1 && !t.NoPack).ToList();
+                var pk = PackPage.InPack(cat, "windows", null);
+                log.WriteLine("boxes: basic " + pk.Count(t => t.Tier <= 1) + ", elite " + pk.Count(t => t.Tier <= 2) + ", ultimate " + pk.Count + "  (library left out: " + cat.Tweaks.Count(t => t.Cat == "windows" && t.Library && !pk.Contains(t)) + ")");
+                Check("no command or risky item in the boxes", !pk.Any(t => t.NoUndo || t.Id.StartsWith("c.") || (t.Library && t.Risk > 0)));
                 Check("Basic / Elite / Ultimate boxes all have tweaks (" + pk.Count(t => t.Tier == 1) + "/" + pk.Count(t => t.Tier == 2) + "/" + pk.Count(t => t.Tier == 3) + ")", pk.Any(t => t.Tier == 1) && pk.Any(t => t.Tier == 2) && pk.Any(t => t.Tier == 3));
                 Check("print spooler stays out of the one-click boxes", !pk.Any(t => t.Id == "win.spooler"));
                 Check("duplicates removed from library (" + cat.DuplicatesRemoved + ")", cat.DuplicatesRemoved > 0);
