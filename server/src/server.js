@@ -438,5 +438,40 @@ app.post('/api/admin/release', owner, (req, res) => res.json({ ok: postRelease(r
 app.use(express.static(path.join(__dirname, '..', 'public'), { extensions: ['html'] }));
 app.use((err, req, res, next) => { console.error(err); res.status(500).json({ ok: false, error: 'server' }); });
 
-if (require.main === module) app.listen(cfg.port, () => console.log(`JDO server on ${cfg.baseUrl} (${cfg.dev ? 'dev' : 'production'})`));
+// ---------------------------------------------------------------- daily backup of the database
+const backupDir = path.join(process.env.DATA_DIR || path.join(__dirname, '..', 'data'), 'backups');
+async function backupNow() {
+  fs.mkdirSync(backupDir, { recursive: true });
+  const file = path.join(backupDir, `jdo-${new Date().toISOString().slice(0, 10)}.db`);
+  await db.backup(file);
+  // keep the last 14 days
+  fs.readdirSync(backupDir).filter((f) => f.endsWith('.db')).sort().slice(0, -14)
+    .forEach((f) => fs.unlinkSync(path.join(backupDir, f)));
+  return file;
+}
+
+// Production must not start half-configured: no payments, no emails or no bot check would
+// either lose sales or let anyone in.
+function productionProblems() {
+  const p = [];
+  if (!/^https:\/\//.test(cfg.baseUrl)) p.push('BASE_URL must be your https:// domain');
+  if (!stripe || !cfg.stripeWebhookSecret) p.push('STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are required');
+  if (!cfg.smtp) p.push('SMTP_HOST / SMTP_USER / SMTP_PASS are required to send codes and keys');
+  if (!cfg.turnstileSecret || !cfg.turnstileSite) p.push('TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY are required');
+  if (!cfg.ownerEmail) p.push('OWNER_EMAIL is required');
+  if (!fs.existsSync(cfg.downloadFile)) p.push(`the installer is missing: ${cfg.downloadFile}`);
+  return p;
+}
+
+if (require.main === module) {
+  if (!cfg.dev) {
+    const p = productionProblems();
+    if (p.length) { console.error('Cannot start in production:\n - ' + p.join('\n - ')); process.exit(1); }
+  }
+  app.listen(cfg.port, () => console.log(`JDO server on ${cfg.baseUrl} (${cfg.dev ? 'dev' : 'production'})`));
+  backupNow().then((f) => console.log('backup: ' + f)).catch((e) => console.error('backup failed', e));
+  setInterval(() => backupNow().catch((e) => console.error('backup failed', e)), 24 * 3600e3);
+}
+app.backupNow = backupNow;
+app.productionProblems = productionProblems;
 module.exports = app;

@@ -48,6 +48,7 @@ namespace JdoTweak
             };
             L.Load();
             Themes.Load();
+            EnsureShortcuts();
 
             HardwareTask = Task.Run(() => HardwareInfo.Read());
             Catalog = LoadCatalog();
@@ -57,6 +58,30 @@ namespace JdoTweak
             var r = License.Resume(Hardware.Hwid());
             Window first = r == License.Result.Ok ? (Window)new MainWindow() : new LoginWindow();
             Wpf.Run(first);
+        }
+
+        // First run: put the app on the desktop and in the Start menu, pointing at wherever the EXE lives.
+        static void EnsureShortcuts()
+        {
+            const string k = @"HKEY_CURRENT_USER\Software\JdoTweak";
+            string exe = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+            try
+            {
+                if (string.Equals(Microsoft.Win32.Registry.GetValue(k, "ShortcutTarget", null) as string, exe, StringComparison.OrdinalIgnoreCase)) return;
+                string name = "JDO Tweak.lnk";   // WScript.Shell cannot save non-ANSI (Arabic) file names
+                var shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
+                foreach (var dir in new[] { Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), Environment.GetFolderPath(Environment.SpecialFolder.Programs) })
+                {
+                    dynamic lnk = shell.GetType().InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shell, new object[] { Path.Combine(dir, name) });
+                    lnk.TargetPath = exe;
+                    lnk.WorkingDirectory = Path.GetDirectoryName(exe);
+                    lnk.IconLocation = exe + ",0";
+                    lnk.Description = "JDO Al-Shayeb Tweak";
+                    lnk.Save();
+                }
+                Microsoft.Win32.Registry.SetValue(k, "ShortcutTarget", exe);
+            }
+            catch (Exception ex) { try { File.WriteAllText(Path.Combine(Path.GetTempPath(), "jdo_shortcut.log"), ex.ToString()); } catch { } }
         }
 
         public static Stream Res(string name)
