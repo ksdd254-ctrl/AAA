@@ -59,8 +59,8 @@
             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
           </Border>
           <ControlTemplate.Triggers>
-            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="glow" Property="Opacity" Value="0.85"/><Setter TargetName="glow" Property="BlurRadius" Value="24"/></Trigger>
-            <Trigger Property="IsPressed" Value="True"><Setter TargetName="sc" Property="ScaleX" Value="0.96"/><Setter TargetName="sc" Property="ScaleY" Value="0.96"/></Trigger>
+            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Opacity" Value="0.9"/></Trigger>
+            <Trigger Property="IsPressed" Value="True"><Setter TargetName="b" Property="Opacity" Value="0.75"/></Trigger>
             <Trigger Property="IsEnabled" Value="False"><Setter TargetName="b" Property="Opacity" Value="0.35"/></Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
