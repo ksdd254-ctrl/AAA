@@ -160,7 +160,7 @@ namespace JdoTweak
             var status = UI.Text("", 11, "Muted"); status.HorizontalAlignment = HorizontalAlignment.Center; status.Margin = new Thickness(0, 6, 0, 0);
             if (t.HasOptions)
             {
-                var combo = new ComboBox { IsEnabled = !locked };
+                var combo = new ComboBox { IsEnabled = !locked, ToolTip = L.T("optHint") };
                 foreach (var o in t.Options) combo.Items.Add(o);
                 int cur = -1;
                 try { cur = Engine.CurrentOption(t); } catch { }

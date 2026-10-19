@@ -12,7 +12,8 @@ namespace JdoTweak
     public static class App
     {
         public const string Version = "1.0.0";
-        public const string Website = "https://jdo-tweak.com";
+        // The site and the license server share one domain, so links follow the build's -Api address.
+        public static string Website { get { return string.IsNullOrEmpty(License.ApiBase) ? "https://jdo-tweak.com" : License.ApiBase.TrimEnd('/'); } }
 
         public static Catalog Catalog;
         public static HardwareInfo Hardware;

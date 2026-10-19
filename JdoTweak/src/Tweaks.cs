@@ -210,8 +210,9 @@ namespace JdoTweak
                         t.Path = key + "\\" + name;
                         string title = name == "(key)" ? Words(key.Substring(key.LastIndexOf('\\') + 1)) + " (key)" : name == "" ? Words(key.Substring(key.LastIndexOf('\\') + 1)) : Words(name);
                         t.Ar = t.En = title;
-                        t.DescAr = "من: " + src + (t.Packs > 1 ? "  ·  يستخدمه " + t.Packs + " باك" : "");
-                        t.DescEn = "From: " + src + (t.Packs > 1 ? "  ·  Used by " + t.Packs + " packs" : "");
+                        string where = key.Substring(key.LastIndexOf('\\') + 1);
+                        t.DescAr = string.Format(L.T("libDescS", true), title, where) + (t.Packs > 1 ? "  ·  يستخدمه " + t.Packs + " باك" : "");
+                        t.DescEn = string.Format(L.T("libDescS", false), title, where) + (t.Packs > 1 ? "  ·  Used by " + t.Packs + " packs" : "");
                         var opts = new List<TOption>();
                         for (int i = 9; i < f.Length; i++)
                         {

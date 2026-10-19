@@ -172,6 +172,23 @@ namespace JdoTweak
             { "pack3D",       new[] { "كل الإيليت + أقوى تحسينات الأداء. فيها تحسينات متوسطة الخطر ويتم تأكيدها قبل التفعيل.", "Everything in Elite plus the strongest performance tweaks. Includes moderate-risk items, confirmed before applying." } },
             { "pack4D",       new[] { "كل الألتميت + نسخة ويندوز مخففة جاهزة للتحميل.", "Everything in Ultimate plus a ready-to-install lite Windows image." } },
             { "includes",     new[] { "يشمل", "Includes" } },
+            { "pack1B",       new[] { "أولوية للعبة على البرامج الخلفية|خطة طاقة الأداء العالي|إيقاف تسجيل الألعاب بالخلفية (Game DVR)|إيقاف الإعلانات والتطبيقات المفروضة", "Games get priority over background apps|High-performance power plan|Background game recording (Game DVR) off|Ads and auto-installed apps off" } },
+            { "pack1W",       new[] { "مناسبة لأي جهاز، وآمنة تماماً.", "Suits any PC and is completely safe." } },
+            { "pack2B",       new[] { "كل مميزات البيسك|المعالج على أقصى سرعة وبدون ركن الأنوية|إيقاف ضغط الرام والتحميل المسبق|أقل ديلاي للماوس والكيبورد وكرت الشاشة", "Everything in Basic|CPU at full speed with no core parking|Memory compression and preloading off|Lower delay for mouse, keyboard and GPU" } },
+            { "pack2W",       new[] { "مناسبة للاعبين اللي يبون فريمات أعلى وبنق أثبت.", "For gamers who want higher FPS and steadier ping." } },
+            { "pack3B",       new[] { "كل مميزات الإيليت|أعلى أولوية لكرت الشاشة ومنافذ USB|إيقاف مقاطعة كرت الشاشة|أقصى أداء ممكن من الويندوز", "Everything in Elite|Top priority for the GPU and USB ports|GPU preemption off|The most performance Windows can give" } },
+            { "pack3W",       new[] { "للمحترفين. فيها تويكات متوسطة الخطر، وتقدر ترجعها بضغطة.", "For enthusiasts. Includes moderate-risk tweaks you can undo in one click." } },
+            { "pack4B",       new[] { "كل مميزات الألتميت|نسخة ويندوز مخففة بدون برامج زايدة|أخف على الرام والمعالج من البداية", "Everything in Ultimate|A lite Windows build without bloat|Lighter on RAM and CPU from the first boot" } },
+            { "pack4W",       new[] { "لأقصى أداء: تثبيت ويندوز جديد خفيف.", "For maximum performance: a fresh, light Windows install." } },
+            { "boxOn",        new[] { "مفعّلة", "On" } },
+            { "boxPartial",   new[] { "مفعّلة جزئياً", "Partly on" } },
+            { "boxOff",       new[] { "غير مفعّلة", "Off" } },
+            { "expiredErr",   new[] { "اشتراكك انتهى. جدده من الموقع.", "Your subscription has expired. Renew it on the website." } },
+            { "lockedErr",    new[] { "هذا الحساب أو المفتاح موقوف. تواصل مع الدعم.", "This account or key is suspended. Contact support." } },
+            { "forgotPass",   new[] { "نسيت كلمة المرور؟", "Forgot your password?" } },
+            { "keyHint",      new[] { "المفتاح يوصلك على الإيميل بعد الشراء.", "Your key is emailed to you after purchase." } },
+            { "optHint",      new[] { "اختر قيمة. الخيار ★ هو الأكثر استخداماً، و\"الأصلي\" يرجع قيمة جهازك.", "Pick a value. ★ is the most used one, and \"Original\" restores your PC's value." } },
+            { "libDescS",     new[] { "يغير الإعداد \"{0}\" في {1}. ينرجع للأصل بضغطة.", "Changes the \"{0}\" setting in {1}. Can be undone in one click." } },
             { "partial",      new[] { "جزئي", "partial" } },
             { "packRisk",     new[] { "هذا المستوى فيه تحسينات متوسطة الخطر. تقدر ترجعها بأي وقت. تكمل؟", "This level has moderate-risk tweaks. You can undo them any time. Continue?" } },
             { "downloadLite", new[] { "تحميل الويندوز المخفف", "Download Lite Windows" } },
@@ -210,6 +227,12 @@ namespace JdoTweak
             string[] v;
             if (!S.TryGetValue(key, out v)) return key;
             return Ar ? v[0] : v[1];
+        }
+
+        public static string T(string key, bool arabic)
+        {
+            string[] v;
+            return S.TryGetValue(key, out v) ? v[arabic ? 0 : 1] : key;
         }
 
         public static string Pick(string ar, string en) { return Ar ? (ar ?? en) : (en ?? ar); }

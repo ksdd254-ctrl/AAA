@@ -77,14 +77,9 @@ namespace JdoTweak
 
             var d = UI.Text(L.T("pack" + k + "D"), 13, "Muted"); d.Margin = new Thickness(0, 6, 0, 0); d.LineHeight = 20;
             sp.Children.Add(d);
-
-            var names = own.Select(t => t.Title).ToList();
-            int extra = pack.Count(t => t.Tier == k) - names.Count;
-            string inc = string.Join(L.Ar ? "، " : ", ", names.Take(5));
-            int rest = Math.Max(0, names.Count - 5) + extra;
-            if (rest > 0) inc += L.Ar ? " و" + rest.ToString("N0") + " تويك ثاني" : " + " + rest.ToString("N0") + " more";
-            var incl = UI.Text(L.T("includes") + ": " + inc, 12, "Muted"); incl.Margin = new Thickness(0, 10, 0, 0); incl.Opacity = 0.85; incl.LineHeight = 18;
-            sp.Children.Add(incl);
+            sp.Children.Add(Bullets("pack" + k + "B"));
+            var who = UI.Text(L.T("pack" + k + "W"), 12, "Accent"); who.Margin = new Thickness(0, 10, 0, 0);
+            sp.Children.Add(who);
 
             var foot = new DockPanel { Margin = new Thickness(0, 16, 0, 0) };
             var sw1 = new ToggleButton { Style = UI.S("Switch"), IsEnabled = !locked };
@@ -112,6 +107,21 @@ namespace JdoTweak
             return box;
         }
 
+        // Short "what you get" list; items are separated by | in the translation.
+        static FrameworkElement Bullets(string key)
+        {
+            var sp = new StackPanel { Margin = new Thickness(0, 10, 0, 0) };
+            foreach (var line in L.T(key).Split('|'))
+            {
+                var row = new DockPanel { Margin = new Thickness(0, 3, 0, 0) };
+                var ck = UI.Text("✓", 12.5, "Good", true); ck.Margin = new Thickness(0, 0, 8, 0);
+                row.Children.Add(ck);
+                row.Children.Add(UI.Text(line.Trim(), 12.5, "Text"));
+                sp.Children.Add(row);
+            }
+            return sp;
+        }
+
         FrameworkElement LiteBox()
         {
             bool has = User != null && User.WithLiteWindows;
@@ -122,6 +132,9 @@ namespace JdoTweak
             sp.Children.Add(top);
             var d = UI.Text(L.T("pack4D"), 13, "Muted"); d.Margin = new Thickness(0, 6, 0, 0); d.LineHeight = 20;
             sp.Children.Add(d);
+            sp.Children.Add(Bullets("pack4B"));
+            var who = UI.Text(L.T("pack4W"), 12, "Accent"); who.Margin = new Thickness(0, 10, 0, 0);
+            sp.Children.Add(who);
             var b = has ? UI.IconBtn("", L.T("downloadLite"), "Primary", (o, e) =>
                 {
                     string url = User.LiteUrl;
@@ -162,9 +175,11 @@ namespace JdoTweak
             for (int k = 0; k < 3; k++)
             {
                 int a = counts[k, 0], n = counts[k, 1];
-                bool on = n > 0 && a == n;
+                // A few values can't be written on every PC (protected keys, missing drivers),
+                // so a box counts as on once almost everything in it is applied.
+                bool on = n > 0 && a >= n * 0.97;
                 sw[k].IsChecked = on;
-                st[k].Text = on ? "✓ " + L.T("applied") + "  ·  " + n : a > 0 ? a + " / " + n + "  ·  " + L.T("partial") : n + " " + L.T("changesTotal");
+                st[k].Text = (on ? "✓ " + L.T("boxOn") : a > 0 ? L.T("boxPartial") : L.T("boxOff")) + "  ·  " + n.ToString("N0") + " " + L.T("changesTotal");
                 st[k].Foreground = on ? UI.B("Good") : a > 0 ? UI.B("Warn") : UI.B("Muted");
             }
         }

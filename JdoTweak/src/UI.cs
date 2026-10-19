@@ -104,7 +104,7 @@ namespace JdoTweak
         // Shared custom title bar (drag area + min / max / close).
         public static Grid TitleBar(Window w, bool canMax)
         {
-            var g = new Grid { Height = 40, Background = Brushes.Transparent };
+            var g = new Grid { Height = 40, Background = Brushes.Transparent, VerticalAlignment = VerticalAlignment.Top };
             var btns = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, FlowDirection = FlowDirection.LeftToRight };
             Func<string, RoutedEventHandler, Button> mk = (glyph, h) =>
             {
@@ -160,7 +160,7 @@ namespace JdoTweak
         public LoginWindow()
         {
             Title = L.T("app");
-            Width = 460; Height = 640; ResizeMode = ResizeMode.CanMinimize;
+            Width = 460; Height = 740; ResizeMode = ResizeMode.CanMinimize;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             Background = UI.B("Bg"); FontFamily = new FontFamily("Segoe UI");
             UI.Chrome(this);
@@ -196,6 +196,8 @@ namespace JdoTweak
             sp.Children.Add(field(L.T("email"), email));
             sp.Children.Add(field(L.T("password"), pass));
             sp.Children.Add(field(L.T("licenseKey"), key));
+            var kh = UI.Text(L.T("keyHint"), 11.5, "Muted"); kh.Margin = new Thickness(2, -8, 0, 12);
+            sp.Children.Add(kh);
 
             error = UI.Text("", 12.5, "Bad"); error.Margin = new Thickness(2, 0, 0, 10); error.Visibility = Visibility.Collapsed;
             sp.Children.Add(error);
@@ -211,6 +213,10 @@ namespace JdoTweak
             link.TextDecorations = TextDecorations.Underline;
             link.MouseLeftButtonUp += (o, e) => { try { System.Diagnostics.Process.Start(App.Website); } catch { } };
             sp.Children.Add(link);
+            var forgot = UI.Text(L.T("forgotPass"), 12.5, "Muted");
+            forgot.HorizontalAlignment = HorizontalAlignment.Center; forgot.Margin = new Thickness(0, 10, 0, 0); forgot.Cursor = Cursors.Hand;
+            forgot.MouseLeftButtonUp += (o, e) => { try { System.Diagnostics.Process.Start(App.Website + "/account"); } catch { } };
+            sp.Children.Add(forgot);
 
             var lang = UI.Text(L.Ar ? "English" : "عربي", 12.5, "Muted");
             lang.HorizontalAlignment = HorizontalAlignment.Center; lang.Margin = new Thickness(0, 14, 0, 0); lang.Cursor = Cursors.Hand;
@@ -234,7 +240,11 @@ namespace JdoTweak
             var r = await System.Threading.Tasks.Task.Run(() => License.Login(e, p, k, h));
             go.IsEnabled = true;
             if (r == License.Result.Ok) { App.SwitchTo(new MainWindow(), this); return; }
-            error.Text = r == License.Result.HwidMismatch ? L.T("hwidErr") : r == License.Result.Network ? L.T("netErr") : L.T("loginErr");
+            error.Text = r == License.Result.HwidMismatch ? L.T("hwidErr")
+                       : r == License.Result.Network ? L.T("netErr")
+                       : r == License.Result.Expired ? L.T("expiredErr")
+                       : r == License.Result.Locked ? L.T("lockedErr")
+                       : L.T("loginErr");
             error.Visibility = Visibility.Visible;
         }
     }
