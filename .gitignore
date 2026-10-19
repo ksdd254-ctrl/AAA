@@ -1,0 +1,49 @@
+# ---------- secrets & environment ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.cer
+secret
+secrets/
+
+# ---------- server runtime data (users, keys, password hashes) ----------
+server/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# ---------- logs ----------
+*.log
+logs/
+npm-debug.log*
+
+# ---------- dependencies ----------
+node_modules/
+
+# ---------- build output (rebuilt by JdoTweak/build.ps1) ----------
+JdoTweak/obj/
+JdoTweak/dist/
+server/files/
+Release/*.exe
+Release/server/
+tools/*.exe
+
+# ---------- large regenerable analysis (tools/analyze.ps1) ----------
+analysis/settings.csv
+analysis/*_errors.txt
+
+# ---------- editor / OS ----------
+.vs/
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp
