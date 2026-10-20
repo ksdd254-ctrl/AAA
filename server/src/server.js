@@ -101,6 +101,16 @@ function userView(u) {
 // ---------------------------------------------------------------- app
 const app = express();
 app.set('trust proxy', 1);
+
+// Express 4 does not catch errors thrown inside async handlers; without this a single
+// failure (e.g. the mail server rejecting a login) crashes the whole process.
+for (const m of ['get', 'post']) {
+  const orig = app[m].bind(app);
+  app[m] = (p, ...hs) => orig(p, ...hs.map((h) => (typeof h === 'function' && h.length < 4
+    ? (req, res, next) => { try { const r = h(req, res, next); if (r && typeof r.catch === 'function') r.catch(next); } catch (e) { next(e); } }
+    : h)));
+}
+process.on('unhandledRejection', (e) => console.error('unhandled', e));
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -212,7 +222,7 @@ app.post('/api/checkout', auth, async (req, res) => {
   const info = db.prepare('INSERT INTO orders (user_id, plan, amount) VALUES (?, ?, ?)').run(req.user.id, req.body.plan, plan.price);
   const orderId = info.lastInsertRowid;
   if (!stripe) {
-    if (!cfg.dev) return res.status(503).json({ ok: false, error: 'payments' });
+    if (!cfg.dev || process.env.DEV_PAY !== '1') return res.status(503).json({ ok: false, error: 'payments' });
     return res.json({ ok: true, url: `/api/dev/pay/${orderId}` });   // dev only: simulate a paid order
   }
   const s = await stripe.checkout.sessions.create({
@@ -227,7 +237,9 @@ app.post('/api/checkout', auth, async (req, res) => {
   res.json({ ok: true, url: s.url });
 });
 
-if (cfg.dev && !stripe) {
+// Simulated payments only when explicitly switched on for local tests (DEV_PAY=1).
+// Never on by default: the server may be reachable from the internet while still in dev mode.
+if (cfg.dev && !stripe && process.env.DEV_PAY === '1') {
   app.get('/api/dev/pay/:id', async (req, res) => {
     const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
     if (order) await fulfill(order);
@@ -436,7 +448,11 @@ app.post('/api/admin/release', owner, (req, res) => res.json({ ok: postRelease(r
 
 // ---------------------------------------------------------------- static site
 app.use(express.static(path.join(__dirname, '..', 'public'), { extensions: ['html'] }));
-app.use((err, req, res, next) => { console.error(err); res.status(500).json({ ok: false, error: 'server' }); });
+app.use((err, req, res, next) => {
+  if (err && err.mailFailed) return res.status(502).json({ ok: false, error: 'mail' });
+  console.error(err);
+  res.status(500).json({ ok: false, error: 'server' });
+});
 
 // ---------------------------------------------------------------- daily backup of the database
 const backupDir = path.join(process.env.DATA_DIR || path.join(__dirname, '..', 'data'), 'backups');

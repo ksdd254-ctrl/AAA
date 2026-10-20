@@ -8,7 +8,12 @@ async function send(to, subject, html) {
     console.log(`\n[mail -> ${to}] ${subject}\n${html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()}\n`);
     return;
   }
-  await transport.sendMail({ from: cfg.mailFrom, to, subject, html });
+  try { await transport.sendMail({ from: cfg.mailFrom, to, subject, html }); }
+  catch (e) {
+    // A mail failure must never take the server down; the caller still gets an error to report.
+    console.error(`[mail] failed to send to ${to}: ${e.message}`);
+    throw Object.assign(new Error('mail'), { mailFailed: true });
+  }
 }
 
 const wrap = (body) => `<div style="font-family:Segoe UI,Tahoma,Arial;background:#0b0b14;color:#f1f0ff;padding:32px">
