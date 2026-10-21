@@ -498,6 +498,8 @@ function Undo-Qht {
       } else { Remove-ItemProperty -Path $i.Path -Name $i.Name -ErrorAction SilentlyContinue }
     } catch { Write-Host "  could not restore $($i.Path)\$($i.Name)" -ForegroundColor Yellow }
   }
+  $nv = Join-Path $b.FullName 'nvidia-tasks.txt'
+  if (Test-Path $nv) { foreach ($t in Get-Content $nv) { Enable-ScheduledTask -TaskName $t -ErrorAction SilentlyContinue | Out-Null }; Write-Host '  NVIDIA tasks enabled again' }
   $gus = Join-Path $b.FullName 'GameUserSettings.ini'
   if (Test-Path $gus) { Copy-Item $gus (Join-Path $env:LOCALAPPDATA 'FortniteGame\Saved\Config\WindowsClient\GameUserSettings.ini') -Force; Write-Host '  Fortnite settings file restored' }
   $bcd = Join-Path $b.FullName 'bcd.bak'

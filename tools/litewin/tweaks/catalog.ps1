@@ -1,4 +1,4 @@
-# Reads every extracted tweak script (.bat .cmd .ps1 .reg .yml) and builds one table of what they set:
+﻿# Reads every extracted tweak script (.bat .cmd .ps1 .reg .yml) and builds one table of what they set:
 #   kind | key | name | type | value | systems that set it
 # Network, serial / identity and renaming of Windows programs are flagged "DENY" so they never reach the merged file.
 # Usage: powershell -File catalog.ps1   -> E:\win 10 JDO\iso-tweaks\catalog.csv and catalog-allowed.csv
@@ -27,16 +27,19 @@ foreach ($sysDir in Get-ChildItem $Root -Directory | Where-Object { $_.Name -not
       continue
     }
     if ($f.Extension -in '.yml', '.yaml') {
-      # AME playbook: - !registryValue: {path: , value: , data: , type: }
-      foreach ($m in [regex]::Matches($text, '(?ms)registryValue:\s*\r?\n(.*?)(?=\r?\n\s*-\s|\z)')) {
-        $blk = $m.Groups[1].Value
-        $p = [regex]::Match($blk, 'path:\s*[''"]?([^\r\n''"]+)').Groups[1].Value.Trim()
-        $n = [regex]::Match($blk, 'value:\s*[''"]?([^\r\n''"]+)').Groups[1].Value.Trim()
-        $d = [regex]::Match($blk, 'data:\s*[''"]?([^\r\n''"]*)').Groups[1].Value.Trim()
-        $t = [regex]::Match($blk, 'type:\s*[''"]?([^\r\n''"]+)').Groups[1].Value.Trim()
-        if ($p) { Add-Row $sys 'reg' $p $n $t $d }
+      # AME playbook (FSOS): one flow mapping per line:  - !registryValue: {path: '..', value: '..', type: REG_DWORD, data: '..', option: ".."}
+      foreach ($l in ($text -split "`r?`n")) {
+        if ($l -match "registryValue:\s*\{path:\s*'([^']+)',\s*value:\s*'([^']*)'(?:,\s*type:\s*(\w+))?(?:,\s*data:\s*'([^']*)')?(.*)\}") {
+          $op = if ($Matches[5] -match 'operation:\s*delete') { 'DELETE' } else { $Matches[4] }
+          Add-Row $sys 'reg' $Matches[1] $Matches[2] $Matches[3] $op
+        }
+        elseif ($l -match '!run:\s*\{exe:\s*"([^"]+)",\s*args:\s*"([^"]*)"') { 
+          $cmdline = "$($Matches[1]) $($Matches[2])"
+          if ($cmdline -match '(?i)^bcdedit') { Add-Row $sys 'bcd' '' $cmdline '' '' }
+          elseif ($cmdline -match '(?i)^powercfg') { Add-Row $sys 'power' '' $cmdline '' '' }
+          else { Add-Row $sys 'cmd' '' $cmdline '' '' }
+        }
       }
-      foreach ($m in [regex]::Matches($text, '(?i)bcdedit(\.exe)?\s+(/set\s+(\{?\w+\}?\s+)?\w+\s+\S+|/timeout\s+\d+|/deletevalue\s+\S+)')) { Add-Row $sys 'bcd' '' $m.Value '' '' }
       continue
     }
     foreach ($l in ($text -split "`r?`n")) {

@@ -117,6 +117,16 @@ Reg-Set 'HKLM:\SOFTWARE\Microsoft\Windows\Dwm' 'OverlayTestMode' 5          # MP
 $smi = "$env:ProgramFiles\NVIDIA Corporation\NVSMI\nvidia-smi.exe"
 if (Test-Path $smi) { Native $smi '-acp' '0' }                    # unrestricted clock policy (Fox + Sapphire + Sharawy)
 
+# NVIDIA telemetry off (FoxOS + SapphireOS): driver and control-panel opt-out, the three telemetry feature flags, and the NvTm scheduled tasks.
+# Files and services are not deleted. If the NVIDIA App ever misbehaves: JDO-Tools option 22 puts everything back.
+Reg-Set 'HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\Startup' 'SendTelemetryData' 0
+Reg-Set 'HKLM:\SOFTWARE\NVIDIA Corporation\NvControlPanel2\Client' 'OptInOrOutPreference' 0
+Reg-Set 'HKCU:\Software\NVIDIA Corporation\NvControlPanel2\Client' 'OptInOrOutPreference' 0
+foreach ($rid in 'EnableRID44231', 'EnableRID64640', 'EnableRID66610') { Reg-Set 'HKLM:\SOFTWARE\NVIDIA Corporation\Global\FTS' $rid 0 }
+if (-not $DryRun) {
+  $nvTasks = @(Get-ScheduledTask -TaskName 'NvTm*' -ErrorAction SilentlyContinue)
+  if ($nvTasks) { $nvTasks | Disable-ScheduledTask -ErrorAction SilentlyContinue | Out-Null; $nvTasks.TaskName | Set-Content (Join-Path $bk 'nvidia-tasks.txt'); Write-Host "  NVIDIA telemetry tasks off: $($nvTasks.Count)" }
+} else { Write-Host 'DRY disable scheduled tasks NvTm*' }
 # ---- USB / HID power saving off (Fox's list, USB only - network adapters are never touched) ----
 $net = @(Get-PnpDevice -Class Net -ErrorAction SilentlyContinue | ForEach-Object { $_.InstanceId.ToUpper() })
 $vals = 'EnhancedPowerManagementEnabled', 'AllowIdleIrpInD3', 'EnableSelectiveSuspend', 'SelectiveSuspendOn', 'SelectiveSuspendEnabled',
@@ -207,6 +217,66 @@ if (Test-Path $dat) {
   }
 }
 
+# ---- merged from ten more builds (BlitzOS, KernelOS 10 / 11, SkiiOS, FSOS, Kirby, X-Lite, Lumin, Win11Pro, Xdzl): one value per setting ----
+# Rule used: a value that several builds agree on wins; when they differ, the safer of the strong ones. Network / identity / anti-cheat
+# protections / DEP / process mitigations / activation were left out of every list on purpose.
+$ctl = 'HKLM:\SYSTEM\CurrentControlSet\Control'
+# power: no timer coalescing, no energy estimation, no sleep study, no connected standby, no power throttling of games
+$pw = "$ctl\Power"
+foreach ($n in 'CoalescingTimerInterval', 'CoalescingFlushInterval', 'DeepIoCoalescingEnabled', 'EnergyEstimationEnabled', 'PerfCalculateActualUtilization',
+               'EventProcessorEnabled', 'ExitLatencyCheckEnabled', 'CsEnabled', 'SleepReliabilityDetailedDiagnostics') { Reg-Set $pw $n 0 }
+Reg-Set $pw 'DisableVsyncLatencyUpdate' 1
+Reg-Set $pw 'DisableSensorWatchdog' 1
+Reg-Set "$pw\PowerThrottling" 'PowerThrottlingOff' 1
+Reg-Set "$ctl\Session Manager\Power" 'SleepStudyDisabled' 1
+Reg-Set "$pw\EnergyEstimation\TaggedEnergy" 'DisableTaggedEnergyLogging' 1
+Reg-Set "$pw\EnergyEstimation\TaggedEnergy" 'TelemetryMaxApplication' 0
+Reg-Set "$pw\EnergyEstimation\TaggedEnergy" 'TelemetryMaxTagPerApplication' 0
+# kernel / scheduler
+$kn = "$ctl\Session Manager\kernel"
+Reg-Set $kn 'GlobalTimerResolutionRequests' 1            # a game's 0.5 ms timer request applies system-wide (FSOS)
+Reg-Set $kn 'EnableWerUserReporting' 0
+Reg-Set $kn 'PowerOffFrozenProcessors' 0
+Reg-Set 'HKLM:\SOFTWARE\Microsoft\FTH' 'Enabled' 0       # Fault Tolerant Heap off: no hidden slowdowns for "crashed" games
+# GPU: a driver reset waits 10 s instead of 2 (heavy load no longer kills the game), no VSync idle timeout
+Reg-Set "$ctl\GraphicsDrivers" 'TdrDelay' 10
+Reg-Set "$ctl\GraphicsDrivers\Scheduler" 'VsyncIdleTimeout' 0
+# MMCSS "Games" task: the full set of keys (SkiiOS / FSOS), values already agreed with the image
+$gm = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games'
+Reg-Set $gm 'Affinity' 0
+Reg-Set $gm 'Background Only' 'False' String
+Reg-Set $gm 'Clock Rate' 10000
+Reg-Set $gm 'Latency Sensitive' 'True' String
+# input: mouse and keyboard driver threads at the highest priority (SkiiOS)
+foreach ($s in 'mouclass', 'kbdclass') { Reg-Set "HKLM:\SYSTEM\CurrentControlSet\Services\$s\Parameters" 'ThreadPriority' 31 }
+# NVMe: no idle power states, no thermal throttling hints (FSOS + BlitzOS)
+Reg-Set 'HKLM:\SYSTEM\CurrentControlSet\Services\stornvme\Parameters\Device' 'IdlePowerMode' 0
+Reg-Set 'HKLM:\SYSTEM\CurrentControlSet\Services\stornvme\Parameters\Device' 'DisableDstThrottle' 1
+# shutdown / hung programs end fast
+Reg-Set $ctl 'WaitToKillServiceTimeout' '2000' String
+$dk = 'HKCU:\Control Panel\Desktop'
+Reg-Set $dk 'AutoEndTasks' '1' String
+Reg-Set $dk 'WaitToKillAppTimeout' '2000' String
+Reg-Set $dk 'HungAppTimeout' '2000' String
+Reg-Set 'HKCU:\Control Panel\Sound' 'Beep' 'no' String
+# Game Bar programs never start (their names are unique to Game Bar)
+foreach ($e in 'gamebar.exe', 'gamebarft.exe', 'GameBarFTServer.exe') { Reg-Set "$ifeoRoot\$e" 'Debugger' '%SystemRoot%\System32\taskkill.exe' String }
+# DWM: no window animations / thumbnails work; web evaluation of apps off; maintenance window and malicious-software-tool offers off
+Reg-Set 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Dwm' 'DisallowAnimations' 1
+Reg-Set 'HKCU:\Software\Microsoft\Windows\DWM' 'AlwaysHibernateThumbnails' 0
+Reg-Set "$cu\AppHost" 'EnableWebContentEvaluation' 0
+Reg-Set "$cu\AppHost" 'PreventOverride' 0
+Reg-Set 'HKLM:\SOFTWARE\Policies\Microsoft\MRT' 'DontOfferThroughWUAU' 1
+Reg-Set 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance' 'MaintenanceDisabled' 1
+foreach ($t in 'Diagtrack-Listener', 'CloudExperienceHostOobe') { $p = "HKLM:\SYSTEM\CurrentControlSet\Control\WMI\Autologger\$t"; if (Test-Path $p) { Reg-Set $p 'Start' 0 } }
+# NTFS: no last-access writes, no 8.3 names, no encrypted paging file, MFT zone bigger (BlitzOS + KernelOS + SkiiOS)
+Native fsutil.exe behavior set disablelastaccess 1
+Native fsutil.exe behavior set disable8dot3 1
+Native fsutil.exe behavior set encryptpagingfile 0
+Native fsutil.exe behavior set memoryusage 2
+Native fsutil.exe behavior set mftzone 2
+# power / sleep diagnostics channels that keep logging
+foreach ($ch in 'Microsoft-Windows-Kernel-Processor-Power/Diagnostic', 'Microsoft-Windows-SleepStudy/Diagnostic', 'Microsoft-Windows-UserModePowerService/Diagnostic') { Native wevtutil.exe sl $ch '/e:false' }
 # ---- guard: nothing above (or an earlier tweak pack) may break Task Scheduler, Microsoft apps, NVIDIA or the network ----
 Write-Host 'Guard: critical services and programs'
 $stock = [ordered]@{ Schedule=2; TimeBrokerSvc=3; SystemEventsBroker=2; BrokerInfrastructure=2; EventLog=2; EventSystem=2; RpcSs=2; RpcEptMapper=2; DcomLaunch=2
