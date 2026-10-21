@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- JDO Lite Windows: English UI, English + Arabic keyboards, local account "JDO x QHT" without a password,
-     no Microsoft account / Wi-Fi / privacy / account pages.
+<!-- JDO Lite Windows: English UI, English + Arabic keyboards, local account "JDO x QHT" without a password.
      Disk selection is left to you: nothing is wiped automatically. VK7JG-... is Microsoft's public generic Pro install key
-     (it only picks the edition; the PC activates with its own digital license). -->
+     (it only picks the edition; the PC activates with its own digital license).
+     This image has no servicing store (WinSxS is pruned), so nothing may try to download and install updates during
+     setup: Dynamic Update is off and the setup screens (OOBE, where the Zero Day Patch update check runs) are skipped.
+     With them on, setup sat on "Just a moment...", restarted and looped on a PC with internet. -->
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
   <settings pass="windowsPE">
     <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
@@ -13,6 +15,10 @@
       <UserLocale>en-US</UserLocale>
     </component>
     <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
+      <DynamicUpdate>
+        <Enable>false</Enable>
+        <WillShowUI>Never</WillShowUI>
+      </DynamicUpdate>
       <UserData>
         <AcceptEula>true</AcceptEula>
         <ProductKey>
@@ -37,6 +43,9 @@
         <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
         <HideLocalAccountScreen>true</HideLocalAccountScreen>
         <ProtectYourPC>3</ProtectYourPC>
+        <!-- straight to the desktop: no setup screens at all (and so no update check) -->
+        <SkipMachineOOBE>true</SkipMachineOOBE>
+        <SkipUserOOBE>true</SkipUserOOBE>
       </OOBE>
       <!-- the account is made here: no name or password question during setup, no password at all -->
       <UserAccounts>
@@ -55,11 +64,12 @@
         <Password><Value></Value><PlainText>true</PlainText></Password>
         <LogonCount>1</LogonCount>
       </AutoLogon>
+      <!-- first boot tweaks run once the desktop is up, never in the middle of setup -->
       <FirstLogonCommands>
         <SynchronousCommand wcm:action="add">
           <Order>1</Order>
-          <CommandLine>powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Windows\Setup\Scripts\firstboot.ps1</CommandLine>
-          <Description>JDO first boot (only runs if SetupComplete did not)</Description>
+          <CommandLine>powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File C:\Windows\Setup\Scripts\firstboot.ps1</CommandLine>
+          <Description>JDO first boot</Description>
         </SynchronousCommand>
       </FirstLogonCommands>
     </component>

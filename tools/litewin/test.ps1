@@ -125,13 +125,12 @@ try {
   foreach ($a in 'Microsoft.WindowsStore', 'Microsoft.StorePurchaseApp', 'Microsoft.DesktopAppInstaller', 'Microsoft.Xbox') {
     Check "removed: app $a" (-not (Get-ChildItem "$lite\Program Files\WindowsApps" -Directory -Filter "$a*" -ErrorAction SilentlyContinue))
   }
-  # setup's OOBE needs these: stock in the image, switched off by first boot (OOBEZDP error otherwise)
+  # off in the image itself (the setup screens that needed them are skipped by autounattend)
   foreach ($s in 'InstallService', 'PushToInstall', 'wlidsvc', 'wuauserv', 'UsoSvc', 'WaaSMedicSvc') {
-    $a = (Get-ItemProperty "$LiteCS\Services\$s" -ErrorAction SilentlyContinue).Start; $b = (Get-ItemProperty "$StockCS\Services\$s" -ErrorAction SilentlyContinue).Start
-    Check "$s stock in the image (for setup)" ($a -eq $b) "lite=$a stock=$b"
+    Check "$s off in the image" ((Get-ItemProperty "$LiteCS\Services\$s" -ErrorAction SilentlyContinue).Start -eq 4)
   }
-  Check 'no Windows Update policy in the image (OOBEZDP)' (-not (Test-Path 'HKLM:\T_LSW\Policies\Microsoft\Windows\WindowsUpdate'))
-  Check 'first boot turns them off (-Services)' ([bool](Select-String -LiteralPath "$lite\Windows\Setup\Scripts\firstboot.ps1" -SimpleMatch "Run-Step '-Services'" -Quiet))
+  Check 'Windows Update policy in the image' ((Get-ItemProperty 'HKLM:\T_LSW\Policies\Microsoft\Windows\WindowsUpdate\AU' -ErrorAction SilentlyContinue).NoAutoUpdate -eq 1)
+  Check 'first boot no longer touches services' (-not (Select-String -LiteralPath "$lite\Windows\Setup\Scripts\firstboot.ps1" -SimpleMatch "Run-Step '-Services'" -Quiet))
   foreach ($a in 'Microsoft.WindowsStore', 'Microsoft.StorePurchaseApp', 'Microsoft.XboxIdentityProvider', 'Microsoft.NET.Native.Framework.2.2', 'Microsoft.VCLibs.140.00') {
     Check "saved copy for JDO-Tools 18: $a" ([bool](Get-ChildItem "$lite\JDO\Store" -Directory -Filter "${a}_*" -ErrorAction SilentlyContinue | Where-Object { Test-Path "$($_.FullName)\AppxManifest.xml" }))
   }
@@ -201,7 +200,8 @@ try {
     $st = (Get-ItemProperty "$LiteCS\Services\$s" -ErrorAction SilentlyContinue).Start
     Check "$s can start (Start=$st)" ($st -in 2, 3)
   }
-  Check 'first boot scripts' ((Test-Path "$lite\Windows\Setup\Scripts\SetupComplete.cmd") -and (Test-Path "$lite\Windows\Setup\Scripts\firstboot.ps1") -and (Test-Path "$lite\JDO\JDO-Tools.ps1"))
+  Check 'first boot scripts' ((Test-Path "$lite\Windows\Setup\Scripts\firstboot.ps1") -and (Test-Path "$lite\JDO\JDO-Tools.ps1"))
+  Check 'nothing runs in the middle of setup (no SetupComplete.cmd)' (-not (Test-Path "$lite\Windows\Setup\Scripts\SetupComplete.cmd"))
   Check 'desktop shortcut' (Test-Path "$lite\Users\Public\Desktop\JDO Tools.lnk")
   Check 'first boot applies the JDO Ultimate power plan' ([bool](Select-String -LiteralPath "$lite\Windows\Setup\Scripts\firstboot.ps1" -SimpleMatch "Run-Step '-Power'" -Quiet) -and [bool](Select-String -LiteralPath "$lite\JDO\JDO-Tools.ps1" -SimpleMatch "'JDO Ultimate'" -Quiet))
   Check 'first boot disables unneeded devices' ([bool](Select-String -LiteralPath "$lite\Windows\Setup\Scripts\firstboot.ps1" -SimpleMatch "Run-Step '-Devices'" -Quiet))
@@ -237,6 +237,10 @@ if (Test-Path $liteIso) {
   $ua = [xml](Get-Content "$Work\iso\autounattend.xml" -Raw)
   $acc = $ua.unattend.settings.component.UserAccounts.LocalAccounts.LocalAccount | Where-Object { $_ }
   Check 'account "JDO x QHT" without a password, no account questions' ($acc.Name -eq 'JDO x QHT' -and -not $acc.Password.Value -and ($ua.OuterXml -match '<HideLocalAccountScreen>true'))
+  Check 'setup downloads no updates (Dynamic Update off)' ($ua.OuterXml -match '<DynamicUpdate>\s*<Enable>false</Enable>')
+  Check 'setup screens skipped (no OOBE update check)' ($ua.OuterXml -match '<SkipMachineOOBE>true' -and $ua.OuterXml -match '<SkipUserOOBE>true')
+  Check 'first boot runs at first sign-in' ($ua.OuterXml -match 'firstboot\.ps1')
+  Check 'no disk is wiped by the real answer file' ($ua.OuterXml -notmatch 'WillWipeDisk')
   Check 'install.esd + boot.wim + setup' ([bool]($list | Select-String 'sources\\install.esd') -and [bool]($list | Select-String 'sources\\boot.wim') -and [bool]($list | Select-String 'sources\\setup.exe'))
   Say ('  ISO size: {0:N2} GB ({1:N0} MB)' -f ((Get-Item $liteIso).Length / 1GB), ((Get-Item $liteIso).Length / 1MB))
 } else { Check 'ISO exists' $false }

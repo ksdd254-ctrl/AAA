@@ -33,7 +33,28 @@ if (-not $Resume) {
 Say 'Building the test ISO (real image + VM-only answer file)'
 if (Test-Path $testSrc) { cmd /c rd /s /q "`"$testSrc`"" }
 & robocopy $src $testSrc /E /NFL /NDL /NJH /NJS /NP | Out-Null
-Copy-Item "$here\autounattend.xml" "$testSrc\autounattend.xml" -Force
+# The VM's answer file IS the real one (files\autounattend.xml), plus only: wipe the VM's own disk 0 and run
+# vm-check.ps1 after the first-boot script. So the VM tests exactly what a real USB install does.
+[xml]$ua = Get-Content (Join-Path (Split-Path $here) 'files\autounattend.xml') -Raw
+$nsu = 'urn:schemas-microsoft-com:unattend'
+$setup = $ua.unattend.settings | Where-Object pass -eq 'windowsPE' | ForEach-Object { $_.component } | Where-Object name -eq 'Microsoft-Windows-Setup'
+$frag = [xml](@"
+<x xmlns="$nsu" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
+  <DiskConfiguration><Disk wcm:action="add"><DiskID>0</DiskID><WillWipeDisk>true</WillWipeDisk>
+    <CreatePartitions><CreatePartition wcm:action="add"><Order>1</Order><Type>Primary</Type><Extend>true</Extend></CreatePartition></CreatePartitions>
+    <ModifyPartitions><ModifyPartition wcm:action="add"><Order>1</Order><PartitionID>1</PartitionID><Format>NTFS</Format><Label>Windows</Label><Letter>C</Letter><Active>true</Active></ModifyPartition></ModifyPartitions>
+  </Disk></DiskConfiguration>
+  <ImageInstall><OSImage><InstallTo><DiskID>0</DiskID><PartitionID>1</PartitionID></InstallTo>
+    <InstallFrom><MetaData wcm:action="add"><Key>/IMAGE/INDEX</Key><Value>1</Value></MetaData></InstallFrom></OSImage></ImageInstall>
+  <SynchronousCommand wcm:action="add"><Order>2</Order>
+    <CommandLine>powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-PSDrive -PSProvider FileSystem | ForEach-Object { `$p = Join-Path `$_.Root 'vm-check.ps1'; if (Test-Path `$p) { &amp; `$p; break } }"</CommandLine>
+    <Description>JDO VM test checks</Description></SynchronousCommand>
+</x>
+"@)
+foreach ($n in 'DiskConfiguration', 'ImageInstall') { [void]$setup.PrependChild($ua.ImportNode($frag.x[$n], $true)) }
+$shell = $ua.unattend.settings | Where-Object pass -eq 'oobeSystem' | ForEach-Object { $_.component } | Where-Object name -eq 'Microsoft-Windows-Shell-Setup'
+[void]$shell.FirstLogonCommands.AppendChild($ua.ImportNode($frag.x.SynchronousCommand, $true))
+$ua.Save("$testSrc\autounattend.xml")
 Copy-Item "$here\vm-check.ps1" "$testSrc\vm-check.ps1" -Force
 Add-Type -TypeDefinition @'
 using System; using System.IO; using System.Runtime.InteropServices; using System.Runtime.InteropServices.ComTypes;

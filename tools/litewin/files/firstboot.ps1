@@ -1,10 +1,18 @@
-# JDO Lite Windows - first boot (once): services, power plan, memory manager, scheduled tasks, devices.
+# JDO Lite Windows - first boot (once, in the background after the desktop is up, under a minute):
+# power plan, memory manager, scheduled tasks, devices - the parts that need the running PC and its hardware.
 # Every JDO-Tools step runs in its own process with a time limit: a device or WMI call that never answers must not
 # hold up setup or the first sign-in (the VM install test found one that did).
 $ErrorActionPreference = 'Continue'
 $dir = Join-Path $env:WINDIR 'Setup\Scripts'
 $marker = Join-Path $dir 'firstboot.done'
 if (Test-Path $marker) { return }
+# runs at the first sign-in (FirstLogonCommands): make sure it has the full admin token. UAC is set to elevate
+# administrators without asking, so this does not show a prompt.
+$me = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+  Start-Process powershell.exe -Verb RunAs -WindowStyle Hidden -Wait -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`""
+  return
+}
 Start-Transcript (Join-Path $dir 'firstboot.log') -Append | Out-Null
 $tools = Join-Path $env:SystemDrive 'JDO\JDO-Tools.ps1'
 
@@ -16,8 +24,7 @@ function Run-Step([string]$Switch, [int]$Seconds) {
   } else { Write-Host "  $Switch done" }
 }
 
-# Windows Update / Store / account services off now that setup no longer needs them
-Run-Step '-Services' 120
+# (services, Windows Update and every registry tweak are already in the image - only what needs the running PC is here)
 # JDO Ultimate power plan (full speed, real CPU usage, no sleep / USB / PCIe power saving, no hibernation file)
 Run-Step '-Power' 120
 

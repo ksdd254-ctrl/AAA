@@ -63,9 +63,9 @@ $dropFeatures = 'Internet-Explorer-Optional-amd64','WorkFolders-Client','MSRDC-I
 #   audio, XboxGipSvc (controllers), and every network service (Wi-Fi, firewall, IP Helper, sharing, discovery,
 #   Delivery Optimization...) at its default.
 $services = [ordered]@{
-  # Windows Update, its orchestrator / self-repair and the Store / Microsoft account services are switched off by
-  # firstboot (JDO-Tools -Services), not here: setup's OOBE uses them, and with them off it stops on
-  # "Something went wrong - OOBEZDP" (found by the VM install test).
+  # Windows Update, its orchestrator / self-repair and the Store / Microsoft account services. Safe in the image
+  # because autounattend skips the setup screens (OOBE) - they were what needed these services (OOBEZDP error).
+  wuauserv=4; UsoSvc=4; WaaSMedicSvc=4; wlidsvc=4; InstallService=4; PushToInstall=4
   # Bluetooth (BTHUSB is the radio driver itself)
   bthserv=4; BTAGService=4; BthAvctpSvc=4; BluetoothUserService=4; BTHUSB=4
   # Xbox Live / Game Pass sign-in (not used); the controller service stays on demand
@@ -344,7 +344,9 @@ try {
 
   Step 'Adding setup scripts, Start/taskbar layout and the JDO folder'
   New-Item -ItemType Directory -Force "$mount\Windows\Setup\Scripts", "$mount\Users\Default\AppData\Local\Microsoft\Windows\Shell" | Out-Null
-  Copy-Item "$files\SetupComplete.cmd", "$files\firstboot.ps1" "$mount\Windows\Setup\Scripts\" -Force
+  # first boot runs from autounattend's FirstLogonCommands once the desktop is up. No SetupComplete.cmd: it runs in the
+  # middle of setup, and changing devices / services there made setup loop on "Just a moment..." on a real PC.
+  Copy-Item "$files\firstboot.ps1" "$mount\Windows\Setup\Scripts\" -Force
   Copy-Item "$files\LayoutModification.xml" "$mount\Users\Default\AppData\Local\Microsoft\Windows\Shell\" -Force
   Copy-Item "$files\JDO" "$mount\" -Recurse -Force
   New-Item -ItemType Directory -Force "$mount\JDO\Drivers", "$mount\JDO\Store" | Out-Null
@@ -454,9 +456,10 @@ try {
   Set-Reg "$pol\OneDrive" 'DisableFileSyncNGSC' 1
   Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer' 'HideSCAMeetNow' 1
   Set-Reg 'SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main' 'AllowPrelaunch' 0
-  # The Windows Update policies are set by first boot (JDO-Tools -Services), not here: setup's OOBE checks for
-  # updates (Zero Day Patch) and fails with "Something went wrong - OOBEZDP" when it finds them (VM install test).
+  # updates only when you ask (the OOBE update check that tripped over these is skipped by autounattend);
   # Delivery Optimization is network: default. No Game DVR.
+  Set-Reg "$pol\WindowsUpdate\AU" 'NoAutoUpdate' 1
+  Set-Reg "$pol\WindowsUpdate" 'ExcludeWUDriversInQualityUpdate' 1
   Set-Reg "$pol\GameDVR" 'AllowGameDVR' 0
   # Start menu search and the text input host stay, at the lowest priority Windows has (CPU idle, I/O very low,
   # memory lowest): they sleep until you open Start or type, and never compete with the game
