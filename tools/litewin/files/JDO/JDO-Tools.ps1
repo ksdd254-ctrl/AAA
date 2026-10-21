@@ -22,6 +22,9 @@ if (-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
   return
 }
 
+New-Item -ItemType Directory -Force (Join-Path $root 'logs') | Out-Null
+Start-Transcript (Join-Path $root ('logs\tools-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.log')) | Out-Null
+
 # Registry writes through SeRestorePrivilege, so protected service keys (Schedule, TimeBrokerSvc, WinDefend,
 # WaaSMedicSvc...) can be put back to their Windows values too.
 Add-Type -TypeDefinition @'
@@ -418,6 +421,9 @@ function Install-Store {
   $order = { if ($_.Name -match 'VCLibs|NET\.Native|UI\.Xaml') { 0 } elseif ($_.Name -match '_split\.|_neutral_split') { 2 } else { 1 } }
   foreach ($p in $pk | Sort-Object $order, Name) {
     $m = Join-Path $p.FullName 'AppxManifest.xml'
+    $to = Join-Path "$env:ProgramFiles\WindowsApps" $p.Name
+    if (-not (Test-Path $to)) { & robocopy.exe $p.FullName $to /E /B /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null; $m = Join-Path $to 'AppxManifest.xml' }
+    elseif (Test-Path (Join-Path $to 'AppxManifest.xml')) { $m = Join-Path $to 'AppxManifest.xml' }
     try { Add-AppxPackage -Register $m -DisableDevelopmentMode -ForceApplicationShutdown -ErrorAction Stop; Write-Host "  installed $($p.Name)" }
     catch {
       # some builds only accept a loose folder as a provisioned package
@@ -456,6 +462,23 @@ function Fix-SystemApps {
   Get-AppxPackage -AllUsers -ErrorAction SilentlyContinue | Where-Object { $_.InstallLocation -and (Test-Path (Join-Path $_.InstallLocation 'AppXManifest.xml')) } |
     ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register (Join-Path $_.InstallLocation 'AppXManifest.xml') -ErrorAction SilentlyContinue }
   Done $true
+}
+
+# Services Windows needs for Task Scheduler, Start menu / search, Microsoft apps, the Store, NVIDIA and the network.
+# Tweak packs (and EXM-style tools) switch some of them off; this puts them back to the Windows values.
+$stockServices = [ordered]@{ Schedule=2; TimeBrokerSvc=3; SystemEventsBroker=2; BrokerInfrastructure=2; EventLog=2; EventSystem=2; RpcSs=2; RpcEptMapper=2; DcomLaunch=2
+  Winmgmt=2; CryptSvc=2; gpsvc=2; ProfSvc=2; UserManager=2; Appinfo=3; AppXSvc=3; ClipSVC=3; StateRepository=3; TokenBroker=3; LicenseManager=3
+  InstallService=3; wlidsvc=3; StorSvc=3; Themes=2; FontCache=2; DeviceInstall=3; DsmSvc=3; DevQueryBroker=3; FrameServer=3; CoreMessagingRegistrar=2; LSM=2; SENS=2
+  NlaSvc=2; netprofm=3; Netman=3; NcbService=3; Dhcp=2; Dnscache=2; nsi=2; iphlpsvc=2; mpssvc=2; BFE=2; BITS=3; Audiosrv=2; AudioEndpointBuilder=2; wuauserv=3 }
+function Repair-Everything {
+  Write-Host 'Fix everything: critical services, system programs, UAC, Task Scheduler, packaged apps' -ForegroundColor Cyan
+  Set-Services $stockServices
+  & (Join-Path $root 'JDO-x-QHT.ps1') -Quiet
+  Repair-Admin
+  Repair-TaskScheduler
+  Fix-SystemApps
+  Start-Service Schedule, BITS, NlaSvc, netprofm -ErrorAction SilentlyContinue
+  Write-Host '  Restart the PC to finish. Log: C:\JDO\logs' -ForegroundColor Yellow
 }
 
 function Install-Runtimes {
@@ -740,8 +763,10 @@ $actions = [ordered]@{
   '17' = @{ t = 'Power plan: JDO Ultimate (full speed, real CPU usage)';                        a = { Set-JdoPowerPlan; Done $false } }
   '18' = @{ t = 'Microsoft Store + Xbox: put back (files, services, everything - offline)';      a = { Install-Store } }
   '19' = @{ t = 'Microsoft Store + Xbox: remove again (apps you got from it stay)';             a = { Remove-Store } }
+  '20' = @{ t = 'Fix EVERYTHING: services, Task Scheduler, UAC, Start search, system apps';       a = { Repair-Everything } }
+  '21' = @{ t = 'Apply the JDO x QHT tweaks again (they also run 5 s after every desktop)';       a = { & (Join-Path $root 'JDO-x-QHT.ps1') -Quiet; Done $false } }
 }
-$first = 20
+$first = 22
 
 while ($true) {
   Clear-Host
@@ -753,7 +778,7 @@ while ($true) {
   Write-Host '   0  Exit'
   $c = Read-Host '  Choose'
   Write-Host ''
-  if ($c -eq '0') { return }
+  if ($c -eq '0') { Stop-Transcript | Out-Null; return }
   if ($actions.Contains($c)) { & $actions[$c].a }
   else {
     $i = 0

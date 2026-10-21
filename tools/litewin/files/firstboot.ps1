@@ -16,8 +16,8 @@ if (-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
 Start-Transcript (Join-Path $dir 'firstboot.log') -Append | Out-Null
 $tools = Join-Path $env:SystemDrive 'JDO\JDO-Tools.ps1'
 
-function Run-Step([string]$Switch, [int]$Seconds) {
-  $p = Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$tools`" $Switch" -PassThru -WindowStyle Hidden
+function Run-Step([string]$Switch, [int]$Seconds, [string]$Script = $tools) {
+  $p = Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$Script`" $Switch" -PassThru -WindowStyle Hidden
   if (-not $p.WaitForExit($Seconds * 1000)) {
     Write-Host "  $Switch did not finish in $Seconds s - stopped, carrying on"
     & taskkill.exe /T /F /PID $p.Id | Out-Null
@@ -27,6 +27,21 @@ function Run-Step([string]$Switch, [int]$Seconds) {
 # (services, Windows Update and every registry tweak are already in the image - only what needs the running PC is here)
 # JDO Ultimate power plan (full speed, real CPU usage, no sleep / USB / PCIe power saving, no hibernation file)
 Run-Step '-Power' 120
+
+# one desktop folder with the toolbox, the tweaks and the app installer (replaces the single JDO Tools shortcut)
+$deskDir = Join-Path $env:PUBLIC 'Desktop\JDO x QHT'
+New-Item -ItemType Directory -Force $deskDir | Out-Null
+$sh = New-Object -ComObject WScript.Shell
+foreach ($i in @(@('1 - Toolbox (fixes, priorities, Store)', 'JDO-Tools.cmd', 21), @('2 - Tweaks (JDO x QHT)', 'JDO-x-QHT.cmd', 22),
+                 @('3 - Apps (Chrome, Brave, Epic, Discord, NVIDIA, Voicemeeter)', 'JDO-Apps.cmd', 13))) {
+  $l = $sh.CreateShortcut((Join-Path $deskDir ($i[0] + '.lnk')))
+  $l.TargetPath = Join-Path $env:SystemDrive ('JDO\' + $i[1]); $l.WorkingDirectory = Join-Path $env:SystemDrive 'JDO'
+  $l.IconLocation = "%SystemRoot%\System32\shell32.dll,$($i[2])"; $l.Save()
+}
+Remove-Item (Join-Path $env:PUBLIC 'Desktop\JDO Tools.lnk') -Force -ErrorAction SilentlyContinue
+
+# JDO x QHT: the merged FoxOS / SharawyOS / SapphireOS tweaks + Fortnite FPS + the name in the boot menu (also runs 5 s after every desktop)
+Run-Step '' 120 (Join-Path $env:SystemDrive 'JDO\JDO-x-QHT.ps1')
 
 # no Memory Compression process, no page combining scans
 Disable-MMAgent -MemoryCompression -ErrorAction SilentlyContinue
@@ -45,6 +60,8 @@ $folders = '\Microsoft\Windows\Application Experience\', '\Microsoft\Windows\Cus
 if ((Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\WinDefend' -ErrorAction SilentlyContinue).Start -eq 4) {
   $folders += '\Microsoft\Windows\Windows Defender\'
 }
+# the language-pack installer: its failed jobs made Windows show "Getting Windows ready" at every restart
+$folders += '\Microsoft\Windows\LanguageComponentsInstaller\', '\Microsoft\Windows\MUI\', '\Microsoft\Windows\International\'
 foreach ($f in $folders) {
   Get-ScheduledTask -TaskPath $f -ErrorAction SilentlyContinue | Disable-ScheduledTask -ErrorAction SilentlyContinue | Out-Null
 }

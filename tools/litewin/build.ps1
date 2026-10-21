@@ -46,7 +46,7 @@ function Step([string]$t) { Write-Host ('[{0:hh\:mm\:ss}] {1}' -f $clock.Elapsed
 # ---------------- what stays / goes ----------------
 # Provisioned apps kept: none. The Microsoft Store, its purchase app, App Installer (winget) and the frameworks only
 # they used all go - Fortnite comes from the Epic Games Launcher (epicgames.com).
-$keepApps = '^$'
+$keepApps = '^Microsoft\.(WindowsStore|StorePurchaseApp|DesktopAppInstaller|XboxIdentityProvider|VCLibs|NET\.Native|UI\.Xaml)'
 
 $dropCaps = '^(App\.StepsRecorder|App\.Support\.QuickAssist|Browser\.InternetExplorer|Hello\.Face|MathRecognizer|' +
             'Microsoft\.Windows\.MSPaint|Microsoft\.Windows\.WordPad|Microsoft\.Windows\.PowerShell\.ISE|OneCoreUAP\.OneSync|OpenSSH\.Client|' +
@@ -65,7 +65,7 @@ $dropFeatures = 'Internet-Explorer-Optional-amd64','WorkFolders-Client','MSRDC-I
 $services = [ordered]@{
   # Windows Update, its orchestrator / self-repair and the Store / Microsoft account services. Safe in the image
   # because autounattend skips the setup screens (OOBE) - they were what needed these services (OOBEZDP error).
-  wuauserv=4; UsoSvc=4; WaaSMedicSvc=4; wlidsvc=4; InstallService=4; PushToInstall=4
+  WaaSMedicSvc=4   # (wuauserv / UsoSvc / wlidsvc / InstallService / PushToInstall stay stock: the Store needs them)
   # Bluetooth (BTHUSB is the radio driver itself)
   bthserv=4; BTAGService=4; BthAvctpSvc=4; BluetoothUserService=4; BTHUSB=4
   # Xbox Live / Game Pass sign-in (not used); the controller service stays on demand
@@ -358,9 +358,11 @@ try {
   $g = [System.Drawing.Graphics]::FromImage($bmp); $g.Clear([System.Drawing.Color]::Black)
   $bmp.Save("$mount\JDO\black.jpg", [System.Drawing.Imaging.ImageFormat]::Jpeg); $g.Dispose(); $bmp.Dispose()
   $lnk = (New-Object -ComObject WScript.Shell).CreateShortcut("$mount\Users\Public\Desktop\JDO Tools.lnk")
-  $lnk.TargetPath = 'C:\JDO'
-  $lnk.IconLocation = '%SystemRoot%\System32\imageres.dll,3'   # folder icon (a folder target in an offline image has none)
+  $lnk.TargetPath = 'C:\JDO\JDO-Tools.cmd'; $lnk.WorkingDirectory = 'C:\JDO'; $lnk.IconLocation = '%SystemRoot%\System32\shell32.dll,21'
   $lnk.Save()
+  New-Item -ItemType Directory -Force "$mount\ProgramData\Microsoft\Windows\Start Menu\Programs" | Out-Null   # and in the Start menu, so search finds it
+  $lnk2 = (New-Object -ComObject WScript.Shell).CreateShortcut("$mount\ProgramData\Microsoft\Windows\Start Menu\Programs\JDO Tools.lnk")
+  $lnk2.TargetPath = 'C:\JDO\JDO-Tools.cmd'; $lnk2.WorkingDirectory = 'C:\JDO'; $lnk2.IconLocation = '%SystemRoot%\System32\shell32.dll,21'; $lnk2.Save()
 
   # ---------------- 5. offline registry ----------------
   Step 'Editing the registry'
@@ -401,7 +403,7 @@ try {
     Set-Reg "NTUSER\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\$c" 'Value' 'Allow'
     Set-Reg "NTUSER\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\$c\NonPackaged" 'Value' 'Allow'
   }
-  Set-Reg 'SOFTWARE\Policies\Microsoft\Windows\AppPrivacy' 'LetAppsRunInBackground' 2
+  # (no LetAppsRunInBackground policy and no global background-app switch: they stopped Start menu search from working)
 
   # fewer processes: group services into shared svchost hosts instead of one per service
   Set-Reg 'SYSTEM\ControlSet001\Control' 'SvcHostSplitThresholdInKB' 4294967295
@@ -481,8 +483,14 @@ try {
                  'SubscribedContent-338389Enabled','SubscribedContent-338393Enabled','SubscribedContent-353694Enabled',
                  'SubscribedContent-353696Enabled','SubscribedContent-353698Enabled') { Set-Reg $cdm $v 0 }
   $cv = 'NTUSER\Software\Microsoft\Windows\CurrentVersion'
-  Set-Reg "$cv\BackgroundAccessApplications" 'GlobalUserDisabled' 1
-  Set-Reg "$cv\Search" 'BackgroundAppGlobalToggle' 0
+  # the "Run / Cancel" warning when opening a program from another drive or a download, and Run as administrator
+  Set-Reg "$cv\Policies\Attachments" 'SaveZoneInformation' 1
+  Set-Reg "$cv\Policies\Associations" 'LowRiskFileTypes' '.exe;.bat;.cmd;.com;.msi;.ps1;.vbs;.reg;.lnk;.jar'
+  foreach ($z in 0,1,2,3) { Set-Reg "$cv\Internet Settings\Zones\$z" '1806' 0 }
+  Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments' 'SaveZoneInformation' 1
+  Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Associations' 'LowRiskFileTypes' '.exe;.bat;.cmd;.com;.msi;.ps1;.vbs;.reg;.lnk;.jar'
+  # JDO x QHT tweaks run 5 seconds after every desktop
+  Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run' 'JDO x QHT' 'cmd.exe /c start "" /min C:\JDO\JDO-x-QHT.cmd /auto'
   Set-Reg "$cv\Search" 'SearchboxTaskbarMode' 0
   Set-Reg "$cv\Search" 'BingSearchEnabled' 0
   Set-Reg "$cv\Search" 'CortanaConsent' 0
@@ -722,6 +730,14 @@ catch {
 
 if ($SkipIso) { Step "Done (no ISO). Folder: $src"; Stop-Transcript | Out-Null; return }
 
+# ---------------- 6b. the name in the boot menus of the ISO (BIOS + UEFI) ----------------
+foreach ($b in "$src\boot\bcd", "$src\efi\microsoft\boot\bcd") {
+  if (-not (Test-Path $b)) { continue }
+  foreach ($id in '{default}', '{bootmgr}') { & bcdedit.exe /store $b /set $id description 'JDO x QHT Setup' 2>$null | Out-Null }
+  foreach ($line in (& bcdedit.exe /store $b /enum all) | Where-Object { $_ -match '^description\s' }) { }
+  Write-Host "  boot menu name set in $b"
+}
+
 # ---------------- 7. ISO (IMAPI2, BIOS + UEFI) ----------------
 Step "Building $Out"
 Add-Type -TypeDefinition @'
@@ -766,7 +782,7 @@ $fsi = New-Object -ComObject IMAPI2FS.MsftFileSystemImage
 $fsi.ChooseImageDefaultsForMediaType(18)   # BD-R: no 4.7 GB cap
 $fsi.FileSystemsToCreate = 4               # UDF, like oscdimg -u2
 $fsi.UDFRevision = 0x102
-$fsi.VolumeName = 'JDO_LITE_W10'
+$fsi.VolumeName = 'JDO_x_QHT'
 $bios = Boot-Image "$src\boot\etfsboot.com" 0
 $uefi = Boot-Image "$src\efi\microsoft\boot\efisys.bin" 0xEF
 [JdoIso]::SetBootImages($fsi, $bios, $uefi)

@@ -121,14 +121,19 @@ try {
   Check 'C:\JDO\Drivers has the network driver' ([bool](Get-ChildItem "$lite\JDO\Drivers" -Recurse -Filter rt640x64.inf -ErrorAction SilentlyContinue))
 
   # ---------------- 4. apps / shell / store ----------------
-  Say '== 4. no Store; shell, keyboard, fonts'
-  foreach ($a in 'Microsoft.WindowsStore', 'Microsoft.StorePurchaseApp', 'Microsoft.DesktopAppInstaller', 'Microsoft.Xbox') {
-    Check "removed: app $a" (-not (Get-ChildItem "$lite\Program Files\WindowsApps" -Directory -Filter "$a*" -ErrorAction SilentlyContinue))
+  Say '== 4. Store included; shell, keyboard, fonts'
+  foreach ($a in 'Microsoft.WindowsStore', 'Microsoft.StorePurchaseApp', 'Microsoft.DesktopAppInstaller') {
+    Check "in the image: app $a" ([bool](Get-ChildItem "$lite\Program Files\WindowsApps" -Directory -Filter "$a*" -ErrorAction SilentlyContinue))
   }
-  # off in the image itself (the setup screens that needed them are skipped by autounattend)
-  foreach ($s in 'InstallService', 'PushToInstall', 'wlidsvc', 'wuauserv', 'UsoSvc', 'WaaSMedicSvc') {
-    Check "$s off in the image" ((Get-ItemProperty "$LiteCS\Services\$s" -ErrorAction SilentlyContinue).Start -eq 4)
+  # the Store needs these: they stay as Windows ships them (only the update medic is off)
+  foreach ($s in 'InstallService', 'wlidsvc', 'wuauserv', 'UsoSvc') {
+    Check "$s stock in the image" ($null -eq (Compare-Object (Get-ItemProperty "$LiteCS\Services\$s").Start (Get-ItemProperty "$StockCS\Services\$s").Start))
   }
+  Check 'WaaSMedicSvc off' ((Get-ItemProperty "$LiteCS\Services\WaaSMedicSvc").Start -eq 4)
+  Check 'no background-app block (Start search works)' (-not (Get-ItemProperty 'HKLM:\T_LSW\Policies\Microsoft\Windows\AppPrivacy' -ErrorAction SilentlyContinue).LetAppsRunInBackground)
+  Check 'Run / Cancel warning off' ((Get-ItemProperty 'HKLM:\T_LUSR\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments').SaveZoneInformation -eq 1)
+  Check 'JDO x QHT runs after the desktop' ((Test-Path "$lite\JDO\JDO-x-QHT.ps1") -and (Test-Path "$lite\JDO\JDO-x-QHT.cmd") -and ((Get-ItemProperty 'HKLM:\T_LSW\Microsoft\Windows\CurrentVersion\Run').'JDO x QHT' -like '*JDO-x-QHT.cmd*'))
+  Check 'JDO Tools shortcut starts the menu + Start menu entry' ((Test-Path "$lite\ProgramData\Microsoft\Windows\Start Menu\Programs\JDO Tools.lnk") -and (Test-Path "$lite\Users\Public\Desktop\JDO Tools.lnk"))
   Check 'Windows Update policy in the image' ((Get-ItemProperty 'HKLM:\T_LSW\Policies\Microsoft\Windows\WindowsUpdate\AU' -ErrorAction SilentlyContinue).NoAutoUpdate -eq 1)
   Check 'first boot no longer touches services' (-not (Select-String -LiteralPath "$lite\Windows\Setup\Scripts\firstboot.ps1" -SimpleMatch "Run-Step '-Services'" -Quiet))
   foreach ($a in 'Microsoft.WindowsStore', 'Microsoft.StorePurchaseApp', 'Microsoft.XboxIdentityProvider', 'Microsoft.NET.Native.Framework.2.2', 'Microsoft.VCLibs.140.00') {
