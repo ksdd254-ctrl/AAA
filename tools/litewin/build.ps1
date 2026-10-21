@@ -65,6 +65,7 @@ $dropFeatures = 'Internet-Explorer-Optional-amd64','WorkFolders-Client','MSRDC-I
 $services = [ordered]@{
   # Windows Update, its orchestrator / self-repair and the Store / Microsoft account services. Safe in the image
   # because autounattend skips the setup screens (OOBE) - they were what needed these services (OOBEZDP error).
+  TrustedInstaller=3   # Windows ships it on demand; it only needs to run for servicing (one process less at idle)
   WaaSMedicSvc=4   # (wuauserv / UsoSvc / wlidsvc / InstallService / PushToInstall stay stock: the Store needs them)
   # Bluetooth (BTHUSB is the radio driver itself)
   bthserv=4; BTAGService=4; BthAvctpSvc=4; BluetoothUserService=4; BTHUSB=4
