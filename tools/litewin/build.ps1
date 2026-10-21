@@ -67,6 +67,14 @@ $services = [ordered]@{
   # because autounattend skips the setup screens (OOBE) - they were what needed these services (OOBEZDP error).
   TrustedInstaller=3   # Windows ships it on demand; it only needs to run for servicing (one process less at idle)
   WaaSMedicSvc=4; UsoSvc=4   # update orchestrator (MoUSO worker) off; wuauserv / wlidsvc / InstallService stay stock: the Store needs them
+  # services with no use on a gaming desktop (asked: everything without a reason off). Network, audio, Store, NVIDIA,
+  # controllers, typing, phone (MTP) and time sync stay.
+  sppsvc=3   # activation: on demand (its triggers start it when Windows checks the licence) - one process less
+  vmickvpexchange=4; vmicguestinterface=4; vmicshutdown=4; vmicheartbeat=4; vmicvmsession=4; vmicrdv=4; vmictimesync=4; vmicvss=4; HvHost=4   # Hyper-V guest: only inside a VM
+  SensorService=4; SensrSvc=4; SensorDataService=4   # sensors (a desktop has none)
+  NgcSvc=4; NgcCtnrSvc=4   # PIN / Windows Hello (the account has no password)
+  BDESVC=4; CertPropSvc=4; WEPHOSTSVC=4; dcsvc=4; NaturalAuthentication=4   # BitLocker, smart cards, enterprise encryption / MDM, dynamic lock
+  WebClient=4; fhsvc=4; spectrum=4; AssignedAccessManagerSvc=4; embeddedmode=4; autotimesvc=4   # WebDAV, File History, mixed reality, kiosk, embedded, cellular time
   DoSvc=4   # Delivery Optimization (peer-to-peer update downloads): off - asked for by the owner
   # Bluetooth (BTHUSB is the radio driver itself)
   bthserv=4; BTAGService=4; BthAvctpSvc=4; BluetoothUserService=4; BTHUSB=4
@@ -169,6 +177,8 @@ public static class OffReg
     public static void SetDword(string subKey, string name, uint value) { Set(subKey, name, 4, BitConverter.GetBytes(value)); }
     public static void SetBinary(string subKey, string name, byte[] value) { Set(subKey, name, 3, value); }
     public static void SetString(string subKey, string name, string value) { Set(subKey, name, 1, Encoding.Unicode.GetBytes(value + "\0")); }
+    public static void SetExpandString(string subKey, string name, string value) { Set(subKey, name, 2, Encoding.Unicode.GetBytes(value + "\0")); }
+    public static void SetMultiString(string subKey, string name, string[] values) { Set(subKey, name, 7, Encoding.Unicode.GetBytes(string.Join("\0", values) + "\0\0")); }
 
     public static void DeleteValue(string subKey, string name)
     {
@@ -374,6 +384,7 @@ try {
   }
 
   foreach ($s in $services.Keys) { Set-Svc $s $services[$s] }
+  if ((Get-ItemProperty "Registry::HKEY_LOCAL_MACHINE\JDO_SYSTEM\ControlSet001\Services\TrustedInstaller").Start -ne 3) { [OffReg]::SetDword('JDO_SYSTEM\ControlSet001\Services\TrustedInstaller', 'Start', 3) }
   if (-not $KeepDefender) {
     foreach ($s in $defender.Keys) { Set-Svc $s $defender[$s] }
     Set-Reg 'SOFTWARE\Policies\Microsoft\Windows Defender' 'DisableAntiSpyware' 1
@@ -406,6 +417,20 @@ try {
     Set-Reg "NTUSER\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\$c\NonPackaged" 'Value' 'Allow'
   }
   # (no LetAppsRunInBackground policy and no global background-app switch: they stopped Start menu search from working)
+
+  # svchost merge (asked for by the owner): two services that sit alone in their own svchost move into a group of the
+  # same account - audio endpoints (LocalSystem) into netsvcs, the UI message registrar (LocalService) into LocalService.
+  # 9 -> 7 svchost processes at idle. Network services are not moved. JDO-Tools switch "svchost merge" puts it back.
+  $svchost = 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Svchost'
+  foreach ($m in @(@('AudioEndpointBuilder', 'LocalSystemNetworkRestricted', 'netsvcs'), @('CoreMessagingRegistrar', 'LocalServiceNoNetwork', 'LocalService'))) {
+    $sk = "SYSTEM\ControlSet001\Services\$($m[0])"
+    $img = (Get-ItemProperty "Registry::HKEY_LOCAL_MACHINE\$(HiveKey $sk)" -Name ImagePath -ErrorAction SilentlyContinue).ImagePath
+    if ($img -notmatch "-k\s+$($m[1])\b") { Write-Host "  svchost merge: $($m[0]) not in $($m[1]) ($img) - left alone" -ForegroundColor Yellow; continue }
+    $list = @((Get-ItemProperty "Registry::HKEY_LOCAL_MACHINE\$(HiveKey $svchost)" -Name $m[2]).($m[2]))
+    if ($list -notcontains $m[0]) { [OffReg]::SetMultiString((HiveKey $svchost), $m[2], [string[]]($list + $m[0])) }
+    [OffReg]::SetExpandString((HiveKey $sk), 'ImagePath', ($img -replace "-k\s+$($m[1])\b", "-k $($m[2])"))
+    Write-Host "  svchost merge: $($m[0]) -> $($m[2])"
+  }
 
   # fewer processes: group services into shared svchost hosts instead of one per service
   Set-Reg 'SYSTEM\ControlSet001\Control' 'SvcHostSplitThresholdInKB' 4294967295

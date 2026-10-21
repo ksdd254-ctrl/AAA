@@ -536,6 +536,21 @@ function Restore-OldStartMenu {
   }
 }
 
+# svchost merge: audio endpoints into netsvcs, UI message registrar into LocalService (2 svchost processes less).
+# Off puts both back in their own Windows groups. Takes effect after a restart.
+function Set-SvchostMerge([bool]$On) {
+  $sv = 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Svchost'
+  foreach ($m in @(@('AudioEndpointBuilder', 'LocalSystemNetworkRestricted', 'netsvcs'), @('CoreMessagingRegistrar', 'LocalServiceNoNetwork', 'LocalService'))) {
+    $from = if ($On) { $m[1] } else { $m[2] }; $to = if ($On) { $m[2] } else { $m[1] }
+    $list = @((Get-ItemProperty "HKLM:\$sv" -Name $to).$to)
+    if ($list -notcontains $m[0]) { [void][JdoReg]::Set($sv, $to, 7, [Text.Encoding]::Unicode.GetBytes((($list + $m[0]) -join "`0") + "`0`0")) }
+    $img = (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\$($m[0])").ImagePath
+    $new = $img -replace "-k\s+$from\b", "-k $to"
+    $r = [JdoReg]::Set("SYSTEM\CurrentControlSet\Services\$($m[0])", 'ImagePath', 2, [Text.Encoding]::Unicode.GetBytes("$new`0"))
+    Write-Host "  $($m[0]): $to $(if ($r) { '' } else { '(could not write - run as admin)' })"
+  }
+}
+
 function Install-Runtimes {
   Write-Host 'Visual C++ 2015-2022 (x64 + x86) and DirectX runtime from Microsoft' -ForegroundColor Cyan
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -799,6 +814,9 @@ $switches = [ordered]@{
     On  = { Get-PnpDevice -Class Display -ErrorAction SilentlyContinue | Where-Object { $_.InstanceId -like 'PCI\VEN_1002*' -or $_.InstanceId -like 'PCI\VEN_8086*' } | ForEach-Object { Enable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false -ErrorAction SilentlyContinue; Write-Host "  on   $($_.FriendlyName)" }
             Write-Host '  For it to work fully install the AMD chipset / graphics driver from amd.com/support.' -ForegroundColor Yellow }
     Off = { Get-PnpDevice -Class Display -ErrorAction SilentlyContinue | Where-Object { $_.InstanceId -like 'PCI\VEN_1002*' -or $_.InstanceId -like 'PCI\VEN_8086*' } | ForEach-Object { Disable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false -ErrorAction SilentlyContinue; Write-Host "  off  $($_.FriendlyName)" } } }
+  'svchost merge (audio + UI message services share hosts: 2 processes less; off = Windows default)' = @{
+    On  = { Set-SvchostMerge $true }
+    Off = { Set-SvchostMerge $false } }
   'Clipboard history' = @{
     On  = { Set-Services @{ cbdhsvc=3 }; Set-Policy 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'AllowClipboardHistory' $null }
     Off = { Set-Services @{ cbdhsvc=4 }; Set-Policy 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'AllowClipboardHistory' 0 } }

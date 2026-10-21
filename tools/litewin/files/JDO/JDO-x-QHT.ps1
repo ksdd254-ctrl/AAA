@@ -359,6 +359,7 @@ public static class QhtSvc {
 foreach ($s in @(@('UsoSvc', 4, 'Update Orchestrator (MoUSO worker) off'), @('WaaSMedicSvc', 4, 'Windows Update Medic off'), @('DoSvc', 4, 'Delivery Optimization off'),
                  @('TrustedInstaller', 3, 'Windows Modules Installer only on demand (no TiWorker at idle)'), @('wuauserv', 3, 'Windows Update service on demand (the Store needs it)'),
                  @('uhssvc', 4, 'Microsoft Update Health Service off'),
+                 @('sppsvc', 3, 'activation service on demand (one process less)'),
                  @('GameInputSvc', 4, 'GameInput service off (Epic installs it; Fortnite and controllers do not need it - 2 processes less)'))) {
   $cur = (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\$($s[0])" -ErrorAction SilentlyContinue).Start
   if ($null -eq $cur) { continue }
