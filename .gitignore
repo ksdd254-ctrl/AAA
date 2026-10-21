@@ -47,3 +47,6 @@ Thumbs.db
 desktop.ini
 .DS_Store
 *.tmp
+
+# ---------- Lite Windows VM live view (tools/litewin/vmtest/vm-live.ps1) ----------
+tools/litewin/vmtest/live/

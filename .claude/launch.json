@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "litewin-vm-live",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/litewin/vmtest/live-server.js"],
+      "port": 8787
+    }
+  ]
+}

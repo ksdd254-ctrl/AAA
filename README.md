@@ -14,6 +14,19 @@ Windows tweaking and repair app (Arabic / English) with plan tiers and license k
 | `tools/analyze.ps1` | Reads every tweak file and counts how often each setting/value is used |
 | `tools/clean.ps1` | Cleans the raw packs into `E:\JDO_CLEAN` (dedupe, remove spoofer/boot/TaskCache, split network) |
 | `tools/gen_catalog.ps1` | Turns the analysis + clean packs into `library.json` |
+| `tools/litewin/build.ps1` | Builds the Lite Windows ISO (Windows 10 22H2 Pro, Fortnite + Store only) from an official ISO |
+| `tools/litewin/files/` | What goes into that image: `autounattend.xml`, first-boot scripts, and `C:\JDO` (tools menu + drivers) |
+
+## Lite Windows build
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\litewin\build.ps1 -Iso C:\Users\1\Desktop\Windows.iso   # as admin
+```
+
+Output goes to `E:\win 10 JDO` (`-Work` to change): `JDO_Lite_W10_22H2.iso`, `build.log`, a copy of the builder,
+`drivers\` (this PC's network drivers, exported automatically) and `drivers-extra\` (put any other `.inf` drivers here
+before building, e.g. Intel LAN or AMD chipset; they are added to the image too). `-KeepDefender` keeps Defender on,
+`-NoMitigations` turns Spectre/Meltdown mitigations off.
 
 ## Build
 
