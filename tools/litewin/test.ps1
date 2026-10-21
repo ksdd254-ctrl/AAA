@@ -15,7 +15,7 @@ $ProgressPreference = 'SilentlyContinue'
 $lite  = Join-Path $Work 'test\lite'
 $stock = Join-Path $Work 'test\stock'
 $out   = Join-Path $Work 'test\report.txt'
-$liteIso = Join-Path $Work 'JDO_Lite_W10_22H2.iso'
+$liteIso = Join-Path $Work 'JDO_x_QHT_W10_22H2.iso'
 $fail = 0; $pass = 0; $lines = New-Object System.Collections.Generic.List[string]
 function Say([string]$t) { Write-Host $t; $lines.Add($t) }
 function Check([string]$name, [bool]$ok, [string]$detail = '') {
@@ -81,7 +81,7 @@ try {
   $netSvc = 'Tcpip','Tcpip6','TCPIP6TUNNEL','tcpipreg','AFD','afunix','NetBT','NDIS','NdisCap','NdisVirtualBus','NdisWan','Ndisuio','nsiproxy',
             'Dhcp','Dnscache','NlaSvc','nsi','netprofm','NcbService','NcaSvc','NcdAutoSetup','Netman','Netlogon','WinHttpAutoProxySvc','Wcmsvc',
             'WlanSvc','wcncsvc','WwanSvc','RmSvc','icssvc','mpssvc','BFE','mpsdrv','SharedAccess','iphlpsvc','IpxlatCfgSvc','LanmanServer',
-            'LanmanWorkstation','lmhosts','SSDPSRV','upnphost','FDResPub','fdPHost','DoSvc','RasMan','RasAuto','RemoteAccess','SstpSvc',
+            'LanmanWorkstation','lmhosts','SSDPSRV','upnphost','FDResPub','fdPHost','RasMan','RasAuto','RemoteAccess','SstpSvc',
             'PolicyAgent','IKEEXT','WinRM','Dot3Svc','QWAVE','Psched','lltdsvc','rspndr','mrxsmb','mrxsmb20','srv2','srvnet',
             'bowser','rdbss','NetTcpPortSharing','AJRouter','ALG','XboxNetApiSvc','TermService','SessionEnv','UmRdpService','WinNat','vwififlt','WFPLWFS'
   foreach ($s in $netSvc) {
@@ -126,10 +126,14 @@ try {
     Check "in the image: app $a" ([bool](Get-ChildItem "$lite\Program Files\WindowsApps" -Directory -Filter "$a*" -ErrorAction SilentlyContinue))
   }
   # the Store needs these: they stay as Windows ships them (only the update medic is off)
-  foreach ($s in 'InstallService', 'wlidsvc', 'wuauserv', 'UsoSvc') {
+  foreach ($s in 'InstallService', 'wlidsvc', 'wuauserv') {
     Check "$s stock in the image" ($null -eq (Compare-Object (Get-ItemProperty "$LiteCS\Services\$s").Start (Get-ItemProperty "$StockCS\Services\$s").Start))
   }
   Check 'WaaSMedicSvc off' ((Get-ItemProperty "$LiteCS\Services\WaaSMedicSvc").Start -eq 4)
+  Check 'Update orchestrator off (no MoUSO worker)' ((Get-ItemProperty "$LiteCS\Services\UsoSvc").Start -eq 4)
+  Check 'Delivery Optimization off (owner asked)' ((Get-ItemProperty "$LiteCS\Services\DoSvc").Start -eq 4)
+  Check 'Snipping Tool removed' (-not (Test-Path "$lite\Windows\System32\SnippingTool.exe"))
+  Check 'JDO icons + post-setup in the image' ((Test-Path "$lite\JDO\Icons\tools.ico") -and (Test-Path "$lite\JDO\Icons\folder.ico") -and (Test-Path "$lite\JDO\JDO-PostSetup.ps1"))
   Check 'no background-app block (Start search works)' (-not (Get-ItemProperty 'HKLM:\T_LSW\Policies\Microsoft\Windows\AppPrivacy' -ErrorAction SilentlyContinue).LetAppsRunInBackground)
   Check 'Run / Cancel warning off' ((Get-ItemProperty 'HKLM:\T_LUSR\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments').SaveZoneInformation -eq 1)
   Check 'JDO x QHT runs after the desktop' ((Test-Path "$lite\JDO\JDO-x-QHT.ps1") -and (Test-Path "$lite\JDO\JDO-x-QHT.cmd") -and ((Get-ItemProperty 'HKLM:\T_LSW\Microsoft\Windows\CurrentVersion\Run').'JDO x QHT' -like '*JDO-x-QHT.cmd*'))
@@ -140,7 +144,7 @@ try {
   foreach ($a in 'Microsoft.WindowsStore', 'Microsoft.StorePurchaseApp', 'Microsoft.XboxIdentityProvider', 'Microsoft.NET.Native.Framework.2.2', 'Microsoft.VCLibs.140.00') {
     Check "saved copy for JDO-Tools 18: $a" ([bool](Get-ChildItem "$lite\JDO\Store" -Directory -Filter "${a}_*" -ErrorAction SilentlyContinue | Where-Object { Test-Path "$($_.FullName)\AppxManifest.xml" }))
   }
-  Check 'no Store pin on the taskbar' (-not (Select-String -LiteralPath "$lite\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml" -SimpleMatch 'WindowsStore' -Quiet))
+  Check 'Store pinned on the taskbar' ([bool](Select-String -LiteralPath "$lite\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml" -SimpleMatch 'WindowsStore' -Quiet))
   # what packaged system apps (Start menu search, Settings, NVIDIA Control Panel) need still starts
   foreach ($s in 'AppXSvc', 'StateRepository', 'ClipSVC', 'LicenseManager') {
     $st = (Get-ItemProperty "$LiteCS\Services\$s" -ErrorAction SilentlyContinue).Start

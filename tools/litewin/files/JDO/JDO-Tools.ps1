@@ -245,6 +245,12 @@ function Set-JdoPowerPlan {
   }
   powercfg -setactive $jdo | Out-Null
   powercfg -h off | Out-Null
+  # only JDO Ultimate stays: every other plan (Balanced, Power saver, High / Ultimate performance) is deleted
+  foreach ($l in powercfg /list) {
+    if ($l -match '([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\s+\((.+?)\)' -and $Matches[1] -ne $jdo) {
+      $n = $Matches[2]; powercfg /delete $Matches[1] 2>$null | Out-Null; Write-Host "  deleted plan: $n"
+    }
+  }
   Write-Host "  active: $((powercfg /getactivescheme) -replace '^.*\((.*)\).*$', '$1')" -ForegroundColor Green
 }
 
@@ -361,6 +367,16 @@ function Repair-Nvidia {
   # The DCH Control Panel is a packaged app the driver installs (no Store needed: AppX + licensing services do it) and
   # the NVIDIA App uses scheduled tasks + its containers; all of them need UAC on, Task Scheduler and the NVIDIA services.
   Set-Services @{ AppXSvc=3; ClipSVC=3; LicenseManager=3; StateRepository=3 }
+  # "There was a problem with NVIDIA App": its plugins time out when telemetry switches are off or it runs at idle priority
+  foreach ($x in @(@('HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\Startup', 'SendTelemetryData'), @('HKLM:\SOFTWARE\NVIDIA Corporation\NvControlPanel2\Client', 'OptInOrOutPreference'),
+                   @('HKCU:\Software\NVIDIA Corporation\NvControlPanel2\Client', 'OptInOrOutPreference'), @('HKLM:\SOFTWARE\NVIDIA Corporation\Global\FTS', 'EnableRID44231'),
+                   @('HKLM:\SOFTWARE\NVIDIA Corporation\Global\FTS', 'EnableRID64640'), @('HKLM:\SOFTWARE\NVIDIA Corporation\Global\FTS', 'EnableRID66610'))) {
+    if ($null -ne (Get-ItemProperty $x[0] -Name $x[1] -ErrorAction SilentlyContinue)) { Remove-ItemProperty $x[0] -Name $x[1] -ErrorAction SilentlyContinue; Write-Host "  $($x[1]) back to default" }
+  }
+  foreach ($e in Get-ChildItem $ifeo -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -match '(?i)^(nvidia|nv)' }) {
+    if (Test-Path "$($e.PSPath)\PerfOptions") { Remove-Item "$($e.PSPath)\PerfOptions" -Recurse -Force; Write-Host "  $($e.PSChildName): normal priority again" }
+  }
+  Get-ScheduledTask -TaskName 'NvTm*' -ErrorAction SilentlyContinue | Enable-ScheduledTask -ErrorAction SilentlyContinue | Out-Null
   Repair-TaskScheduler
   Set-Dword 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'EnableLUA' 1
   foreach ($s in Get-Service -Name 'NVDisplay.ContainerLocalSystem', 'NvContainerLocalSystem', 'NvContainerNetworkService' -ErrorAction SilentlyContinue) {
@@ -472,7 +488,6 @@ $stockServices = [ordered]@{ Schedule=2; TimeBrokerSvc=3; SystemEventsBroker=2; 
   NlaSvc=2; netprofm=3; Netman=3; NcbService=3; Dhcp=2; Dnscache=2; nsi=2; iphlpsvc=2; mpssvc=2; BFE=2; BITS=3; Audiosrv=2; AudioEndpointBuilder=2; wuauserv=3 }
 function Repair-Everything {
   Write-Host 'Fix everything: critical services, system programs, UAC, Task Scheduler, packaged apps' -ForegroundColor Cyan
-  Restore-OldStartMenu
   Set-Services $stockServices
   & (Join-Path $root 'JDO-x-QHT.ps1') -Quiet
   Repair-Admin
@@ -533,7 +548,9 @@ function Install-Runtimes {
   foreach ($i in $items) {
     Write-Host "  $($i.n)"
     $p = Join-Path $d $i.f
-    try { Invoke-WebRequest -Uri $i.u -OutFile $p -UseBasicParsing; Start-Process $p -ArgumentList $i.a -Wait }
+    & curl.exe -L --fail --retry 3 --connect-timeout 20 -o $p $i.u
+    if ((Test-Path $p) -and (Get-AuthenticodeSignature $p).Status -eq 'Valid') { $x = Start-Process $p -ArgumentList $i.a -PassThru; [void]$x.WaitForExit(600000); Write-Host '  done' -ForegroundColor Green; continue }
+    try { throw 'download or signature failed - check the internet connection' }
     catch { Write-Host "  failed: $($_.Exception.Message)" -ForegroundColor Red }
   }
   Done $false
@@ -634,8 +651,8 @@ function Slim-Epic {
   Clear-Folders @("$env:LOCALAPPDATA\EpicGamesLauncher\Saved\webcache*", "$env:LOCALAPPDATA\EpicGamesLauncher\Saved\Logs",
                   "$env:LOCALAPPDATA\FortniteGame\Saved\Logs", "$env:LOCALAPPDATA\FortniteGame\Saved\Crashes",
                   "$env:LOCALAPPDATA\FortniteGame\Saved\webcache*", "$env:LOCALAPPDATA\CrashReportClient")
-  Set-ProcessPriority 'EpicGamesLauncher.exe' 1 0 1
-  Set-ProcessPriority 'EpicWebHelper.exe' 1 0 1
+  Set-ProcessPriority 'EpicGamesLauncher.exe' 5 1 2   # below normal: at idle priority the launcher stalls
+  Set-ProcessPriority 'EpicWebHelper.exe' 5 1 2
   # the game itself: high CPU and I/O priority, high-performance GPU, fullscreen optimisations kept (DX12 needs them)
   Set-ProcessPriority 'FortniteClient-Win64-Shipping.exe' 3 3
   $fn = Get-FortnitePath
@@ -696,11 +713,11 @@ function Set-GamePriority {
   #            stutter or drop stream frames whenever the game is busy
   # Never lowered: Windows itself, the display driver service, chipset (AMD / Intel), the anti-cheat, audio / headset /
   # NVIDIA Broadcast, mouse / keyboard / controller software (lowering those adds input or sound lag).
-  $skip = '(?i)^(FortniteClient|FortniteLauncher|EasyAntiCheat|EOSOverlay|BEService|BattlEye|vgc|vgtray|FACEIT|NVDisplay|NVIDIA Broadcast|nvsphelper|' +
+  $skip = '(?i)^(FortniteClient|FortniteLauncher|EasyAntiCheat|EOSOverlay|BEService|BattlEye|vgc|vgtray|FACEIT|NVIDIA|nv|NVDisplay|' +
           'audiodg|Rtk|Realtek|Nahimic|NGENUITY|HyperX|Voicemeeter|vbaudio|Sonic|Dolby|DTS|AMD|amd|Ryzen|Intel|igfx|' +
           'lghub|LGHUB|Razer|Synapse|SteelSeries|Wooting|Corsair|iCUE|Glorious|Keys2X|ViGEm|DS4|DSX|' +
           'unins|uninst|setup|install|crash)'
-  $safeLow = '(?i)discord|chrome|brave|msedge|firefox|opera|spotify|obs|streamlabs|live ?studio|tiktok'
+  $safeLow = '(?i)discord|chrome|brave|msedge|firefox|opera|spotify|obs|streamlabs|live ?studio|tiktok|epic|exitlag|anydesk'
   $exes = @{}
   $sh = New-Object -ComObject WScript.Shell
   foreach ($dir in "$env:APPDATA\Microsoft\Windows\Start Menu\Programs", "$env:ProgramData\Microsoft\Windows\Start Menu\Programs") {
@@ -778,6 +795,10 @@ $switches = [ordered]@{
   'Printing' = @{
     On  = { Set-Services @{ Spooler=2; PrintNotify=3 } }
     Off = { Set-Services @{ Spooler=4; PrintNotify=4 } } }
+  'Integrated GPU (AMD Ryzen) - off by default: unused it only adds a driver and shared RAM; turn on for a 2nd screen on the motherboard' = @{
+    On  = { Get-PnpDevice -Class Display -ErrorAction SilentlyContinue | Where-Object { $_.InstanceId -like 'PCI\VEN_1002*' -or $_.InstanceId -like 'PCI\VEN_8086*' } | ForEach-Object { Enable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false -ErrorAction SilentlyContinue; Write-Host "  on   $($_.FriendlyName)" }
+            Write-Host '  For it to work fully install the AMD chipset / graphics driver from amd.com/support.' -ForegroundColor Yellow }
+    Off = { Get-PnpDevice -Class Display -ErrorAction SilentlyContinue | Where-Object { $_.InstanceId -like 'PCI\VEN_1002*' -or $_.InstanceId -like 'PCI\VEN_8086*' } | ForEach-Object { Disable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false -ErrorAction SilentlyContinue; Write-Host "  off  $($_.FriendlyName)" } } }
   'Clipboard history' = @{
     On  = { Set-Services @{ cbdhsvc=3 }; Set-Policy 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'AllowClipboardHistory' $null }
     Off = { Set-Services @{ cbdhsvc=4 }; Set-Policy 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'AllowClipboardHistory' 0 } }
@@ -804,8 +825,8 @@ $actions = [ordered]@{
   '18' = @{ t = 'Microsoft Store + Xbox: put back (files, services, everything - offline)';      a = { Install-Store } }
   '19' = @{ t = 'Microsoft Store + Xbox: remove again (apps you got from it stay)';             a = { Remove-Store } }
   '20' = @{ t = 'Fix EVERYTHING: services, Task Scheduler, UAC, Start search, system apps';       a = { Repair-Everything } }
+  '21' = @{ t = 'Apply the JDO x QHT tweaks again (shows every change; after a new NVIDIA driver too)';       a = { & (Join-Path $root 'JDO-x-QHT.ps1') -Quiet; Done $false } }
   '22' = @{ t = 'UNDO the JDO x QHT tweaks (restores every value from the backup)';                a = { Undo-Qht } }
-  '21' = @{ t = 'Apply the JDO x QHT tweaks again (they also run 5 s after every desktop)';       a = { & (Join-Path $root 'JDO-x-QHT.ps1') -Quiet; Done $false } }
 }
 $first = 23
 

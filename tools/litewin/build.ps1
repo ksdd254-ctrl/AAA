@@ -32,7 +32,7 @@ $src   = Join-Path $Work 'iso'
 $mount = Join-Path $Work 'mount'
 $wim   = Join-Path $Work 'install.wim'
 $scr   = Join-Path $Work 'scratch'
-if (-not $Out) { $Out = Join-Path $Work 'JDO_Lite_W10_22H2.iso' }
+if (-not $Out) { $Out = Join-Path $Work 'JDO_x_QHT_W10_22H2.iso' }
 $drv   = Join-Path $Work 'drivers'         # exported from this PC (network)
 $extra = Join-Path $Work 'drivers-extra'   # drop any other .inf drivers here (Intel LAN, chipset...) - added to the image too
 New-Item -ItemType Directory -Force $Work, $mount, $scr, $drv, $extra | Out-Null
@@ -66,7 +66,8 @@ $services = [ordered]@{
   # Windows Update, its orchestrator / self-repair and the Store / Microsoft account services. Safe in the image
   # because autounattend skips the setup screens (OOBE) - they were what needed these services (OOBEZDP error).
   TrustedInstaller=3   # Windows ships it on demand; it only needs to run for servicing (one process less at idle)
-  WaaSMedicSvc=4   # (wuauserv / UsoSvc / wlidsvc / InstallService / PushToInstall stay stock: the Store needs them)
+  WaaSMedicSvc=4; UsoSvc=4   # update orchestrator (MoUSO worker) off; wuauserv / wlidsvc / InstallService stay stock: the Store needs them
+  DoSvc=4   # Delivery Optimization (peer-to-peer update downloads): off - asked for by the owner
   # Bluetooth (BTHUSB is the radio driver itself)
   bthserv=4; BTAGService=4; BthAvctpSvc=4; BluetoothUserService=4; BTHUSB=4
   # Xbox Live / Game Pass sign-in (not used); the controller service stays on demand
@@ -359,11 +360,11 @@ try {
   $g = [System.Drawing.Graphics]::FromImage($bmp); $g.Clear([System.Drawing.Color]::Black)
   $bmp.Save("$mount\JDO\black.jpg", [System.Drawing.Imaging.ImageFormat]::Jpeg); $g.Dispose(); $bmp.Dispose()
   $lnk = (New-Object -ComObject WScript.Shell).CreateShortcut("$mount\Users\Public\Desktop\JDO Tools.lnk")
-  $lnk.TargetPath = 'C:\JDO\JDO-Tools.cmd'; $lnk.WorkingDirectory = 'C:\JDO'; $lnk.IconLocation = '%SystemRoot%\System32\shell32.dll,21'
+  $lnk.TargetPath = 'C:\JDO\JDO-Tools.cmd'; $lnk.WorkingDirectory = 'C:\JDO'; $lnk.IconLocation = 'C:\JDO\Icons\tools.ico,0'
   $lnk.Save()
   New-Item -ItemType Directory -Force "$mount\ProgramData\Microsoft\Windows\Start Menu\Programs" | Out-Null   # and in the Start menu, so search finds it
   $lnk2 = (New-Object -ComObject WScript.Shell).CreateShortcut("$mount\ProgramData\Microsoft\Windows\Start Menu\Programs\JDO Tools.lnk")
-  $lnk2.TargetPath = 'C:\JDO\JDO-Tools.cmd'; $lnk2.WorkingDirectory = 'C:\JDO'; $lnk2.IconLocation = '%SystemRoot%\System32\shell32.dll,21'; $lnk2.Save()
+  $lnk2.TargetPath = 'C:\JDO\JDO-Tools.cmd'; $lnk2.WorkingDirectory = 'C:\JDO'; $lnk2.IconLocation = 'C:\JDO\Icons\tools.ico,0'; $lnk2.Save()
 
   # ---------------- 5. offline registry ----------------
   Step 'Editing the registry'
@@ -606,6 +607,7 @@ try {
       "$w\Web"                                           # every wallpaper: the desktop is solid black
       "$w\Media"                                         # system sounds
       "$w\Containers"                                    # Windows Sandbox / container base files (feature removed)
+      "$mount\ProgramData\Microsoft\Windows\Start Menu\Programs\Accessories\Snipping Tool.lnk"   # Snipping Tool (asked to remove)
     )
     # English + Arabic only: fonts for every other script go (CJK, Indic, Thai, Lao, Khmer, Myanmar, Ethiopic,
     # Cherokee, Mongolian, Tibetan, Yi, Thaana, Georgian / Armenian, Javanese, historic scripts...).
@@ -615,6 +617,7 @@ try {
     # Chinese / Japanese / Korean input methods (the Arabic and English keyboards are plain layouts in System32)
     foreach ($ime in 'IMEJP', 'IMEKR', 'IMESC', 'IMETC') { $slim += "$w\IME\$ime", "$w\System32\IME\$ime", "$w\SysWOW64\IME\$ime" }
     foreach ($ime in 'CHS', 'CHT', 'JPN', 'KOR') { $slim += "$w\InputMethod\$ime" }
+    $slim += Get-ChildItem "$w\System32", "$w\SysWOW64" -Recurse -Depth 1 -Filter 'SnippingTool.exe*' -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
     # upgrade migration wizard (clean installs only), the rest of Windows Hello
     $slim += "$w\System32\migwiz", "$w\System32\WinBioPlugIns"
     # .NET native images: .NET apps run from IL instead (a second slower start, nothing else); NGEN tasks are off at first boot

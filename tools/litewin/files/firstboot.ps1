@@ -32,13 +32,20 @@ Run-Step '-Power' 120
 $deskDir = Join-Path $env:PUBLIC 'Desktop\JDO x QHT'
 New-Item -ItemType Directory -Force $deskDir | Out-Null
 $sh = New-Object -ComObject WScript.Shell
-foreach ($i in @(@('1 - Toolbox (fixes, priorities, Store)', 'JDO-Tools.cmd', 21), @('2 - Tweaks (JDO x QHT)', 'JDO-x-QHT.cmd', 22),
-                 @('3 - Apps (Chrome, Brave, Epic, Discord, NVIDIA, Voicemeeter)', 'JDO-Apps.cmd', 13))) {
+$icons = Join-Path $env:SystemDrive 'JDO\Icons'
+foreach ($i in @(@('1 - Toolbox (fixes, priorities, Store)', 'JDO-Tools.cmd', 'tools'), @('2 - Tweaks (JDO x QHT)', 'JDO-x-QHT.cmd', 'tweaks'),
+                 @('3 - Apps (Brave, Chrome, Epic, Discord, AnyDesk, NVIDIA, Voicemeeter)', 'JDO-Apps.cmd', 'apps'))) {
   $l = $sh.CreateShortcut((Join-Path $deskDir ($i[0] + '.lnk')))
   $l.TargetPath = Join-Path $env:SystemDrive ('JDO\' + $i[1]); $l.WorkingDirectory = Join-Path $env:SystemDrive 'JDO'
-  $l.IconLocation = "%SystemRoot%\System32\shell32.dll,$($i[2])"; $l.Save()
+  $l.IconLocation = "$icons\$($i[2]).ico,0"; $l.Save()
 }
+# the folder itself gets the JDO folder icon
+Set-Content (Join-Path $deskDir 'desktop.ini') "[.ShellClassInfo]`r`nIconResource=$icons\folder.ico,0`r`n" -Encoding Unicode
+& attrib.exe +s +h (Join-Path $deskDir 'desktop.ini'); & attrib.exe +r $deskDir
 Remove-Item (Join-Path $env:PUBLIC 'Desktop\JDO Tools.lnk') -Force -ErrorAction SilentlyContinue
+# the Start menu entry gets the same icon
+$sm = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\JDO Tools.lnk'
+if (Test-Path $sm) { $l = $sh.CreateShortcut($sm); $l.IconLocation = "$icons\tools.ico,0"; $l.Save() }
 
 # JDO x QHT: the merged FoxOS / SharawyOS / SapphireOS tweaks + Fortnite FPS + the name in the boot menu (also runs 5 s after every desktop)
 # (the JDO x QHT tweaks start 5 s after the desktop from the Run key, and restart the PC once everything here is finished)
@@ -53,7 +60,8 @@ $folders = '\Microsoft\Windows\Application Experience\', '\Microsoft\Windows\Cus
            '\Microsoft\Windows\Flighting\', '\Microsoft\Windows\Location\', '\Microsoft\Windows\Work Folders\',
            '\Microsoft\Windows\Power Efficiency Diagnostics\', '\Microsoft\Windows\DiskFootprint\', '\Microsoft\Windows\PI\',
            '\Microsoft\Windows\NetTrace\', '\Microsoft\Windows\Diagnosis\', '\Microsoft\Windows\RetailDemo\',
-           '\Microsoft\Windows\WindowsUpdate\', '\Microsoft\Windows\UpdateOrchestrator\',
+           '\Microsoft\Windows\WindowsUpdate\', '\Microsoft\Windows\UpdateOrchestrator\', '\Microsoft\Windows\WaaSMedic\',
+           '\Microsoft\Windows\Servicing\',   # StartComponentCleanup: TiWorker (Windows Modules Installer Worker) at idle
            '\Microsoft\Windows\XblGameSave\', '\Microsoft\Windows\Bluetooth\',
            '\Microsoft\Windows\Shell\', '\Microsoft\Windows\Speech\', '\Microsoft\Windows\Maintenance\',
            '\Microsoft\Windows\.NET Framework\'   # NGEN: native images are removed from this build on purpose
