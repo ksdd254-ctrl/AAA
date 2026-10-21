@@ -23,6 +23,24 @@ if (-not $DryRun -and -not $me.IsInRole([Security.Principal.WindowsBuiltInRole]:
 New-Item -ItemType Directory -Force (Join-Path $root 'logs') | Out-Null
 if (-not $Quiet -and -not $DryRun) { Start-Transcript (Join-Path $root 'logs\JDO-x-QHT.log') -Append | Out-Null }
 $name = 'JDO x QHT'
+# Open-Shell (classic Start menu with its own search box, fewer idle processes): quiet install the first time.
+# The installer is Open-Shell 4.4.198 from github.com/Open-Shell/Open-Shell-Menu (SHA-256 a4d2d445...48c3f, checked against GitHub).
+$osSetup = Join-Path $root 'Apps\OpenShellSetup.exe'
+if (-not $DryRun -and (Test-Path $osSetup) -and -not (Test-Path "$env:ProgramFiles\Open-Shell\StartMenu.exe")) {
+  Write-Host 'Open-Shell: installing'
+  Start-Process $osSetup -ArgumentList '/qn', 'ADDLOCAL=StartMenu' -Wait
+}
+# the old Start menu (StartMenuExperienceHost) is switched off once Open-Shell is there: renamed with a marker file, so
+# JDO-Tools option 22 / 20 can put it back. SearchApp and everything else Microsoft stays untouched.
+$smOff = Join-Path $root 'startmenu.off'
+$smExe = "$env:WINDIR\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost.exe"
+if (-not $DryRun -and (Test-Path "$env:ProgramFiles\Open-Shell\StartMenu.exe") -and (Test-Path $smExe) -and -not (Test-Path $smOff)) {
+  & takeown.exe /f $smExe 2>$null | Out-Null
+  & icacls.exe $smExe /grant '*S-1-5-32-544:F' 2>$null | Out-Null
+  Stop-Process -Name StartMenuExperienceHost -Force -ErrorAction SilentlyContinue
+  Rename-Item $smExe 'StartMenuExperienceHost.exe.qht-off' -ErrorAction SilentlyContinue
+  if (Test-Path "$smExe.qht-off") { New-Item -ItemType File $smOff -Force | Out-Null; Write-Host 'Old Start menu: off (Open-Shell is the Start menu)' }
+}
 # first run only: black cover with purple text so nothing can be touched, then restart. Later runs are silent (no loop).
 $firstMark = Join-Path $root 'qht.done'
 $first = (-not $Quiet) -and (-not $DryRun) -and (-not (Test-Path $firstMark))
@@ -71,6 +89,8 @@ Native bcdedit.exe /deletevalue useplatformtick   # Sharawy "No" and Sapphire de
 Native bcdedit.exe /set hypervisorlaunchtype off    # Fox + Sharawy
 Native bcdedit.exe /set bootmenupolicy legacy       # Sapphire + Sharawy
 Native bcdedit.exe /set quietboot on
+Native bcdedit.exe /set bootux disabled                   # no boot animation (BlitzOS)
+Native bcdedit.exe /timeout 3                            # boot menu waits 3 s (BlitzOS)
 $k = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel'
 Reg-Set $k 'SerializeTimerExpiration' 2                  # Sapphire
 $mm = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management'
@@ -207,9 +227,9 @@ foreach ($f in "$w\System32\RuntimeBroker", "$w\System32\backgroundTaskHost", "$
                "$w\SystemApps\ShellExperienceHost_cw5n1h2txyewy\ShellExperienceHost", "$w\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost",
                "$w\SystemApps\Microsoft.Windows.Search_cw5n1h2txyewy\SearchApp", "$w\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\TextInputHost") {
   foreach ($ext in '.old', '.exee') {
-    if (-not (Test-Path "$f.exe") -and (Test-Path "$f$ext")) { if (-not $DryRun) { Rename-Item "$f$ext" "$(Split-Path "$f.exe" -Leaf)" -ErrorAction SilentlyContinue }; Write-Host "  restored $(Split-Path "$f.exe" -Leaf)" }
+    if (-not (Test-Path "$f.exe") -and (Test-Path "$f$ext") -and -not ((Test-Path $smOff) -and ($f -like '*StartMenuExperienceHost'))) { if (-not $DryRun) { Rename-Item "$f$ext" "$(Split-Path "$f.exe" -Leaf)" -ErrorAction SilentlyContinue }; Write-Host "  restored $(Split-Path "$f.exe" -Leaf)" }
   }
-  if (-not (Test-Path "$f.exe")) { Write-Host "  MISSING $(Split-Path "$f.exe" -Leaf) - run JDO-Tools option 4 (or sfc /scannow)" }
+  if ((-not (Test-Path "$f.exe")) -and -not ((Test-Path $smOff) -and ($f -like '*StartMenuExperienceHost'))) { Write-Host "  MISSING $(Split-Path "$f.exe" -Leaf) - run JDO-Tools option 4 (or sfc /scannow)" }
 }
 if (-not $DryRun) { $undo | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $bk 'before.json') -Encoding UTF8; Write-Host "Backup of every changed value: $bk" }
 if ($first) {

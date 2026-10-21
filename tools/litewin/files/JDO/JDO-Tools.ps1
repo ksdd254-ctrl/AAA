@@ -472,6 +472,7 @@ $stockServices = [ordered]@{ Schedule=2; TimeBrokerSvc=3; SystemEventsBroker=2; 
   NlaSvc=2; netprofm=3; Netman=3; NcbService=3; Dhcp=2; Dnscache=2; nsi=2; iphlpsvc=2; mpssvc=2; BFE=2; BITS=3; Audiosrv=2; AudioEndpointBuilder=2; wuauserv=3 }
 function Repair-Everything {
   Write-Host 'Fix everything: critical services, system programs, UAC, Task Scheduler, packaged apps' -ForegroundColor Cyan
+  Restore-OldStartMenu
   Set-Services $stockServices
   & (Join-Path $root 'JDO-x-QHT.ps1') -Quiet
   Repair-Admin
@@ -501,8 +502,21 @@ function Undo-Qht {
   if (Test-Path $gus) { Copy-Item $gus (Join-Path $env:LOCALAPPDATA 'FortniteGame\Saved\Config\WindowsClient\GameUserSettings.ini') -Force; Write-Host '  Fortnite settings file restored' }
   $bcd = Join-Path $b.FullName 'bcd.bak'
   if ((Test-Path $bcd) -and (Read-Host '  Also put the boot settings back (bcdedit import)? 1 = yes') -eq '1') { & bcdedit.exe /import $bcd | Out-Null; Write-Host '  boot settings restored' }
+  Restore-OldStartMenu
   Write-Host '  The disk name: run  label C: <old name>  to change it back.'
   Done $true
+}
+
+# Puts the old Microsoft Start menu back (the JDO x QHT tweaks switch it off once Open-Shell is installed)
+function Restore-OldStartMenu {
+  $off = Join-Path $root 'startmenu.off'
+  $exe = "$env:WINDIR\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost.exe"
+  if (Test-Path "$exe.qht-off") {
+    & icacls.exe "$exe.qht-off" /grant '*S-1-5-32-544:F' 2>$null | Out-Null
+    Rename-Item "$exe.qht-off" 'StartMenuExperienceHost.exe' -ErrorAction SilentlyContinue
+    Remove-Item $off -Force -ErrorAction SilentlyContinue
+    Write-Host '  old Start menu restored (sign out and in)'
+  }
 }
 
 function Install-Runtimes {

@@ -133,6 +133,7 @@ try {
   Check 'no background-app block (Start search works)' (-not (Get-ItemProperty 'HKLM:\T_LSW\Policies\Microsoft\Windows\AppPrivacy' -ErrorAction SilentlyContinue).LetAppsRunInBackground)
   Check 'Run / Cancel warning off' ((Get-ItemProperty 'HKLM:\T_LUSR\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments').SaveZoneInformation -eq 1)
   Check 'JDO x QHT runs after the desktop' ((Test-Path "$lite\JDO\JDO-x-QHT.ps1") -and (Test-Path "$lite\JDO\JDO-x-QHT.cmd") -and ((Get-ItemProperty 'HKLM:\T_LSW\Microsoft\Windows\CurrentVersion\Run').'JDO x QHT' -like '*JDO-x-QHT.cmd*'))
+  Check 'Open-Shell installer is in the image (C:\JDO\Apps)' ((Get-Item "$lite\JDO\Apps\OpenShellSetup.exe" -ErrorAction SilentlyContinue).Length -gt 5MB)
   Check 'JDO Tools shortcut starts the menu + Start menu entry' ((Test-Path "$lite\ProgramData\Microsoft\Windows\Start Menu\Programs\JDO Tools.lnk") -and (Test-Path "$lite\Users\Public\Desktop\JDO Tools.lnk"))
   Check 'Windows Update policy in the image' ((Get-ItemProperty 'HKLM:\T_LSW\Policies\Microsoft\Windows\WindowsUpdate\AU' -ErrorAction SilentlyContinue).NoAutoUpdate -eq 1)
   Check 'first boot no longer touches services' (-not (Select-String -LiteralPath "$lite\Windows\Setup\Scripts\firstboot.ps1" -SimpleMatch "Run-Step '-Services'" -Quiet))
