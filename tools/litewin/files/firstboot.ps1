@@ -41,7 +41,7 @@ foreach ($i in @(@('1 - Toolbox (fixes, priorities, Store)', 'JDO-Tools.cmd', 21
 Remove-Item (Join-Path $env:PUBLIC 'Desktop\JDO Tools.lnk') -Force -ErrorAction SilentlyContinue
 
 # JDO x QHT: the merged FoxOS / SharawyOS / SapphireOS tweaks + Fortnite FPS + the name in the boot menu (also runs 5 s after every desktop)
-Run-Step '' 120 (Join-Path $env:SystemDrive 'JDO\JDO-x-QHT.ps1')
+# (the JDO x QHT tweaks start 5 s after the desktop from the Run key, and restart the PC once everything here is finished)
 
 # no Memory Compression process, no page combining scans
 Disable-MMAgent -MemoryCompression -ErrorAction SilentlyContinue
@@ -86,4 +86,5 @@ Remove-Item "$env:WINDIR\Temp\*", "$env:TEMP\*" -Recurse -Force -ErrorAction Sil
 New-Item -ItemType File $marker -Force | Out-Null
 # devices + per-device power saving (JDO-Tools > 2 does the same again after drivers are installed)
 Run-Step '-Devices' 180
+New-Item -ItemType File (Join-Path $dir 'firstboot.finished') -Force | Out-Null
 Stop-Transcript | Out-Null

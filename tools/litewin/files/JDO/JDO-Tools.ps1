@@ -481,6 +481,30 @@ function Repair-Everything {
   Write-Host '  Restart the PC to finish. Log: C:\JDO\logs' -ForegroundColor Yellow
 }
 
+# Undo the JDO x QHT tweaks: puts every value back to what it was before (from the Backup folder the tweak file wrote)
+function Undo-Qht {
+  Write-Host 'Undo the JDO x QHT tweaks' -ForegroundColor Cyan
+  $b = Get-ChildItem (Join-Path $root 'Backup') -Directory -Filter 'QHT-*' -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'before.json') } | Sort-Object Name | Select-Object -Last 1
+  if (-not $b) { Write-Host '  no backup found in C:\JDO\Backup' -ForegroundColor Yellow; return }
+  Write-Host "  using $($b.FullName)"
+  foreach ($i in @(Get-Content (Join-Path $b.FullName 'before.json') -Raw | ConvertFrom-Json)) {
+    try {
+      if ($i.Existed) {
+        $t = switch ($i.Kind) { 'String' { 'String' } 'ExpandString' { 'ExpandString' } 'Binary' { 'Binary' } 'QWord' { 'QWord' } default { 'DWord' } }
+        $v = if ($t -eq 'Binary') { [byte[]]$i.Value } else { $i.Value }
+        if (-not (Test-Path $i.Path)) { New-Item -Path $i.Path -Force | Out-Null }
+        New-ItemProperty -Path $i.Path -Name $i.Name -Value $v -PropertyType $t -Force -ErrorAction Stop | Out-Null
+      } else { Remove-ItemProperty -Path $i.Path -Name $i.Name -ErrorAction SilentlyContinue }
+    } catch { Write-Host "  could not restore $($i.Path)\$($i.Name)" -ForegroundColor Yellow }
+  }
+  $gus = Join-Path $b.FullName 'GameUserSettings.ini'
+  if (Test-Path $gus) { Copy-Item $gus (Join-Path $env:LOCALAPPDATA 'FortniteGame\Saved\Config\WindowsClient\GameUserSettings.ini') -Force; Write-Host '  Fortnite settings file restored' }
+  $bcd = Join-Path $b.FullName 'bcd.bak'
+  if ((Test-Path $bcd) -and (Read-Host '  Also put the boot settings back (bcdedit import)? 1 = yes') -eq '1') { & bcdedit.exe /import $bcd | Out-Null; Write-Host '  boot settings restored' }
+  Write-Host '  The disk name: run  label C: <old name>  to change it back.'
+  Done $true
+}
+
 function Install-Runtimes {
   Write-Host 'Visual C++ 2015-2022 (x64 + x86) and DirectX runtime from Microsoft' -ForegroundColor Cyan
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -764,9 +788,10 @@ $actions = [ordered]@{
   '18' = @{ t = 'Microsoft Store + Xbox: put back (files, services, everything - offline)';      a = { Install-Store } }
   '19' = @{ t = 'Microsoft Store + Xbox: remove again (apps you got from it stay)';             a = { Remove-Store } }
   '20' = @{ t = 'Fix EVERYTHING: services, Task Scheduler, UAC, Start search, system apps';       a = { Repair-Everything } }
+  '22' = @{ t = 'UNDO the JDO x QHT tweaks (restores every value from the backup)';                a = { Undo-Qht } }
   '21' = @{ t = 'Apply the JDO x QHT tweaks again (they also run 5 s after every desktop)';       a = { & (Join-Path $root 'JDO-x-QHT.ps1') -Quiet; Done $false } }
 }
-$first = 22
+$first = 23
 
 while ($true) {
   Clear-Host

@@ -11,20 +11,44 @@
 #   * DEP / process-mitigation changes (anti-cheats need them), Windows Update server blanking, HDCP off,
 #     NVIDIA telemetry removal (breaks the NVIDIA App), ECC, Photo Viewer associations, ProductName rename
 # At the end a guard checks the services and programs that Task Scheduler, Microsoft apps and NVIDIA need.
-param([switch]$Quiet)
+param([switch]$Quiet, [switch]$DryRun)   # -DryRun prints every change instead of making it
 $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $me = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-if (-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+if (-not $DryRun -and -not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
   Start-Process powershell.exe -Verb RunAs -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`""
   return
 }
 New-Item -ItemType Directory -Force (Join-Path $root 'logs') | Out-Null
-if (-not $Quiet) { Start-Transcript (Join-Path $root 'logs\JDO-x-QHT.log') -Append | Out-Null }
+if (-not $Quiet -and -not $DryRun) { Start-Transcript (Join-Path $root 'logs\JDO-x-QHT.log') -Append | Out-Null }
 $name = 'JDO x QHT'
+# first run only: black cover with purple text so nothing can be touched, then restart. Later runs are silent (no loop).
+$firstMark = Join-Path $root 'qht.done'
+$first = (-not $Quiet) -and (-not $DryRun) -and (-not (Test-Path $firstMark))
+$stopFile = Join-Path $root 'screen.stop'
+if (-not $DryRun) { Remove-Item $stopFile -Force -ErrorAction SilentlyContinue }
+if ($first) { Start-Process powershell.exe -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -STA -File `"$(Join-Path $root 'JDO-Screen.ps1')`"" }
 
+# Backup: every value this script changes is recorded with what it was before (or "did not exist"), so JDO-Tools can undo it.
+$bk = Join-Path $root ('Backup\QHT-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+$undo = New-Object System.Collections.Generic.List[object]
+$seen = @{}
+if (-not $DryRun) {
+  New-Item -ItemType Directory -Force $bk | Out-Null
+  & bcdedit.exe /export (Join-Path $bk 'bcd.bak') 2>$null | Out-Null
+}
+function Native([string]$Exe) { $a = @($args); if ($DryRun) { Write-Host "DRY $Exe $($a -join ' ')" } else { & $Exe @a 2>$null | Out-Null } }
 function Reg-Set([string]$Path, [string]$Name, $Value, [string]$Type = 'DWord') {
+  if ($DryRun) { Write-Host "DRY reg $Path\$Name = $Value"; return }
+  $key = "$Path|$Name"
+  if (-not $seen.ContainsKey($key)) {
+    $seen[$key] = $true
+    $old = Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue
+    $had = ($null -ne $old) -and ($null -ne $old.$Name)
+    $kind = if ($had) { (Get-Item $Path).GetValueKind($Name).ToString() } else { $Type }
+    $undo.Add([pscustomobject]@{ Path = $Path; Name = $Name; Existed = $had; Kind = $kind; Value = $(if ($had) { $old.$Name } else { $null }) })
+  }
   try {
     if (-not (Test-Path $Path)) { New-Item -Path $Path -Force | Out-Null }
     New-ItemProperty -Path $Path -Name $Name -Value $Value -PropertyType $Type -Force -ErrorAction Stop | Out-Null
@@ -33,20 +57,20 @@ function Reg-Set([string]$Path, [string]$Name, $Value, [string]$Type = 'DWord') 
 
 # ---- name: boot menu, disk label, system page ----
 Write-Host "Name: $name"
-& bcdedit.exe /set '{current}' description $name | Out-Null
-& bcdedit.exe /set '{bootmgr}' description $name 2>$null | Out-Null
-& cmd.exe /c "label $($env:SystemDrive) $name" | Out-Null
+Native bcdedit.exe /set '{current}' description $name
+Native bcdedit.exe /set '{bootmgr}' description $name
+Native cmd.exe /c "label $($env:SystemDrive) $name"
 $oem = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation'
 Reg-Set $oem 'Manufacturer' $name String
 Reg-Set $oem 'Model' $name String
 Reg-Set 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' 'RegisteredOwner' $name String
 
 # ---- boot / timer latency (SharawyOS + SapphireOS; Fox has none) ----
-& bcdedit.exe /set disabledynamictick yes | Out-Null      # no tick coalescing: steadier frame pacing
-& bcdedit.exe /deletevalue useplatformtick 2>$null | Out-Null   # Sharawy "No" and Sapphire default disagree: Windows default wins
-& bcdedit.exe /set hypervisorlaunchtype off | Out-Null    # Fox + Sharawy
-& bcdedit.exe /set bootmenupolicy legacy | Out-Null       # Sapphire + Sharawy
-& bcdedit.exe /set quietboot on | Out-Null
+Native bcdedit.exe /set disabledynamictick yes      # no tick coalescing: steadier frame pacing
+Native bcdedit.exe /deletevalue useplatformtick   # Sharawy "No" and Sapphire default disagree: Windows default wins
+Native bcdedit.exe /set hypervisorlaunchtype off    # Fox + Sharawy
+Native bcdedit.exe /set bootmenupolicy legacy       # Sapphire + Sharawy
+Native bcdedit.exe /set quietboot on
 $k = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel'
 Reg-Set $k 'SerializeTimerExpiration' 2                  # Sapphire
 $mm = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management'
@@ -71,7 +95,7 @@ foreach ($g in Get-CimInstance Win32_VideoController -ErrorAction SilentlyContin
 foreach ($n in 'LogWarningEntries', 'LogPagingEntries', 'LogEventEntries', 'LogErrorEntries') { Reg-Set 'HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm' $n 0 }
 Reg-Set 'HKLM:\SOFTWARE\Microsoft\Windows\Dwm' 'OverlayTestMode' 5          # MPO off: no overlay flicker / frame-time spikes (Sapphire)
 $smi = "$env:ProgramFiles\NVIDIA Corporation\NVSMI\nvidia-smi.exe"
-if (Test-Path $smi) { & $smi -acp 0 2>$null | Out-Null }                    # unrestricted clock policy (Fox + Sapphire + Sharawy)
+if (Test-Path $smi) { Native $smi '-acp' '0' }                    # unrestricted clock policy (Fox + Sapphire + Sharawy)
 
 # ---- USB / HID power saving off (Fox's list, USB only - network adapters are never touched) ----
 $net = @(Get-PnpDevice -Class Net -ErrorAction SilentlyContinue | ForEach-Object { $_.InstanceId.ToUpper() })
@@ -98,7 +122,7 @@ Reg-Set "$cu\Mobility" 'CrossDeviceEnabled' 0
 Reg-Set "$cu\Mobility" 'PhoneLinkEnabled' 0
 Reg-Set "$cu\ContentDeliveryManager" 'SubscribedContentEnabled' 0
 Reg-Set "$cu\Notifications\Settings" 'NOC_GLOBAL_SETTING_TOASTS_ENABLED' 0
-Remove-Item "$cu\IrisService" -Recurse -Force -ErrorAction SilentlyContinue   # Spotlight leftovers (Sharawy)
+if (-not $DryRun) { Remove-Item "$cu\IrisService" -Recurse -Force -ErrorAction SilentlyContinue }   # Spotlight leftovers (Sharawy)
 Reg-Set "$cu\Themes\Personalize" 'EnableTransparency' 0
 # classic Alt-Tab (Sapphire default)
 Reg-Set "$cu\Explorer" 'AltTabSettings' 1
@@ -147,7 +171,7 @@ if (Test-Path $gus) {
   foreach ($q in 'ViewDistance', 'Shadow', 'PostProcess', 'Texture', 'Effects', 'Foliage', 'Shading', 'AntiAliasing') {
     $t = $t -replace "(?m)^sg\.${q}Quality=.*$", "sg.${q}Quality=0"
   }
-  Set-Content $gus $t -NoNewline
+  if ($DryRun) { Write-Host "DRY write $gus" } else { Copy-Item $gus (Join-Path $bk 'GameUserSettings.ini') -Force; Set-Content $gus $t -NoNewline }
   Write-Host '  Fortnite: frame cap and V-Sync off, graphics quality lowest'
 }
 # 6. any Fortnite exe found in the Epic install list: fullscreen optimisations off, high-performance GPU
@@ -183,8 +207,21 @@ foreach ($f in "$w\System32\RuntimeBroker", "$w\System32\backgroundTaskHost", "$
                "$w\SystemApps\ShellExperienceHost_cw5n1h2txyewy\ShellExperienceHost", "$w\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost",
                "$w\SystemApps\Microsoft.Windows.Search_cw5n1h2txyewy\SearchApp", "$w\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\TextInputHost") {
   foreach ($ext in '.old', '.exee') {
-    if (-not (Test-Path "$f.exe") -and (Test-Path "$f$ext")) { Rename-Item "$f$ext" "$(Split-Path "$f.exe" -Leaf)" -ErrorAction SilentlyContinue; Write-Host "  restored $(Split-Path "$f.exe" -Leaf)" }
+    if (-not (Test-Path "$f.exe") -and (Test-Path "$f$ext")) { if (-not $DryRun) { Rename-Item "$f$ext" "$(Split-Path "$f.exe" -Leaf)" -ErrorAction SilentlyContinue }; Write-Host "  restored $(Split-Path "$f.exe" -Leaf)" }
   }
   if (-not (Test-Path "$f.exe")) { Write-Host "  MISSING $(Split-Path "$f.exe" -Leaf) - run JDO-Tools option 4 (or sfc /scannow)" }
 }
-if (-not $Quiet) { Stop-Transcript | Out-Null }
+if (-not $DryRun) { $undo | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $bk 'before.json') -Encoding UTF8; Write-Host "Backup of every changed value: $bk" }
+if ($first) {
+  # let the first-boot job (power plan, devices, tasks) finish before restarting: up to 4 minutes
+  $fin = Join-Path $env:WINDIR 'Setup\Scripts\firstboot.finished'
+  $t0 = Get-Date
+  while (-not (Test-Path $fin) -and ((Get-Date) - $t0).TotalSeconds -lt 240 -and (Test-Path (Join-Path $env:WINDIR 'Setup\Scripts\firstboot.ps1'))) { Start-Sleep -Seconds 3 }
+  New-Item -ItemType File $firstMark -Force | Out-Null
+  # one time only: take it out of the sign-in list (the Toolbox / desktop shortcut can still run it by hand)
+  Remove-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'JDO x QHT' -ErrorAction SilentlyContinue
+  New-Item -ItemType File $stopFile -Force | Out-Null
+  Write-Host 'Restarting'
+  Stop-Transcript | Out-Null
+  & shutdown.exe /r /t 3 /c 'JDO x QHT: tweaks applied, restarting'
+} elseif (-not $Quiet -and -not $DryRun) { Stop-Transcript | Out-Null }
