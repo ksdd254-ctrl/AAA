@@ -7,13 +7,15 @@ param(
   [int]$MemMB = 4096,
   [int]$DiskGB = 24,
   [int]$TimeoutMin = 240,
+  [int]$MonPort = 4445,       # QEMU monitor port (several VMs at once need different ports)
   [switch]$Resume,           # boot the existing VM disk again (QEMU stopped midway) instead of a fresh install
-  [string]$Display = 'none'  # 'sdl' = a window on the desktop you can use with mouse and keyboard (Ctrl+Alt+G frees the mouse)
+  [string]$Display = 'none', # 'sdl' = a window on the desktop you can use with mouse and keyboard (Ctrl+Alt+G frees the mouse)
+  [string]$Qemu              # QEMU folder (default: -Work\qemu, else the copy in the Windows 10 work folder)
 )
 #Requires -RunAsAdministrator
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$q = Join-Path $Work 'qemu'
+$q = if ($Qemu) { $Qemu } elseif (Test-Path (Join-Path $Work 'qemu\qemu-img.exe')) { Join-Path $Work 'qemu' } else { 'E:\win 10 JDO\qemu' }
 $vm = Join-Path $Work 'vm'
 $src = Join-Path $Work 'iso'
 $testSrc = Join-Path $vm 'iso-src'
@@ -86,7 +88,7 @@ Say ('Test ISO: {0:N2} GB' -f ((Get-Item $testIso).Length / 1GB))
 if (Test-Path $disk) { Remove-Item $disk -Force }
 & "$q\qemu-img.exe" create -f qcow2 $disk "${DiskGB}G" | Out-Null
 } else { Say 'Resuming: booting the existing VM disk' }
-$mon = 4445
+$mon = $MonPort
 # BIOS boot (SeaBIOS): disk first, so the blank disk falls through to the ISO once and the installed disk wins afterwards.
 # AHCI disk + e1000 network: both have inbox Windows drivers, so no extra drivers are needed.
 $qargs = @(

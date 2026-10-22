@@ -32,9 +32,33 @@ function Test-Signed([string]$File, [string]$Signer) {
   $s.Status -eq 'Valid' -and $s.SignerCertificate.Subject -match $Signer
 }
 function Pin-Taskbar([string]$Lnk) {
+  if (-not (Test-Path $Lnk)) { return $false }
+  if ([Environment]::OSVersion.Version.Build -ge 22000) {
+    # Windows 11 has no scriptable "Pin to taskbar" at all; it takes the pins from a layout file named by policy
+    # (File Explorer, the Store and this program), read again when Explorer restarts
+    $xml = Join-Path $root 'taskbar.xml'
+    @"
+<LayoutModificationTemplate xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification" xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout" xmlns:taskbar="http://schemas.microsoft.com/Start/2014/TaskbarLayout" Version="1">
+  <CustomTaskbarLayoutCollection PinListPlacement="Replace">
+    <defaultlayout:TaskbarLayout>
+      <taskbar:TaskbarPinList>
+        <taskbar:DesktopApp DesktopApplicationID="Microsoft.Windows.Explorer" />
+        <taskbar:UWA AppUserModelID="Microsoft.WindowsStore_8wekyb3d8bbwe!App" />
+        <taskbar:DesktopApp DesktopApplicationLinkPath="$Lnk" />
+      </taskbar:TaskbarPinList>
+    </defaultlayout:TaskbarLayout>
+  </CustomTaskbarLayoutCollection>
+</LayoutModificationTemplate>
+"@ | Set-Content $xml -Encoding UTF8
+    $k = 'HKCU:\Software\Policies\Microsoft\Windows\Explorer'
+    New-Item $k -Force | Out-Null
+    Set-ItemProperty $k -Name StartLayoutFile -Value $xml
+    Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue   # Windows starts it again by itself
+    return $true
+  }
   # Windows 10 hides "Pin to taskbar" from scripts; the same Explorer command, called through a temporary verb
   $h = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\CommandStore\shell\Windows.taskbarpin' -ErrorAction SilentlyContinue).ExplorerCommandHandler
-  if (-not $h -or -not (Test-Path $Lnk)) { return $false }
+  if (-not $h) { return $false }
   $k = 'HKCU:\Software\Classes\*\shell\jdopin'
   New-Item $k -Force | Out-Null; Set-ItemProperty $k -Name ExplorerCommandHandler -Value $h
   try { (New-Object -ComObject Shell.Application).Namespace((Split-Path $Lnk)).ParseName((Split-Path $Lnk -Leaf)).InvokeVerb('jdopin') } catch { }

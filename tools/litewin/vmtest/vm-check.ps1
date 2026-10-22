@@ -4,6 +4,20 @@ $ErrorActionPreference = 'Continue'
 $out = 'C:\JDO-TEST'; New-Item -ItemType Directory -Force $out | Out-Null
 $rep = Join-Path $out 'report.txt'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
+# The JDO x QHT tweaks run 5 s after the first desktop and restart the PC: the checks wait for that restart and run
+# at the sign-in after it (from a copy on C:, the install media may be gone by then)
+if (-not (Test-Path 'C:\JDO\qht.done')) {
+  Copy-Item $MyInvocation.MyCommand.Path "$out\vm-check.ps1" -Force
+  Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' 'JDO VM check' "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $out\vm-check.ps1"
+  Set-Content "$out\waiting.txt" "waiting for the JDO x QHT restart $(Get-Date -Format s)"
+  return
+}
+$me = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+  Start-Process powershell.exe -Verb RunAs -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`""
+  return
+}
+$win11 = [Environment]::OSVersion.Version.Build -ge 22000
 function Say([string]$t) { Add-Content -LiteralPath $rep -Value $t -Encoding UTF8 }
 function Check([string]$name, [bool]$ok, [string]$detail = '') { Say ("{0}  {1}  {2}" -f $(if ($ok) { 'PASS' } else { 'FAIL' }), $name, $detail) }
 Set-Content -LiteralPath $rep -Value "JDO Lite VM test  $(Get-Date -Format s)" -Encoding UTF8
@@ -17,9 +31,18 @@ if (Test-Path 'C:\Windows\Setup\Scripts\firstboot.log') { Say '  --- firstboot.l
 $plan = powercfg /getactivescheme
 Check 'power plan JDO Ultimate active' ($plan -match 'JDO Ultimate') $plan
 Check 'hibernation off' (-not (Test-Path 'C:\hiberfil.sys'))
-foreach ($s in 'wuauserv', 'UsoSvc', 'WaaSMedicSvc', 'wlidsvc', 'InstallService', 'PushToInstall') {
-  Check "first boot turned off $s" ((Get-CimInstance Win32_Service -Filter "Name='$s'" -ErrorAction SilentlyContinue).StartMode -eq 'Disabled')
+foreach ($s in 'UsoSvc', 'WaaSMedicSvc', 'DoSvc') {
+  Check "$s off" ((Get-CimInstance Win32_Service -Filter "Name='$s'" -ErrorAction SilentlyContinue).StartMode -eq 'Disabled')
 }
+# the Store needs these: on demand, as Windows ships them
+foreach ($s in 'wuauserv', 'wlidsvc', 'InstallService') {
+  Check "$s can start (Store)" ((Get-CimInstance Win32_Service -Filter "Name='$s'" -ErrorAction SilentlyContinue).StartMode -in 'Manual', 'Auto')
+}
+Check 'JDO x QHT tweaks applied (first run finished)' (Test-Path 'C:\JDO\qht.done')
+$ql = Get-ChildItem 'C:\JDO\logs' -Filter 'JDO-x-QHT.log' -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($ql) { Say '  --- JDO-x-QHT.log [FAIL] lines ---'; Select-String -LiteralPath $ql.FullName -Pattern '\[FAIL\]|fix:' | Select-Object -First 40 | ForEach-Object { Say "    $($_.Line.Trim())" } }
+Check 'timer service JDOTimer running' ((Get-Service JDOTimer -ErrorAction SilentlyContinue).Status -eq 'Running')
+Check 'Open-Shell installed' (Test-Path "$env:ProgramFiles\Open-Shell\StartMenu.exe")
 Check 'Task Scheduler running' ((Get-Service Schedule).Status -eq 'Running')
 Check 'scheduled tasks readable' ((Get-ScheduledTask -ErrorAction SilentlyContinue | Measure-Object).Count -gt 10)
 Check 'Run as administrator service (Appinfo) starts' ($(Start-Service Appinfo -ErrorAction SilentlyContinue; (Get-Service Appinfo).Status -eq 'Running'))
@@ -54,13 +77,18 @@ Check 'firewall profiles on (stock)' (-not (Get-NetFirewallProfile | Where-Objec
 
 # ---------- 4. shell and apps ----------
 Say '== 4. desktop, search, typing, Arabic keyboard'
-foreach ($p in 'explorer', 'StartMenuExperienceHost', 'ShellExperienceHost', 'sihost', 'ctfmon') { Check "running: $p" ([bool](Get-Process $p -ErrorAction SilentlyContinue)) }
-Check 'Start menu search app present' (Test-Path 'C:\Windows\SystemApps\Microsoft.Windows.Search_cw5n1h2txyewy\SearchApp.exe')
+foreach ($p in 'explorer', 'StartMenu', 'sihost', 'ctfmon') { Check "running: $p" ([bool](Get-Process $p -ErrorAction SilentlyContinue)) }   # StartMenu = Open-Shell
+$searchExe = if ($win11) { 'C:\Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\SearchHost.exe' } else { 'C:\Windows\SystemApps\Microsoft.Windows.Search_cw5n1h2txyewy\SearchApp.exe' }
+Check 'Start menu search app present' (Test-Path $searchExe)
 Check 'Arabic keyboard in the list' ((Get-WinUserLanguageList).InputMethodTips -match '0401:00000401')
-Check 'no Microsoft Store' (-not (Get-AppxPackage -Name Microsoft.WindowsStore -ErrorAction SilentlyContinue))
+Check 'Microsoft Store installed' ([bool](Get-AppxPackage -Name Microsoft.WindowsStore -ErrorAction SilentlyContinue))
+if ($win11) {
+  Check 'Windows 11: no Widgets process' (-not (Get-Process Widgets, WidgetService -ErrorAction SilentlyContinue))
+  Check 'Windows 11: typing service present' ([bool](Get-Service TextInputManagementService -ErrorAction SilentlyContinue))
+}
 $bad = Get-AppxPackage -AllUsers -ErrorAction SilentlyContinue | Where-Object { $_.Status -ne 'Ok' }
 Check 'all registered packaged apps are healthy' (-not $bad) (($bad | ForEach-Object { "$($_.Name)=$($_.Status)" }) -join ', ')
-foreach ($e in 'notepad.exe', 'mspaint.exe', 'cmd.exe', 'taskmgr.exe', 'regedit.exe', 'mmc.exe') { Check "exists: $e" ([bool](Get-Command $e -ErrorAction SilentlyContinue)) }
+foreach ($e in 'notepad.exe', 'cmd.exe', 'taskmgr.exe', 'regedit.exe', 'mmc.exe') { Check "exists: $e" ([bool](Get-Command $e -ErrorAction SilentlyContinue)) }
 # side-by-side assemblies: a program that needs common controls v6 / GDI+ must start
 $p = Start-Process taskmgr.exe -PassThru; Start-Sleep 5; Check 'Task Manager opens (common controls v6)' (-not $p.HasExited); Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
 $p = Start-Process mmc.exe -ArgumentList 'devmgmt.msc' -PassThru; Start-Sleep 8; Check 'Device Manager opens (MMC)' (-not $p.HasExited); Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
@@ -80,14 +108,15 @@ function Read-Host { '1' }   # answers the yes / no prompts
 function Done([bool]$r) { }
 try { Repair-TaskScheduler *> $null; Check 'tool 6: Task Scheduler repair runs, scheduler still running' ((Get-Service Schedule).Status -eq 'Running') } catch { Check 'tool 6' $false $_.Exception.Message }
 try { Set-GamePriority *> $null; Check 'tool 16: priority option runs' $true } catch { Check 'tool 16' $false $_.Exception.Message }
-Check 'tool 16 never touched a Windows program name' (-not (Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options' | Where-Object { (Test-Path "C:\Windows\System32\$($_.PSChildName)") -and (Test-Path "$($_.PSPath)\PerfOptions") -and $_.PSChildName -notmatch '^(SearchApp|TextInputHost)\.exe$' }))
-try { Install-Store *> $null; $s = [bool](Get-AppxPackage -Name Microsoft.WindowsStore); Check 'tool 18: Store comes back from C:\JDO\Store' $s } catch { Check 'tool 18' $false $_.Exception.Message }
+Check 'tool 16 never touched a Windows program name' (-not (Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options' | Where-Object { (Test-Path "C:\Windows\System32\$($_.PSChildName)") -and (Test-Path "$($_.PSPath)\PerfOptions") -and $_.PSChildName -notmatch '^(SearchApp|SearchHost|TextInputHost)\.exe$' }))
 if (Get-AppxPackage -Name Microsoft.WindowsStore) {
   $p = Start-Process 'shell:AppsFolder\Microsoft.WindowsStore_8wekyb3d8bbwe!App' -PassThru -ErrorAction SilentlyContinue; Start-Sleep 15
-  Check 'tool 18: Store window opens' ([bool](Get-Process WinStore.App -ErrorAction SilentlyContinue))
+  Check 'Store window opens' ([bool](Get-Process WinStore.App -ErrorAction SilentlyContinue))
   Get-Process WinStore.App -ErrorAction SilentlyContinue | Stop-Process -Force
 }
-try { Remove-Store *> $null; Check 'tool 19: Store removed again' (-not (Get-AppxPackage -Name Microsoft.WindowsStore)) } catch { Check 'tool 19' $false $_.Exception.Message }
+# 19 then 18: the Store ends up installed, as the image ships it
+try { Remove-Store *> $null; Check 'tool 19: Store removed' (-not (Get-AppxPackage -Name Microsoft.WindowsStore)) } catch { Check 'tool 19' $false $_.Exception.Message }
+try { Install-Store *> $null; $s = [bool](Get-AppxPackage -Name Microsoft.WindowsStore); Check 'tool 18: Store comes back from C:\JDO\Store' $s } catch { Check 'tool 18' $false $_.Exception.Message }
 
 # ---------- 6. errors logged since setup ----------
 Say '== 6. errors in the event logs'

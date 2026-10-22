@@ -1,4 +1,4 @@
-# JDO Lite Windows - image builder
+# JDO x QHT - image builder
 # Takes an official Windows 10 22H2 ISO and builds a Fortnite-only ISO from one edition:
 #   * no Microsoft Store (Fortnite comes from the Epic Games Launcher); keeps wired / Xbox-adapter controllers and what
 #     Easy Anti-Cheat / BattlEye need
@@ -11,6 +11,7 @@
 # Hard rule: nothing changes hardware serials / IDs, the MAC, or any network setting. Network services, Wi-Fi,
 # the firewall, network drivers and TCP/IP all stay exactly as Windows ships them.
 # Usage (as admin): powershell -ExecutionPolicy Bypass -File build.ps1 -Iso C:\Users\1\Desktop\Windows.iso
+#   Windows 11 23H2 (official or a near-stock base such as XdzlOS 11 23H2): add -Win11
 param(
   [Parameter(Mandatory=$true)][string]$Iso,
   [string]$Work = 'E:\win 10 JDO',
@@ -21,11 +22,19 @@ param(
   [switch]$NoSlim,          # skip the size slimming step
   [switch]$MergeSvchost,    # UNSAFE, not default: moves two services to other svchost groups (a black screen at sign-in was seen after it)
   [string]$UpdateMsu,        # a Windows cumulative update (.msu) installed into the image BEFORE the slimming: updated Windows, same size
+  [switch]$NoOwnerServices,  # test only: leave the services disabled on the owner's PC (network ones included) as Windows ships them
+  [switch]$KeepNgc,          # test only: leave PIN / Windows Hello services as Windows ships them
   [switch]$KeepServicing,   # keep WinSxS (Windows Update / adding features keep working, ISO ~1 GB bigger)
   [switch]$SkipIso,         # stop after the image (no ISO)
-  [switch]$IsoOnly          # only rebuild the ISO from the folder a previous run left in -Work\iso
+  [switch]$IsoOnly,         # only rebuild the ISO from the folder a previous run left in -Work\iso
+  [switch]$Win11            # Windows 11 23H2 image: own work folder, edition, ISO name and the Windows 11 shell settings
 )
 #Requires -RunAsAdministrator
+if ($Win11) {
+  if (-not $PSBoundParameters.ContainsKey('Work')) { $Work = 'E:\win 11 JDO' }
+  if (-not $PSBoundParameters.ContainsKey('Edition')) { $Edition = 'Windows 11 Pro' }
+}
+$tag = if ($Win11) { 'W11_23H2' } else { 'W10_22H2' }
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $here  = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -34,7 +43,7 @@ $src   = Join-Path $Work 'iso'
 $mount = Join-Path $Work 'mount'
 $wim   = Join-Path $Work 'install.wim'
 $scr   = Join-Path $Work 'scratch'
-if (-not $Out) { $Out = Join-Path $Work 'JDO_x_QHT_W10_22H2.iso' }
+if (-not $Out) { $Out = Join-Path $Work "JDO_x_QHT_$tag.iso" }
 $drv   = Join-Path $Work 'drivers'         # exported from this PC (network)
 $extra = Join-Path $Work 'drivers-extra'   # drop any other .inf drivers here (Intel LAN, chipset...) - added to the image too
 New-Item -ItemType Directory -Force $Work, $mount, $scr, $drv, $extra | Out-Null
@@ -48,9 +57,10 @@ function Step([string]$t) { Write-Host ('[{0:hh\:mm\:ss}] {1}' -f $clock.Elapsed
 # ---------------- what stays / goes ----------------
 # Provisioned apps kept: none. The Microsoft Store, its purchase app, App Installer (winget) and the frameworks only
 # they used all go - Fortnite comes from the Epic Games Launcher (epicgames.com).
-$keepApps = '^Microsoft\.(WindowsStore|StorePurchaseApp|DesktopAppInstaller|XboxIdentityProvider|VCLibs|NET\.Native|UI\.Xaml)'
+# Windows 11: the Windows App SDK runtime and Store engagement frameworks stay too (frameworks, no process).
+$keepApps = '^Microsoft\.(WindowsStore|StorePurchaseApp|DesktopAppInstaller|XboxIdentityProvider|VCLibs|NET\.Native|UI\.Xaml|WindowsAppRuntime|Services\.Store\.Engagement)'
 
-$dropCaps = '^(App\.StepsRecorder|App\.Support\.QuickAssist|Browser\.InternetExplorer|Hello\.Face|MathRecognizer|' +
+$dropCaps = '^(App\.StepsRecorder|App\.Support\.QuickAssist|Browser\.InternetExplorer|Hello\.Face|MathRecognizer|Microsoft\.Wallpapers\.Extended|' +
             'Microsoft\.Windows\.MSPaint|Microsoft\.Windows\.WordPad|Microsoft\.Windows\.PowerShell\.ISE|OneCoreUAP\.OneSync|OpenSSH\.Client|' +
             'Print\.Fax\.Scan|Print\.Management\.Console|Language\.(Handwriting|OCR|Speech|TextToSpeech))~'
 
@@ -105,7 +115,19 @@ $services = [ordered]@{
   # Edge is removed from the image
   edgeupdate=4; edgeupdatem=4; MicrosoftEdgeElevationService=4
 }
-$defender = [ordered]@{ WinDefend=4; WdNisSvc=4; WdNisDrv=4; WdFilter=4; WdBoot=4; Sense=4; SecurityHealthService=4; wscsvc=4; SgrmBroker=4; SgrmAgent=4 }
+if ($Win11) {
+  # Windows 11 only: app inventory, "health and optimized experiences", voice-assistant runtime, WSL file share, pen.
+  # (TextInputManagementService stays: typing in Windows 11 needs it.)
+  foreach ($k in 'InventorySvc', 'whesvc', 'AarSvc', 'P9RdrService', 'PenService') { $services[$k] = 4 }
+  # XdzlOS sets the Network Setup Service to start automatically; Windows ships it on demand (trigger start): back to stock
+  $services['NetSetupSvc'] = 3
+  # XdzlOS starts the app state store at boot (its own svchost "appmodel"); on demand it only runs when an app needs it
+  $services['StateRepository'] = 3
+}
+if ($NoOwnerServices) { foreach ($k in 'DispBrokerDesktopSvc','DsSvc','FontCache3.0.0.0','hidserv','IKEEXT','LanmanServer','LanmanWorkstation','lmhosts','NetTcpPortSharing','PolicyAgent','RasAuto','RasMan','RmSvc','SessionEnv','SstpSvc','TermService','tzautoupdate','UmRdpService','Wcmsvc','Wecsvc','WlanSvc','workfolderssvc','XboxGipSvc') { $services.Remove($k) } }
+if ($KeepNgc) { $services.Remove('NgcSvc'); $services.Remove('NgcCtnrSvc') }
+$defender = [ordered]@{ WinDefend=4; WdNisSvc=4; WdNisDrv=4; WdFilter=4; WdBoot=4; Sense=4; SecurityHealthService=4; wscsvc=4; SgrmBroker=4; SgrmAgent=4
+                        webthreatdefsvc=4; webthreatdefusersvc=4 }   # Windows 11: SmartScreen web threat protection
 
 # ---------------- offline registry helper ----------------
 # Writes with SeRestorePrivilege + REG_OPTION_BACKUP_RESTORE, so protected keys (WinDefend, WaaSMedicSvc...) can be set offline.
@@ -230,8 +252,10 @@ function Unload-Hives {
 }
 function Remove-Owned([string]$Path) {
   if (-not (Test-Path $Path)) { return }
-  & takeown.exe /f $Path /r /a /d y | Out-Null
-  & icacls.exe $Path /grant '*S-1-5-32-544:F' /t /c /q | Out-Null
+  # /r only for folders (takeown fails on a single file with /r); native stderr must not stop the build
+  $r = if (Test-Path $Path -PathType Container) { @('/r', '/d', 'y') } else { @() }
+  & cmd.exe /c "takeown.exe /f `"$Path`" /a $($r -join ' ') >nul 2>&1"
+  & cmd.exe /c "icacls.exe `"$Path`" /grant *S-1-5-32-544:F /t /c /q >nul 2>&1"
   Remove-Item -LiteralPath $Path -Recurse -Force
   Write-Host "  removed $Path"
 }
@@ -297,7 +321,8 @@ try {
   if (-not $img) { throw "No '$Edition' in $($esd.Name)" }
   $info = Get-WindowsImage -ImagePath $esd.FullName -Index $img.ImageIndex
   Write-Host "  $($info.ImageName) $($info.Version) $($info.Languages -join ',')"
-  if ($info.Version -notlike '10.0.19041.*') { throw "Expected Windows 10 22H2 (10.0.19041.x), got $($info.Version)" }
+  if ($Win11) { if ($info.Version -notmatch '^10\.0\.226[23]1\.') { throw "Expected Windows 11 23H2 (10.0.22631.x), got $($info.Version)" } }
+  elseif ($info.Version -notlike '10.0.19041.*') { throw "Expected Windows 10 22H2 (10.0.19041.x), got $($info.Version) - for Windows 11 add -Win11" }
 
   # ---------------- 2. one edition -> mountable WIM ----------------
   Step "Exporting '$Edition' to a WIM"
@@ -348,6 +373,9 @@ try {
   # ---------------- 4. files ----------------
   Step 'Removing Edge and OneDrive'
   foreach ($p in 'Edge', 'EdgeUpdate', 'EdgeCore') { Remove-Owned "$mount\Program Files (x86)\Microsoft\$p" }   # EdgeWebView (WebView2) stays
+  # Windows 11 carries WebView2 twice: its own copy in System32 (search, Settings) stays; the 2022 copy in Program Files
+  # never updates (Edge Update is off) - an app that needs WebView2 installs the current one itself
+  if ($Win11) { Remove-Owned "$mount\Program Files (x86)\Microsoft\EdgeWebView" }
   foreach ($p in "$mount\Windows\SysWOW64\OneDriveSetup.exe", "$mount\Windows\System32\OneDriveSetup.exe",
                  "$mount\ProgramData\Microsoft\Windows\Start Menu\Programs\Microsoft Edge.lnk",
                  "$mount\Users\Public\Desktop\Microsoft Edge.lnk") { Remove-Owned $p }
@@ -373,8 +401,20 @@ try {
   # first boot runs from autounattend's FirstLogonCommands once the desktop is up. No SetupComplete.cmd: it runs in the
   # middle of setup, and changing devices / services there made setup loop on "Just a moment..." on a real PC.
   Copy-Item "$files\firstboot.ps1" "$mount\Windows\Setup\Scripts\" -Force
-  Copy-Item "$files\LayoutModification.xml" "$mount\Users\Default\AppData\Local\Microsoft\Windows\Shell\" -Force
+  # tiny SetupComplete (no devices, no services): an account made without a password is flagged "must change password" and the
+  # first autologon is refused - setting its password to empty again clears the flag, password never expires
+  $sc = '@echo off', 'net user "JDO x QHT" "" /expires:never', 'wmic useraccount where "name=''JDO x QHT''" set PasswordExpires=false', 'sc config TrustedInstaller start= disabled', 'exit /b 0'
+  Set-Content "$mount\Windows\Setup\Scripts\SetupComplete.cmd" $sc -Encoding Ascii
+  if ($Win11) {
+    # Windows 11 reads the taskbar pins from the same file (22H2 and later) and the Start pins from a JSON file
+    Copy-Item "$files\LayoutModification-11.xml" "$mount\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml" -Force
+    Copy-Item "$files\LayoutModification.json" "$mount\Users\Default\AppData\Local\Microsoft\Windows\Shell\" -Force
+  } else { Copy-Item "$files\LayoutModification.xml" "$mount\Users\Default\AppData\Local\Microsoft\Windows\Shell\" -Force }
   Copy-Item "$files\JDO" "$mount\" -Recurse -Force
+  if ($Win11) {
+    $rm = "$mount\JDO\README.txt"
+    $t = Get-Content $rm -Encoding UTF8; $t[0] = 'JDO x QHT - Windows 11 23H2 (Pro)'; Set-Content $rm $t -Encoding UTF8
+  }
   New-Item -ItemType Directory -Force "$mount\JDO\Drivers", "$mount\JDO\Store" | Out-Null
   Get-ChildItem -LiteralPath $storeCopy -Directory | ForEach-Object { Move-Item -LiteralPath $_.FullName -Destination "$mount\JDO\Store\" -Force }
   foreach ($d in $drv, $extra) { Get-ChildItem $d | Copy-Item -Destination "$mount\JDO\Drivers\" -Recurse -Force }
@@ -505,11 +545,28 @@ try {
   # Delivery Optimization is network: default. No Game DVR.
   Set-Reg "$pol\WindowsUpdate\AU" 'NoAutoUpdate' 1
   Set-Reg "$pol\WindowsUpdate" 'ExcludeWUDriversInQualityUpdate' 1
+  # Windows updates paused (Settings > Windows Update > Pause) until 2099 and deferred to the maximum: the VM test caught
+  # Windows Update downloading KB5020683 at every shutdown and hanging on "Getting Windows ready" (this slimmed Windows
+  # cannot install updates). The Store is not affected by the pause.
+  $now = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'); $end = '2099-12-31T00:00:00Z'
+  $ux = 'SOFTWARE\Microsoft\WindowsUpdate\UX\Settings'
+  foreach ($kv in @(@('PauseUpdatesStartTime', $now), @('PauseUpdatesExpiryTime', $end), @('PauseQualityUpdatesStartTime', $now),
+                    @('PauseQualityUpdatesEndTime', $end), @('PauseFeatureUpdatesStartTime', $now), @('PauseFeatureUpdatesEndTime', $end))) { Set-Reg $ux $kv[0] $kv[1] }
+  Set-Reg "$pol\WindowsUpdate" 'DeferQualityUpdates' 1
+  Set-Reg "$pol\WindowsUpdate" 'DeferQualityUpdatesPeriodInDays' 30
+  Set-Reg "$pol\WindowsUpdate" 'DeferFeatureUpdates' 1
+  Set-Reg "$pol\WindowsUpdate" 'DeferFeatureUpdatesPeriodInDays' 365
+  Set-Reg "$pol\WindowsUpdate" 'PauseQualityUpdatesStartTime' ((Get-Date).ToString('yyyy-MM-dd'))
+  Set-Reg "$pol\WindowsUpdate" 'PauseFeatureUpdatesStartTime' ((Get-Date).ToString('yyyy-MM-dd'))
+  Set-Reg "$pol\WindowsUpdate" 'PauseQualityUpdates' 1
+  Set-Reg "$pol\WindowsUpdate" 'PauseFeatureUpdates' 1
+  Set-Reg "$pol\WindowsUpdate\AU" 'NoAUShutdownOption' 1          # no "Update and shut down / restart"
+  Set-Reg "$pol\WindowsUpdate\AU" 'NoAUAsDefaultShutdownOption' 1
   Set-Reg "$pol\GameDVR" 'AllowGameDVR' 0
   # Start menu search and the text input host stay, at the lowest priority Windows has (CPU idle, I/O very low,
   # memory lowest): they sleep until you open Start or type, and never compete with the game
   $ifeo = 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options'
-  foreach ($exe in 'SearchApp.exe', 'TextInputHost.exe') {
+  foreach ($exe in 'SearchApp.exe', 'SearchHost.exe', 'TextInputHost.exe') {   # SearchHost: the Windows 11 name
     Set-Reg "$ifeo\$exe\PerfOptions" 'CpuPriorityClass' 1
     Set-Reg "$ifeo\$exe\PerfOptions" 'IoPriority' 0
     Set-Reg "$ifeo\$exe\PerfOptions" 'PagePriority' 1
@@ -620,6 +677,30 @@ try {
   Set-Reg 'NTUSER\Software\Microsoft\Personalization\Settings' 'AcceptedPrivacyPolicy' 0
   Set-Reg "$cv\Explorer\Advanced" 'Start_TrackProgs' 0
   Set-Reg "$cv\StorageSense\Parameters\StoragePolicy" '01' 0
+
+  if ($Win11) {
+    # taskbar: no Widgets (a WebView2 process tree), no Chat / Teams, no Copilot, no Task View; left-aligned so the
+    # Start button sits where the Open-Shell menu opens
+    Set-Reg "$cv\Explorer\Advanced" 'TaskbarDa' 0
+    Set-Reg "$cv\Explorer\Advanced" 'TaskbarMn' 0
+    Set-Reg "$cv\Explorer\Advanced" 'ShowCopilotButton' 0
+    Set-Reg "$cv\Explorer\Advanced" 'TaskbarAl' 0
+    Set-Reg "$cv\Explorer\Advanced" 'Start_IrisRecommendations' 0
+    Set-Reg "$cv\Explorer\Advanced" 'Start_AccountNotifications' 0
+    Set-Reg 'SOFTWARE\Policies\Microsoft\Dsh' 'AllowNewsAndInterests' 0
+    Set-Reg "$pol\Windows Chat" 'ChatIcon' 3
+    Set-Reg "$pol\WindowsCopilot" 'TurnOffWindowsCopilot' 1
+    Set-Reg 'NTUSER\Software\Policies\Microsoft\Windows\WindowsCopilot' 'TurnOffWindowsCopilot' 1
+    # the full right-click menu straight away (no "Show more options" step)
+    Set-Reg 'NTUSER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32' '' ''
+    # Smart App Control off: on a clean install it starts in evaluation mode and can block unsigned tools and installers
+    Set-Reg 'SYSTEM\ControlSet001\Control\CI\Policy' 'VerifiedAndReputablePolicyState' 0
+    # XdzlOS switched the UBPM trace session off; Task Scheduler's event triggers use it - back to the Windows value
+    Set-Reg 'SYSTEM\ControlSet001\Control\WMI\Autologger\UBPM' 'Start' 1
+    # network values XdzlOS changed (not part of JDO x QHT): back to how Windows ships them
+    Remove-RegValue 'SYSTEM\ControlSet001\Services\Tcpip\Parameters' 'EnableICMPRedirect'
+    Remove-RegValue 'SOFTWARE\Policies\Microsoft\Windows\Network Connections' 'NC_PersonalFirewallConfig'
+  }
 
   Unload-Hives
 

@@ -6,7 +6,7 @@
 #
 # Left out ON PURPOSE (they were in those builds and break things):
 #   * every network setting, hostname / computer name, serials, MAC, DMA remapping (writes to network driver keys too)
-#   * renaming Windows programs (RuntimeBroker, SearchApp, ShellExperienceHost, TextInputHost, ctfmon...) and disabling
+#   * renaming Windows programs (RuntimeBroker, SearchApp / SearchHost, ShellExperienceHost, TextInputHost, ctfmon...) and disabling
 #     TokenBroker, DevQueryBroker, FontCache, Themes, FrameServer, Task Scheduler... (Store, NVIDIA App and sign-in need them)
 #   * DEP / process-mitigation changes and the vulnerable-driver blocklist (anti-cheats need them), activation scripts
 #   * NVIDIA telemetry switches and low priority for NVIDIA programs: with them the NVIDIA App stops with "There was a
@@ -151,6 +151,15 @@ Reg-Set $oem 'Manufacturer' $name String 'System > About: maker'
 Reg-Set $oem 'Model' $name String 'System > About: model'
 Reg-Set 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' 'RegisteredOwner' $name String 'registered owner'
 
+# ---- sign-in: straight to the desktop every time ----
+Section 'Sign-in' 'The account has no password: it signs in by itself at every start (the sign-in screen no longer waits for a click).'
+$wl = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
+Reg-Set $wl 'AutoAdminLogon' '1' String 'automatic sign-in on'
+Reg-Set $wl 'DefaultUserName' $name String "sign-in user: $name"
+Reg-Set $wl 'DefaultPassword' '' String 'no password'
+Reg-Set $wl 'DefaultDomainName' $env:COMPUTERNAME String 'sign-in domain: this PC'
+Reg-Set $wl 'ForceAutoLogon' '1' String 'keep signing in automatically'
+
 # ---- dark everywhere ----
 Section 'Dark mode' 'Windows and apps dark, no transparency.'
 $cu = 'HKCU:\Software\Microsoft\Windows\CurrentVersion'
@@ -160,9 +169,9 @@ Reg-Set "$cu\Themes\Personalize" 'EnableTransparency' 0 DWord 'transparency off'
 Reg-Set "$cu\Themes\Personalize" 'ColorPrevalence' 0 DWord 'no accent colour on the taskbar (stays black)'
 
 # ---- mouse, keyboard (Control Panel) ----
-Section 'Mouse and keyboard' 'Your own settings: pointer speed 7 of 11 (value 12), no acceleration, fast double-click, fastest key repeat, shortest repeat delay.'
-Reg-Set 'HKCU:\Control Panel\Mouse' 'MouseSensitivity' '12' String 'pointer speed: 7 of 11 (as on your PC)'
-Reg-Set 'HKCU:\Control Panel\Mouse' 'DoubleClickSpeed' '200' String 'double-click speed: fast (200 ms)'
+Section 'Mouse and keyboard' 'Pointer speed 10, double-click 500, no acceleration, fast double-click, fastest key repeat, shortest repeat delay.'
+Reg-Set 'HKCU:\Control Panel\Mouse' 'MouseSensitivity' '10' String 'pointer speed: 10 (of 20)'
+Reg-Set 'HKCU:\Control Panel\Mouse' 'DoubleClickSpeed' '500' String 'double-click speed: 500 ms'
 Reg-Set 'HKCU:\Control Panel\Mouse' 'MouseSpeed' '0' String 'enhance pointer precision: off'
 Reg-Set 'HKCU:\Control Panel\Mouse' 'MouseThreshold1' '0' String 'acceleration threshold 1: off'
 Reg-Set 'HKCU:\Control Panel\Mouse' 'MouseThreshold2' '0' String 'acceleration threshold 2: off'
@@ -371,7 +380,7 @@ public static class QhtSvc {
 }
 '@ -ErrorAction SilentlyContinue
 foreach ($s in @(@('UsoSvc', 4, 'Update Orchestrator (MoUSO worker) off'), @('WaaSMedicSvc', 4, 'Windows Update Medic off'), @('DoSvc', 4, 'Delivery Optimization off'),
-                 @('TrustedInstaller', 3, 'Windows Modules Installer only on demand (no TiWorker at idle)'), @('wuauserv', 3, 'Windows Update service on demand (the Store needs it)'),
+                 @('TrustedInstaller', 4, 'Windows Modules Installer off: no update can start installing and hang the restart (sc config TrustedInstaller start= demand to add Windows features)'), @('wuauserv', 3, 'Windows Update service on demand (the Store needs it)'),
                  @('uhssvc', 4, 'Microsoft Update Health Service off'),
                  @('Wcmsvc', 4, 'Windows Connection Manager off (as on your PC)'), @('WlanSvc', 4, 'WLAN AutoConfig off (wired PC)'), @('LanmanServer', 4, 'Server (file sharing) off'), @('LanmanWorkstation', 4, 'Workstation (SMB client) off'),
                  @('lmhosts', 4, 'NetBIOS helper off'), @('IKEEXT', 4, 'IPsec keying off'), @('PolicyAgent', 4, 'IPsec policy off'), @('RasMan', 4, 'Remote Access Connection Manager off'), @('RasAuto', 4, 'Remote Access Auto Connection off'),
@@ -419,6 +428,61 @@ if (Test-Path $ngc) {
          if (-not (Get-ChildItem $ngc -Force -ErrorAction SilentlyContinue)) { Done-Line 'saved PIN data deleted' } else { Fail-Line 'PIN data (Ngc folder) not fully deleted' 'Settings > Accounts > Sign-in options > PIN > Remove' } }
 } else { Same-Line 'no saved PIN' }
 
+# ---- input queues ----
+Section 'Input queues' 'Mouse and keyboard data queue 50 (the rest of the interrupt / DPC tuning is left at Windows defaults).'
+Svc-Set 'mouclass' 'Parameters' 'MouseDataQueueSize' 50 'mouse input queue 50'
+Svc-Set 'kbdclass' 'Parameters' 'KeyboardDataQueueSize' 50 'keyboard input queue 50'
+# ---- timer resolution held at the best value all the time: a Windows service ----
+Section 'Timer resolution' 'Service "JDOTimer" (4 KB program): asks Windows for the 5171 timer (0.5171 ms, measured as the steadiest) at boot, before sign-in, and again every 15 s so it never drifts back. If it ever stops, Windows restarts it (1 s, 1 s, then every 5 s forever).'
+$timerExe = Join-Path $root 'JDO-Timer.exe'
+$timerSrc = @"
+using System; using System.Runtime.InteropServices; using System.ServiceProcess; using System.Threading;
+public class JdoTimerService : ServiceBase {
+  [DllImport("ntdll.dll")] static extern int NtQueryTimerResolution(out uint coarsest, out uint finest, out uint current);
+  [DllImport("ntdll.dll")] static extern int NtSetTimerResolution(uint requested, bool set, out uint current);
+  Thread worker; volatile bool run = true;
+  public JdoTimerService() { ServiceName = "JDOTimer"; CanStop = true; }
+  protected override void OnStart(string[] args) {
+    worker = new Thread(delegate() {
+      uint coarsest, finest, cur;
+      NtQueryTimerResolution(out coarsest, out finest, out cur);
+      while (run) {
+        // the value is read every round from HKLM\SOFTWARE\JDO x QHT\TimerResolution (default 5172 -> 0.5171 ms, measured: steadiest Sleep(1)): change it there, no rebuild needed
+        object v = Microsoft.Win32.Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\JDO x QHT", "TimerResolution", 5172);
+        uint want = Convert.ToUInt32(v); if (want < finest) want = finest;
+        NtSetTimerResolution(want, true, out cur); Thread.Sleep(15000);
+      }
+    });
+    worker.IsBackground = true; worker.Start();
+  }
+  protected override void OnStop() { run = false; }
+  public static void Main() { ServiceBase.Run(new JdoTimerService()); }
+}
+"@
+Reg-Set 'HKLM:\SOFTWARE\JDO x QHT' 'TimerResolution' 5172 DWord 'timer request 5172 = 0.5171 ms (measured on the owner PC: Sleep(1) avg 1.04 ms, worst 1 percent 1.11 ms)'
+if ($DryRun) { Say '  DRY    build JDO-Timer.exe and the "JDOTimer" service' }
+else {
+  if (Test-Path $timerExe) { Same-Line 'JDO-Timer.exe is built' }
+  else {
+    try { Add-Type -TypeDefinition $timerSrc -ReferencedAssemblies 'System.ServiceProcess' -OutputAssembly $timerExe -OutputType ConsoleApplication -ErrorAction Stop; Done-Line 'JDO-Timer.exe built (4 KB)' }
+    catch { Fail-Line "JDO-Timer.exe could not be built ($($_.Exception.Message))" 'run 2 - Tweaks again after a restart' }
+  }
+  if (Test-Path $timerExe) {
+    if (-not (Get-Service JDOTimer -ErrorAction SilentlyContinue)) {
+      & sc.exe create JDOTimer binPath= "`"$timerExe`"" start= auto DisplayName= 'JDO Timer Resolution' obj= LocalSystem 2>&1 | Out-Null
+      & sc.exe description JDOTimer 'Keeps the Windows timer at 0.5171 ms for steady frame times (JDO x QHT)' 2>&1 | Out-Null
+      & sc.exe failure JDOTimer reset= 86400 actions= restart/1000/restart/1000/restart/5000 2>&1 | Out-Null
+      & sc.exe failureflag JDOTimer 1 2>&1 | Out-Null
+    }
+    if (Get-Service JDOTimer -ErrorAction SilentlyContinue) {
+      & sc.exe config JDOTimer start= auto 2>&1 | Out-Null
+      if ((Get-Service JDOTimer).Status -ne 'Running') { Start-Service JDOTimer -ErrorAction SilentlyContinue }
+      Start-Sleep -Seconds 2
+      if ((Get-Service JDOTimer).Status -eq 'Running') { Done-Line 'service JDOTimer: running, starts at boot, restarts itself if stopped' }
+      else { Fail-Line 'service JDOTimer is installed but not running' 'restart the PC; if it still does not start run: sc start JDOTimer' }
+    } else { Fail-Line 'service JDOTimer could not be created' 'run 2 - Tweaks again as administrator' }
+  }
+}
 # ---- guard: nothing (this file, another tweak pack, EXM...) may break Task Scheduler, Microsoft apps, NVIDIA or the network ----
 Section 'Guard' 'Services that Task Scheduler, the Store, the NVIDIA App, sign-in and the network need - put back if something disabled them.'
 $stock = [ordered]@{ Schedule=2; TimeBrokerSvc=3; SystemEventsBroker=2; BrokerInfrastructure=2; EventLog=2; EventSystem=2; RpcSs=2; RpcEptMapper=2; DcomLaunch=2
@@ -432,8 +496,10 @@ foreach ($s in $stock.Keys) {
 }
 if (-not $fixed) { Same-Line "all $($stock.Count) critical services are on" }
 $w = $env:WINDIR
+# Windows 11 moved Start menu search into the client package (SearchHost); Windows 10 has SearchApp
+$search = if ([Environment]::OSVersion.Version.Build -ge 22000) { "$w\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\SearchHost" } else { "$w\SystemApps\Microsoft.Windows.Search_cw5n1h2txyewy\SearchApp" }
 foreach ($f in "$w\System32\RuntimeBroker", "$w\System32\backgroundTaskHost", "$w\System32\ctfmon", "$w\System32\CompPkgSrv", "$w\System32\upfc",
-               "$w\SystemApps\ShellExperienceHost_cw5n1h2txyewy\ShellExperienceHost", "$w\SystemApps\Microsoft.Windows.Search_cw5n1h2txyewy\SearchApp",
+               "$w\SystemApps\ShellExperienceHost_cw5n1h2txyewy\ShellExperienceHost", $search,
                "$w\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\TextInputHost") {
   foreach ($ext in '.old', '.exee') {
     if (-not (Test-Path "$f.exe") -and (Test-Path "$f$ext") -and -not $DryRun) { Rename-Item "$f$ext" "$(Split-Path "$f.exe" -Leaf)" -ErrorAction SilentlyContinue; Done-Line "restored $(Split-Path "$f.exe" -Leaf)" }
@@ -470,7 +536,7 @@ if (-not $DryRun) {
   Add-Type -Namespace Qht -Name Ui -MemberDefinition '[DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr SendMessageTimeout(IntPtr h, int m, IntPtr w, string l, int f, int t, out IntPtr r);
     [DllImport("user32.dll")] public static extern bool SystemParametersInfo(int a, int p, IntPtr v, int f);' -ErrorAction SilentlyContinue
   $r = [IntPtr]::Zero
-  [void][Qht.Ui]::SystemParametersInfo(0x71, 0, [IntPtr]12, 3)      # SPI_SETMOUSESPEED 12
+  [void][Qht.Ui]::SystemParametersInfo(0x71, 0, [IntPtr]10, 3)      # SPI_SETMOUSESPEED 10
   [void][Qht.Ui]::SystemParametersInfo(0x0B, 31, [IntPtr]::Zero, 3) # SPI_SETKEYBOARDSPEED
   [void][Qht.Ui]::SystemParametersInfo(0x17, 0, [IntPtr]::Zero, 3)  # SPI_SETKEYBOARDDELAY
   [void][Qht.Ui]::SendMessageTimeout([IntPtr]0xffff, 0x1A, [IntPtr]::Zero, 'ImmersiveColorSet', 2, 3000, [ref]$r)

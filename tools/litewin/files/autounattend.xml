@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- JDO Lite Windows: English UI, English + Arabic keyboards, local account "JDO x QHT" without a password.
+<!-- JDO x QHT: English UI, English + Arabic keyboards, local account "JDO x QHT" without a password.
      Disk selection is left to you: nothing is wiped automatically. VK7JG-... is Microsoft's public generic Pro install key
      (it only picks the edition; the PC activates with its own digital license).
      This image has no servicing store (WinSxS is pruned), so nothing may try to download and install updates during
@@ -15,6 +15,14 @@
       <UserLocale>en-US</UserLocale>
     </component>
     <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
+      <!-- Windows 11 setup: no TPM / Secure Boot / CPU / RAM check (Windows 10 setup ignores these values) -->
+      <RunSynchronous>
+        <RunSynchronousCommand wcm:action="add"><Order>1</Order><Path>reg.exe add HKLM\SYSTEM\Setup\LabConfig /v BypassTPMCheck /t REG_DWORD /d 1 /f</Path></RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add"><Order>2</Order><Path>reg.exe add HKLM\SYSTEM\Setup\LabConfig /v BypassSecureBootCheck /t REG_DWORD /d 1 /f</Path></RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add"><Order>3</Order><Path>reg.exe add HKLM\SYSTEM\Setup\LabConfig /v BypassCPUCheck /t REG_DWORD /d 1 /f</Path></RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add"><Order>4</Order><Path>reg.exe add HKLM\SYSTEM\Setup\LabConfig /v BypassRAMCheck /t REG_DWORD /d 1 /f</Path></RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add"><Order>5</Order><Path>reg.exe add HKLM\SYSTEM\Setup\LabConfig /v BypassStorageCheck /t REG_DWORD /d 1 /f</Path></RunSynchronousCommand>
+      </RunSynchronous>
       <DynamicUpdate>
         <Enable>false</Enable>
         <WillShowUI>Never</WillShowUI>
@@ -54,14 +62,12 @@
             <Name>JDO x QHT</Name>
             <DisplayName>JDO x QHT</DisplayName>
             <Group>Administrators</Group>
-            <Password><Value></Value><PlainText>true</PlainText></Password>
           </LocalAccount>
         </LocalAccounts>
       </UserAccounts>
       <AutoLogon>
         <Enabled>true</Enabled>
         <Username>JDO x QHT</Username>
-        <Password><Value></Value><PlainText>true</PlainText></Password>
         <LogonCount>1</LogonCount>
       </AutoLogon>
       <!-- first boot tweaks run once the desktop is up, never in the middle of setup -->

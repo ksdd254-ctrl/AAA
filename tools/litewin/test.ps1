@@ -1,4 +1,4 @@
-# JDO Lite Windows - image tests (no VM needed)
+# JDO x QHT - image tests (no VM needed)
 # Applies the built install.esd and the stock edition from the official ISO to folders, then checks:
 #   network untouched (every network service / driver / policy key equal to stock), drivers, apps, files, tweaks,
 #   side-by-side assemblies, auto-start services -> process estimate, and the ISO layout.
@@ -7,16 +7,22 @@ param(
   [Parameter(Mandatory=$true)][string]$Iso,
   [string]$Work = 'E:\win 10 JDO',
   [string]$Edition = 'Windows 10 Pro',
-  [string]$LiteIsoFile,     # the ISO to check (default: JDO_x_QHT_W10_22H2.iso)
-  [switch]$NoApply           # reuse the folders a previous run applied
+  [string]$LiteIsoFile,     # the ISO to check (default: JDO_x_QHT_W10_22H2.iso / _W11_23H2.iso)
+  [switch]$NoApply,          # reuse the folders a previous run applied
+  [switch]$Win11             # Windows 11 23H2 build (work folder E:\win 11 JDO, edition Windows 11 Pro)
 )
 #Requires -RunAsAdministrator
+if ($Win11) {
+  if (-not $PSBoundParameters.ContainsKey('Work')) { $Work = 'E:\win 11 JDO' }
+  if (-not $PSBoundParameters.ContainsKey('Edition')) { $Edition = 'Windows 11 Pro' }
+}
+$tag = if ($Win11) { 'W11_23H2' } else { 'W10_22H2' }
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $lite  = Join-Path $Work 'test\lite'
 $stock = Join-Path $Work 'test\stock'
 $out   = Join-Path $Work 'test\report.txt'
-$liteIso = if ($LiteIsoFile) { $LiteIsoFile } else { Join-Path $Work 'JDO_x_QHT_W10_22H2.iso' }
+$liteIso = if ($LiteIsoFile) { $LiteIsoFile } else { Join-Path $Work "JDO_x_QHT_$tag.iso" }
 $fail = 0; $pass = 0; $lines = New-Object System.Collections.Generic.List[string]
 function Say([string]$t) { Write-Host $t; $lines.Add($t) }
 function Check([string]$name, [bool]$ok, [string]$detail = '') {
@@ -37,11 +43,12 @@ foreach ($d in $lite, $stock) {
 Say '== applying the lite image'
 & dism.exe /Apply-Image "/ImageFile:$Work\iso\sources\install.esd" /Index:1 "/ApplyDir:$lite" /Quiet
 if ($LASTEXITCODE -ne 0) { throw "apply lite failed $LASTEXITCODE" }
-Say '== applying the stock edition from the official ISO'
+Say '== applying the stock edition from the source ISO'
 $tmp = Join-Path $Work 'test\stockiso'
-& "$env:ProgramFiles\7-Zip\7z.exe" e $Iso 'sources\install.esd' "-o$tmp" -y -bso0 -bsp0
-$idx = (Get-WindowsImage -ImagePath "$tmp\install.esd" | Where-Object ImageName -eq $Edition).ImageIndex
-& dism.exe /Apply-Image "/ImageFile:$tmp\install.esd" "/Index:$idx" "/ApplyDir:$stock" /Quiet
+& "$env:ProgramFiles\7-Zip\7z.exe" e $Iso 'sources\install.esd' 'sources\install.wim' "-o$tmp" -y -bso0 -bsp0
+$img = Get-ChildItem $tmp -Filter 'install.*' | Select-Object -First 1
+$idx = (Get-WindowsImage -ImagePath $img.FullName | Where-Object ImageName -eq $Edition).ImageIndex
+& dism.exe /Apply-Image "/ImageFile:$($img.FullName)" "/Index:$idx" "/ApplyDir:$stock" /Quiet
 if ($LASTEXITCODE -ne 0) { throw "apply stock failed $LASTEXITCODE" }
 Remove-Item -LiteralPath $tmp -Recurse -Force
 }
@@ -87,6 +94,8 @@ try {
             'bowser','rdbss','AJRouter','ALG','WinNat','vwififlt','WFPLWFS'
   foreach ($s in $netSvc) {
     $d = Same "$LiteCS\Services\$s" "$StockCS\Services\$s"
+    # XdzlOS (the Windows 11 base) added EnableICMPRedirect=0; the build takes it out again (Windows ships without it)
+    if ($Win11) { $d = @($d | Where-Object { $_ -notmatch '^\\Parameters\\EnableICMPRedirect stock=\[0\] lite=\[\]$' }) }
     Check "service $s" ($d.Count -eq 0) ($d -join '; ')
   }
   foreach ($k in 'Control\Network', 'Control\NetworkSetup2', 'Control\Nsi') {
@@ -162,6 +171,16 @@ try {
   foreach ($a in 'Microsoft.WindowsStore', 'Microsoft.StorePurchaseApp', 'Microsoft.XboxIdentityProvider', 'Microsoft.NET.Native.Framework.2.2', 'Microsoft.VCLibs.140.00') {
     Check "saved copy for JDO-Tools 18: $a" ([bool](Get-ChildItem "$lite\JDO\Store" -Directory -Filter "${a}_*" -ErrorAction SilentlyContinue | Where-Object { Test-Path "$($_.FullName)\AppxManifest.xml" }))
   }
+  if ($Win11) {
+    $adv = Get-ItemProperty 'HKLM:\T_LUSR\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+    Check 'Windows 11: no Widgets / Chat / Copilot buttons' ((Get-ItemProperty 'HKLM:\T_LSW\Policies\Microsoft\Dsh').AllowNewsAndInterests -eq 0 -and $adv.TaskbarMn -eq 0 -and $adv.ShowCopilotButton -eq 0)
+    Check 'Windows 11: Widgets app not in the image' (-not (Get-ChildItem "$lite\Program Files\WindowsApps" -Directory -Filter 'MicrosoftWindows.Client.WebExperience*' -ErrorAction SilentlyContinue))
+    Check 'Windows 11: full right-click menu' (Test-Path 'HKLM:\T_LUSR\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32')
+    Check 'Windows 11: Smart App Control off' ((Get-ItemProperty "$LiteCS\Control\CI\Policy" -ErrorAction SilentlyContinue).VerifiedAndReputablePolicyState -eq 0)
+    Check 'Windows 11: typing service can start' ((Get-ItemProperty "$LiteCS\Services\TextInputManagementService").Start -in 2, 3)
+    Check 'Windows 11: Start pins file' (Test-Path "$lite\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.json")
+    Check 'Windows 11: UBPM trace back on (Task Scheduler triggers)' ((Get-ItemProperty "$LiteCS\Control\WMI\Autologger\UBPM").Start -eq 1)
+  }
   Check 'Store pinned on the taskbar' ([bool](Select-String -LiteralPath "$lite\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml" -SimpleMatch 'WindowsStore' -Quiet))
   # what packaged system apps (Start menu search, Settings, NVIDIA Control Panel) need still starts
   foreach ($s in 'AppXSvc', 'StateRepository', 'ClipSVC', 'LicenseManager') {
@@ -169,7 +188,8 @@ try {
     Check "packaged apps need $s (Start=$st)" ($st -in 2, 3)
   }
   foreach ($f in 'Windows\explorer.exe', 'Windows\System32\ctfmon.exe', 'Windows\System32\kbda1.dll', 'Windows\System32\kbdus.dll',
-                 'Windows\SystemApps\Microsoft.Windows.Search_cw5n1h2txyewy', 'Windows\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy',
+                 $(if ($Win11) { 'Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\SearchHost.exe' } else { 'Windows\SystemApps\Microsoft.Windows.Search_cw5n1h2txyewy' }),
+                 'Windows\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy',
                  'Windows\SystemApps\ShellExperienceHost_cw5n1h2txyewy', 'Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy',
                  'Windows\SystemApps\Microsoft.Windows.CloudExperienceHost_cw5n1h2txyewy', 'Windows\SystemApps\Microsoft.AAD.BrokerPlugin_cw5n1h2txyewy',
                  'Windows\Fonts\segoeui.ttf', 'Windows\Fonts\tahoma.ttf', 'Windows\Fonts\arial.ttf', 'Windows\Fonts\times.ttf', 'Windows\Fonts\micross.ttf',
@@ -229,7 +249,8 @@ try {
     Check "$s can start (Start=$st)" ($st -in 2, 3)
   }
   Check 'first boot scripts' ((Test-Path "$lite\Windows\Setup\Scripts\firstboot.ps1") -and (Test-Path "$lite\JDO\JDO-Tools.ps1"))
-  Check 'nothing runs in the middle of setup (no SetupComplete.cmd)' (-not (Test-Path "$lite\Windows\Setup\Scripts\SetupComplete.cmd"))
+  $scf = "$lite\Windows\Setup\Scripts\SetupComplete.cmd"
+  Check 'SetupComplete.cmd only clears the password-change flag + TrustedInstaller off (no devices / services in the middle of setup)' ((Test-Path $scf) -and ((Get-Content $scf) -match 'net user|wmic useraccount|sc config TrustedInstaller|echo off|exit').Count -eq @(Get-Content $scf).Count)
   Check 'desktop shortcut' (Test-Path "$lite\Users\Public\Desktop\JDO Tools.lnk")
   Check 'first boot applies the JDO Ultimate power plan' ([bool](Select-String -LiteralPath "$lite\Windows\Setup\Scripts\firstboot.ps1" -SimpleMatch "Run-Step '-Power'" -Quiet) -and [bool](Select-String -LiteralPath "$lite\JDO\JDO-Tools.ps1" -SimpleMatch "'JDO Ultimate'" -Quiet))
   Check 'first boot disables unneeded devices' ([bool](Select-String -LiteralPath "$lite\Windows\Setup\Scripts\firstboot.ps1" -SimpleMatch "Run-Step '-Devices'" -Quiet))
@@ -252,7 +273,7 @@ try {
 }
 finally {
   [gc]::Collect(); [gc]::WaitForPendingFinalizers()
-  foreach ($h in 'T_LSYS', 'T_LSW', 'T_LUSR', 'T_SSYS', 'T_SSW') { & reg.exe unload "HKLM\$h" | Out-Null }
+  foreach ($h in 'T_LSYS', 'T_LSW', 'T_LUSR', 'T_SSYS', 'T_SSW') { & cmd.exe /c "reg.exe unload HKLM\$h >nul 2>&1" }
 }
 
 # ---------------- 8. ISO ----------------

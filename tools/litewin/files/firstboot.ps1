@@ -1,4 +1,4 @@
-# JDO Lite Windows - first boot (once, in the background after the desktop is up, under a minute):
+# JDO x QHT - first boot (once, in the background after the desktop is up, under a minute):
 # power plan, memory manager, scheduled tasks, devices - the parts that need the running PC and its hardware.
 # Every JDO-Tools step runs in its own process with a time limit: a device or WMI call that never answers must not
 # hold up setup or the first sign-in (the VM install test found one that did).

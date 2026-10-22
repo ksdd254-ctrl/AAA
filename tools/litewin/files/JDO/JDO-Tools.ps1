@@ -1,6 +1,6 @@
-# JDO Lite Windows - tools menu (C:\JDO, shortcut on the desktop)
+# JDO x QHT - tools menu (C:\JDO, shortcut on the desktop)
 # Fixes, app slimming, and on/off switches for everything the lite build turned off.
-# Works on any Windows 10 too (the repair options restore stock Windows values).
+# Works on any Windows 10 / 11 too (the repair options restore stock Windows values).
 # Rule: nothing here touches hardware serials / IDs, the MAC, or anything network (settings, services, adapters,
 # drivers, Wi-Fi, firewall). Network stays exactly as Windows ships it.
 #   JDO-Tools.ps1            menu
@@ -220,7 +220,7 @@ function Set-JdoPowerPlan {
   Write-Host 'Power plan: JDO Ultimate' -ForegroundColor Cyan
   $jdo = '4a444f00-0000-4000-8000-00000000c0de'
   if (-not (powercfg /list | Select-String $jdo)) { powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 $jdo | Out-Null }
-  powercfg -changename $jdo 'JDO Ultimate' 'JDO Lite Windows - full speed, real CPU usage' | Out-Null
+  powercfg -changename $jdo 'JDO Ultimate' 'JDO x QHT - full speed, real CPU usage' | Out-Null
   $sub = @{ cpu = '54533251-82be-4824-96c1-47b60b740d00'; usb = '2a737441-1930-4402-8d77-b2bebba308a3'; pci = '501a4d13-42af-4429-9fd1-a8218c268e20'
             disk = '0012ee47-9041-4b5d-9b77-535fba8b1442'; sleep = '238c9fa8-0aad-41ed-83f4-97be242c8f20' }
   $set = @(
@@ -269,7 +269,7 @@ if ($Devices) { Disable-Devices; return }
 
 # ---------------- repairs ----------------
 function Repair-TaskScheduler {
-  Write-Host 'Task Scheduler: full repair (Windows 10 defaults)' -ForegroundColor Cyan
+  Write-Host 'Task Scheduler: full repair (Windows defaults)' -ForegroundColor Cyan
   $svc = 'SYSTEM\CurrentControlSet\Services\'
   $sch = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule'
   $backup = Join-Path $root ('Backup\TaskScheduler-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
@@ -884,7 +884,7 @@ if ($Slim) {
 
 while ($true) {
   Clear-Host
-  Write-Host '  JDO Lite Windows - Tools' -ForegroundColor Cyan
+  Write-Host '  JDO x QHT - Tools' -ForegroundColor Cyan
   Write-Host '  ------------------------'
   foreach ($k in $actions.Keys) { Write-Host ('  {0,2}  {1}' -f $k, $actions[$k].t) }
   $n = $first; $keys = @($switches.Keys)
