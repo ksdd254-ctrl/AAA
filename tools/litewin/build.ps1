@@ -20,6 +20,7 @@ param(
   [switch]$NoMitigations,   # Spectre/Meltdown mitigations off: a few % on older CPUs, less secure
   [switch]$NoSlim,          # skip the size slimming step
   [switch]$MergeSvchost,    # UNSAFE, not default: moves two services to other svchost groups (a black screen at sign-in was seen after it)
+  [string]$UpdateMsu,        # a Windows cumulative update (.msu) installed into the image BEFORE the slimming: updated Windows, same size
   [switch]$KeepServicing,   # keep WinSxS (Windows Update / adding features keep working, ISO ~1 GB bigger)
   [switch]$SkipIso,         # stop after the image (no ISO)
   [switch]$IsoOnly          # only rebuild the ISO from the folder a previous run left in -Work\iso
@@ -74,13 +75,16 @@ $services = [ordered]@{
   vmickvpexchange=4; vmicguestinterface=4; vmicshutdown=4; vmicheartbeat=4; vmicvmsession=4; vmicrdv=4; vmictimesync=4; vmicvss=4; HvHost=4   # Hyper-V guest: only inside a VM
   SensorService=4; SensrSvc=4; SensorDataService=4   # sensors (a desktop has none)
   WebClient=4; fhsvc=4; spectrum=4   # WebDAV, File History, mixed reality
+  # the owner's own Windows has these disabled and runs fine (read from its registry + screenshots): same here, asked for explicitly
+  # (several are network-related: this is the one place the build touches network services, on the owner's instruction)
+  DispBrokerDesktopSvc=4; DsSvc=4; 'FontCache3.0.0.0'=4; hidserv=4; IKEEXT=4; LanmanServer=4; LanmanWorkstation=4; lmhosts=4; NetTcpPortSharing=4; PolicyAgent=4; RasAuto=4; RasMan=4; RmSvc=4; SessionEnv=4; SstpSvc=4; TermService=4; tzautoupdate=4; UmRdpService=4; Wcmsvc=4; Wecsvc=4; WlanSvc=4; workfolderssvc=4; XboxGipSvc=4
   NgcSvc=4; NgcCtnrSvc=4   # PIN / Windows Hello (the account has no password; asked to remove the PIN)
   # (PIN / Hello, BitLocker, smart cards, kiosk, MDM... are on-demand and cost no process: left as Windows ships them, nothing sign-in related is touched)
   DoSvc=4   # Delivery Optimization (peer-to-peer update downloads): off - asked for by the owner
   # Bluetooth (BTHUSB is the radio driver itself)
   bthserv=4; BTAGService=4; BthAvctpSvc=4; BluetoothUserService=4; BTHUSB=4
   # Xbox Live / Game Pass sign-in (not used); the controller service stays on demand
-  XblAuthManager=4; XblGameSave=4; XboxGipSvc=3
+  XblAuthManager=4; XblGameSave=4
   # notifications and the touch keyboard: each is a process on the desktop
   # (the touch keyboard service stays on demand: typing in the Start menu search box needs it)
   WpnService=4; WpnUserService=4; TabletInputService=3
@@ -302,6 +306,15 @@ try {
   Remove-Item -LiteralPath $esd.FullName -Force
   Step 'Mounting'
   Mount-WindowsImage -ImagePath $wim -Index 1 -Path $mount -ScratchDirectory $scr | Out-Null
+  if ($UpdateMsu) {
+    # the update goes in first: everything after (apps removal, slimming, WinSxS pruning) works on the updated files
+    Step "Installing the cumulative update $([IO.Path]::GetFileName($UpdateMsu)) - this takes a while"
+    $sig = Get-AuthenticodeSignature $UpdateMsu
+    if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch 'Microsoft Corporation') { throw "the update's signature is not valid ($($sig.Status))" }
+    & dism.exe "/Image:$mount" /Add-Package "/PackagePath:$UpdateMsu" "/ScratchDir:$scr"
+    if ($LASTEXITCODE -notin 0, 3010) { throw "installing the update failed ($LASTEXITCODE)" }
+    Write-Host '  update installed'
+  }
 
   # ---------------- 3. apps, capabilities, features ----------------
   # An unregistered copy of the Store / Xbox sign-in packages and their frameworks goes to C:\JDO\Store, so

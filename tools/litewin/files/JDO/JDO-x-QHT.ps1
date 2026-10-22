@@ -373,6 +373,11 @@ public static class QhtSvc {
 foreach ($s in @(@('UsoSvc', 4, 'Update Orchestrator (MoUSO worker) off'), @('WaaSMedicSvc', 4, 'Windows Update Medic off'), @('DoSvc', 4, 'Delivery Optimization off'),
                  @('TrustedInstaller', 3, 'Windows Modules Installer only on demand (no TiWorker at idle)'), @('wuauserv', 3, 'Windows Update service on demand (the Store needs it)'),
                  @('uhssvc', 4, 'Microsoft Update Health Service off'),
+                 @('Wcmsvc', 4, 'Windows Connection Manager off (as on your PC)'), @('WlanSvc', 4, 'WLAN AutoConfig off (wired PC)'), @('LanmanServer', 4, 'Server (file sharing) off'), @('LanmanWorkstation', 4, 'Workstation (SMB client) off'),
+                 @('lmhosts', 4, 'NetBIOS helper off'), @('IKEEXT', 4, 'IPsec keying off'), @('PolicyAgent', 4, 'IPsec policy off'), @('RasMan', 4, 'Remote Access Connection Manager off'), @('RasAuto', 4, 'Remote Access Auto Connection off'),
+                 @('SstpSvc', 4, 'SSTP VPN off'), @('NetTcpPortSharing', 4, 'Net.Tcp port sharing off'), @('RmSvc', 4, 'Radio Management off'), @('TermService', 4, 'Remote Desktop off'), @('SessionEnv', 4, 'Remote Desktop configuration off'),
+                 @('UmRdpService', 4, 'Remote Desktop port redirector off'), @('Wecsvc', 4, 'Event Collector off'), @('DsSvc', 4, 'Data Sharing off'), @('workfolderssvc', 4, 'Work Folders off'), @('tzautoupdate', 4, 'automatic time zone off'),
+                 @('hidserv', 4, 'HID media keys service off (as on your PC)'), @('XboxGipSvc', 4, 'Xbox accessory service off (as on your PC)'), @('DispBrokerDesktopSvc', 4, 'Display policy service off (as on your PC)'),
                  @('NgcSvc', 4, 'PIN / Windows Hello service off'), @('NgcCtnrSvc', 4, 'PIN / Windows Hello container off'),
                  @('sppsvc', 3, 'activation service on demand (one process less)'),
                  @('GameInputSvc', 4, 'GameInput service off (Epic installs it; Fortnite and controllers do not need it - 2 processes less)'))) {

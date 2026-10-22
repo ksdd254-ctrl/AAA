@@ -27,6 +27,8 @@ $apps = [ordered]@{
            done = @("$env:LOCALAPPDATA\Discord\Update.exe") }
   '5' = @{ n = 'AnyDesk'; u = 'https://download.anydesk.com/AnyDesk.exe'; f = 'anydesk.exe'; a = "--install `"$pf86\AnyDesk`" --silent --create-shortcuts --create-desktop-icon"; s = 'AnyDesk|philandro'
            done = @("$pf86\AnyDesk\AnyDesk.exe") }
+  'D' = @{ n = 'NVIDIA driver with NVCleanstall (latest driver, no bloat / telemetry)'; nvclean = $true; f = 'NVCleanstall.exe'; s = 'TechPowerUp'
+           done = @("$env:ProgramData\JDO\NVCleanstall.exe") }
   '6' = @{ n = 'NVIDIA App (driver + NVIDIA Broadcast inside it)'; page = 'https://www.nvidia.com/en-us/software/nvidia-app/'; done = @("$pf\NVIDIA Corporation\NVIDIA App\CEF\NVIDIA App.exe") }
   '7' = @{ n = 'NVIDIA Broadcast'; page = 'https://www.nvidia.com/en-us/geforce/broadcasting/broadcast-app/'; done = @("$pf\NVIDIA Corporation\NVIDIA Broadcast\NVIDIA Broadcast UI.exe") }
   '8' = @{ n = 'Voicemeeter Potato (VB-Audio)'; page = 'https://vb-audio.com/Voicemeeter/potato.htm'; done = @("$pf86\VB\Voicemeeter\voicemeeter8x64.exe", "$pf86\VB\Voicemeeter\voicemeeter8.exe") }
@@ -58,11 +60,37 @@ function Add-DesktopShortcuts {
     $l.Save(); Write-Host "  desktop shortcut added: $name" -ForegroundColor Green
   }
 }
+# NVCleanstall (TechPowerUp): the download page hands out a time-limited link, so it is asked for every time:
+# version id from the page -> pick a mirror -> follow the redirect. Signature must be TechPowerUp LLC.
+function Get-NVCleanstall([string]$File) {
+  $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'; $page = 'https://www.techpowerup.com/download/techpowerup-nvcleanstall/'
+  $html = (& curl.exe -sL -A $ua $page) -join "`n"
+  $id = [regex]::Match($html, 'name="id" value="(\d+)"').Groups[1].Value
+  if (-not $id) { return $false }
+  foreach ($sid in 25, 27, 22, 5, 28, 15) {
+    $h = & curl.exe -s -A $ua -D - -o NUL -d "id=$id&server_id=$sid" $page
+    $loc = ($h | Select-String -Pattern '^location:' -CaseSensitive:$false | Select-Object -First 1)
+    if (-not $loc) { continue }
+    & curl.exe -sL -A $ua --referer $page -o $File (($loc.Line -replace '^location:\s*', '').Trim())
+    if ((Test-Path $File) -and (Get-Item $File).Length -gt 1MB) { return $true }
+  }
+  $false
+}
 function Open-Page([string]$Url) {
   $b = @("$pf\BraveSoftware\Brave-Browser\Application\brave.exe", "$pf\Google\Chrome\Application\chrome.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
   if ($b) { Start-Process $b $Url } else { Write-Host "  No browser yet - install Brave (2) or Chrome (1) first. Page: $Url" -ForegroundColor Yellow }
 }
 function Install-App($a) {
+  if ($a.nvclean) {
+    $dir = Join-Path $env:ProgramData 'JDO'; New-Item -ItemType Directory -Force $dir | Out-Null; $file = Join-Path $dir 'NVCleanstall.exe'
+    Write-Host '  Downloading NVCleanstall (TechPowerUp) ...' -ForegroundColor Cyan
+    if (-not (Get-NVCleanstall $file)) { Write-Host '  [FAIL] download - opening the official page instead' -ForegroundColor Red; Open-Page 'https://www.techpowerup.com/download/techpowerup-nvcleanstall/'; return }
+    $sig = Get-AuthenticodeSignature $file
+    if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch 'TechPowerUp') { Write-Host '  [FAIL] signature not valid - deleted, not run' -ForegroundColor Red; Remove-Item $file -Force; return }
+    Write-Host '  signed by: TechPowerUp LLC' -ForegroundColor DarkGray
+    Write-Host '  NVCleanstall opens now: it finds the latest driver by itself - choose Recommended tweaks, untick telemetry / extras, Install.' -ForegroundColor Green
+    Start-Process $file; Add-DesktopShortcuts; return
+  }
   if ($a.page) { Write-Host "  Opening the official page: $($a.page)"; Write-Host '  After it installs, come back here and press Enter: the desktop shortcut is added by itself.' -ForegroundColor DarkGray; Open-Page $a.page; return }
   if ($a.done | Where-Object { Test-Path $_ }) { Write-Host "  [OK]   $($a.n) is already installed" -ForegroundColor Green; return }
   $file = Join-Path $tmp $a.f

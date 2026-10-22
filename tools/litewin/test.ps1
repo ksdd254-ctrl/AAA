@@ -7,6 +7,7 @@ param(
   [Parameter(Mandatory=$true)][string]$Iso,
   [string]$Work = 'E:\win 10 JDO',
   [string]$Edition = 'Windows 10 Pro',
+  [string]$LiteIsoFile,     # the ISO to check (default: JDO_x_QHT_W10_22H2.iso)
   [switch]$NoApply           # reuse the folders a previous run applied
 )
 #Requires -RunAsAdministrator
@@ -15,7 +16,7 @@ $ProgressPreference = 'SilentlyContinue'
 $lite  = Join-Path $Work 'test\lite'
 $stock = Join-Path $Work 'test\stock'
 $out   = Join-Path $Work 'test\report.txt'
-$liteIso = Join-Path $Work 'JDO_x_QHT_W10_22H2.iso'
+$liteIso = if ($LiteIsoFile) { $LiteIsoFile } else { Join-Path $Work 'JDO_x_QHT_W10_22H2.iso' }
 $fail = 0; $pass = 0; $lines = New-Object System.Collections.Generic.List[string]
 function Say([string]$t) { Write-Host $t; $lines.Add($t) }
 function Check([string]$name, [bool]$ok, [string]$detail = '') {
@@ -79,11 +80,11 @@ try {
   # ---------------- 1. network: identical to stock ----------------
   Say '== 1. network is exactly stock'
   $netSvc = 'Tcpip','Tcpip6','TCPIP6TUNNEL','tcpipreg','AFD','afunix','NetBT','NDIS','NdisCap','NdisVirtualBus','NdisWan','Ndisuio','nsiproxy',
-            'Dhcp','Dnscache','NlaSvc','nsi','netprofm','NcbService','NcaSvc','NcdAutoSetup','Netman','Netlogon','WinHttpAutoProxySvc','Wcmsvc',
-            'WlanSvc','wcncsvc','WwanSvc','RmSvc','icssvc','mpssvc','BFE','mpsdrv','SharedAccess','iphlpsvc','IpxlatCfgSvc','LanmanServer',
-            'LanmanWorkstation','lmhosts','SSDPSRV','upnphost','FDResPub','fdPHost','RasMan','RasAuto','RemoteAccess','SstpSvc',
-            'PolicyAgent','IKEEXT','WinRM','Dot3Svc','QWAVE','Psched','lltdsvc','rspndr','mrxsmb','mrxsmb20','srv2','srvnet',
-            'bowser','rdbss','NetTcpPortSharing','AJRouter','ALG','XboxNetApiSvc','TermService','SessionEnv','UmRdpService','WinNat','vwififlt','WFPLWFS'
+            'Dhcp','Dnscache','NlaSvc','nsi','netprofm','NcbService','NcaSvc','NcdAutoSetup','Netman','Netlogon','WinHttpAutoProxySvc',
+            'wcncsvc','WwanSvc','icssvc','mpssvc','BFE','mpsdrv','SharedAccess','iphlpsvc','IpxlatCfgSvc',
+            'SSDPSRV','upnphost','FDResPub','fdPHost','RemoteAccess',
+            'WinRM','Dot3Svc','QWAVE','Psched','lltdsvc','rspndr','mrxsmb','mrxsmb20','srv2','srvnet',
+            'bowser','rdbss','AJRouter','ALG','WinNat','vwififlt','WFPLWFS'
   foreach ($s in $netSvc) {
     $d = Same "$LiteCS\Services\$s" "$StockCS\Services\$s"
     Check "service $s" ($d.Count -eq 0) ($d -join '; ')
@@ -147,6 +148,8 @@ try {
     if ($p.ImagePath -match 'svchost\.exe\s+-k\s+(\S+)' -and $grp -notcontains $Matches[1]) { $badDep += "$($sv.PSChildName): group $($Matches[1]) not defined" }
   }
   Check 'auto-start services: no disabled / missing dependency, every svchost group defined' ($badDep.Count -eq 0) ($badDep -join '; ')
+  $ownerOff = 'DispBrokerDesktopSvc','DsSvc','FontCache3.0.0.0','hidserv','IKEEXT','LanmanServer','LanmanWorkstation','lmhosts','NetTcpPortSharing','PolicyAgent','RasAuto','RasMan','RmSvc','SessionEnv','SstpSvc','TermService','tzautoupdate','UmRdpService','Wcmsvc','Wecsvc','WlanSvc','workfolderssvc','XboxGipSvc'.Split(',')
+  Check 'services the owner has disabled on his own PC are off here' (@($ownerOff | Where-Object { $p = Get-ItemProperty "$LiteCS\Services\$_" -ErrorAction SilentlyContinue; $p -and $p.Start -ne 4 }).Count -eq 0) (($ownerOff | Where-Object { $p = Get-ItemProperty "$LiteCS\Services\$_" -ErrorAction SilentlyContinue; $p -and $p.Start -ne 4 }) -join ', ')
   Check 'Snipping Tool removed' (-not (Test-Path "$lite\Windows\System32\SnippingTool.exe"))
   Check 'JDO icons + post-setup in the image' ((Test-Path "$lite\JDO\Icons\tools.ico") -and (Test-Path "$lite\JDO\Icons\folder.ico") -and (Test-Path "$lite\JDO\JDO-PostSetup.ps1"))
   Check 'no background-app block (Start search works)' (-not (Get-ItemProperty 'HKLM:\T_LSW\Policies\Microsoft\Windows\AppPrivacy' -ErrorAction SilentlyContinue).LetAppsRunInBackground)
@@ -221,7 +224,7 @@ try {
     Check "$s disabled" ((Get-ItemProperty "$LiteCS\Services\$s" -ErrorAction SilentlyContinue).Start -eq 4)
   }
   foreach ($s in 'AppXSvc', 'ClipSVC', 'StateRepository', 'TokenBroker', 'LicenseManager', 'BITS', 'CryptSvc', 'Winmgmt',
-                 'EventLog', 'Audiosrv', 'AudioEndpointBuilder', 'XboxGipSvc', 'TabletInputService', 'FrameServer') {
+                 'EventLog', 'Audiosrv', 'AudioEndpointBuilder', 'TabletInputService', 'FrameServer') {
     $st = (Get-ItemProperty "$LiteCS\Services\$s" -ErrorAction SilentlyContinue).Start
     Check "$s can start (Start=$st)" ($st -in 2, 3)
   }
