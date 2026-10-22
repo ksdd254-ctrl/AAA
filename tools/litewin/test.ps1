@@ -132,9 +132,21 @@ try {
   Check 'WaaSMedicSvc off' ((Get-ItemProperty "$LiteCS\Services\WaaSMedicSvc").Start -eq 4)
   Check 'Update orchestrator off (no MoUSO worker)' ((Get-ItemProperty "$LiteCS\Services\UsoSvc").Start -eq 4)
   Check 'Delivery Optimization off (owner asked)' ((Get-ItemProperty "$LiteCS\Services\DoSvc").Start -eq 4)
-  Check 'svchost merge: audio endpoints in netsvcs' (((Get-ItemProperty "$LiteCS\Services\AudioEndpointBuilder").ImagePath -match '-k netsvcs') -and ((Get-ItemProperty 'HKLM:\T_LSW\Microsoft\Windows NT\CurrentVersion\Svchost').netsvcs -contains 'AudioEndpointBuilder'))
-  Check 'svchost merge: UI message registrar in LocalService' (((Get-ItemProperty "$LiteCS\Services\CoreMessagingRegistrar").ImagePath -match '-k LocalService\b') -and ((Get-ItemProperty 'HKLM:\T_LSW\Microsoft\Windows NT\CurrentVersion\Svchost').LocalService -contains 'CoreMessagingRegistrar'))
+  Check 'svchost groups stock (the merge is off: a black screen was seen with it)' (((Get-ItemProperty "$LiteCS\Services\AudioEndpointBuilder").ImagePath -match '-k LocalSystemNetworkRestricted') -and ((Get-ItemProperty "$LiteCS\Services\CoreMessagingRegistrar").ImagePath -match '-k LocalServiceNoNetwork'))
   Check 'activation on demand (sppsvc), Hyper-V guest / sensors / PIN off' (((Get-ItemProperty "$LiteCS\Services\sppsvc").Start -eq 3) -and ((Get-ItemProperty "$LiteCS\Services\vmicheartbeat").Start -eq 4) -and ((Get-ItemProperty "$LiteCS\Services\SensorService").Start -eq 4) -and ((Get-ItemProperty "$LiteCS\Services\NgcSvc").Start -eq 4))
+  # boot safety: nothing that starts automatically may depend on a service that is disabled or missing, and every
+  # svchost group a service names must exist in the group list - either one stops Windows from reaching the desktop
+  $badDep = @(); $grp = (Get-ItemProperty 'HKLM:\T_LSW\Microsoft\Windows NT\CurrentVersion\Svchost').PSObject.Properties.Name
+  foreach ($sv in Get-ChildItem "$LiteCS\Services") {
+    $p = Get-ItemProperty $sv.PSPath
+    if ($p.Start -ne 2 -or -not ($p.Type -band 0x30)) { continue }
+    foreach ($d in @($p.DependOnService) | Where-Object { $_ }) {
+      $dp = Get-ItemProperty "$LiteCS\Services\$d" -ErrorAction SilentlyContinue
+      if (-not $dp -or $dp.Start -eq 4) { $badDep += "$($sv.PSChildName) needs $d" }
+    }
+    if ($p.ImagePath -match 'svchost\.exe\s+-k\s+(\S+)' -and $grp -notcontains $Matches[1]) { $badDep += "$($sv.PSChildName): group $($Matches[1]) not defined" }
+  }
+  Check 'auto-start services: no disabled / missing dependency, every svchost group defined' ($badDep.Count -eq 0) ($badDep -join '; ')
   Check 'Snipping Tool removed' (-not (Test-Path "$lite\Windows\System32\SnippingTool.exe"))
   Check 'JDO icons + post-setup in the image' ((Test-Path "$lite\JDO\Icons\tools.ico") -and (Test-Path "$lite\JDO\Icons\folder.ico") -and (Test-Path "$lite\JDO\JDO-PostSetup.ps1"))
   Check 'no background-app block (Start search works)' (-not (Get-ItemProperty 'HKLM:\T_LSW\Policies\Microsoft\Windows\AppPrivacy' -ErrorAction SilentlyContinue).LetAppsRunInBackground)

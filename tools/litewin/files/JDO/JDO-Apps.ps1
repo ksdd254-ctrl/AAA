@@ -17,13 +17,13 @@ $tmp = Join-Path $env:TEMP 'jdo-apps'; New-Item -ItemType Directory -Force $tmp 
 $pf = $env:ProgramFiles; $pf86 = ${env:ProgramFiles(x86)}
 
 $apps = [ordered]@{
-  '1' = @{ n = 'Google Chrome'; u = 'https://dl.google.com/chrome/install/ChromeStandaloneSetup64.exe'; f = 'chrome.exe'; a = '/silent /install'; s = 'Google'
+  '1' = @{ n = 'Google Chrome'; u = 'https://dl.google.com/chrome/install/ChromeStandaloneSetup64.exe'; f = 'chrome.exe'; a = '/silent /install'; s = 'Google'; slim = 'Chrome'
            done = @("$pf\Google\Chrome\Application\chrome.exe", "$pf86\Google\Chrome\Application\chrome.exe") }
-  '2' = @{ n = 'Brave'; u = 'https://laptop-updates.brave.com/latest/winx64'; f = 'brave.exe'; a = '/silent /install'; s = 'Brave Software'
+  '2' = @{ n = 'Brave'; u = 'https://laptop-updates.brave.com/latest/winx64'; f = 'brave.exe'; a = '/silent /install'; s = 'Brave Software'; slim = 'Brave'
            done = @("$pf\BraveSoftware\Brave-Browser\Application\brave.exe") }
   '3' = @{ n = 'Epic Games Launcher'; u = 'https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi'; f = 'epic.msi'; a = '/qb /norestart'; s = 'Epic Games'
            done = @("$pf86\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe", "$pf\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe") }
-  '4' = @{ n = 'Discord'; u = 'https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64'; f = 'discord.exe'; a = '-s'; s = 'Discord'
+  '4' = @{ n = 'Discord'; u = 'https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64'; f = 'discord.exe'; a = '-s'; s = 'Discord'; slim = 'Discord'
            done = @("$env:LOCALAPPDATA\Discord\Update.exe") }
   '5' = @{ n = 'AnyDesk'; u = 'https://download.anydesk.com/AnyDesk.exe'; f = 'anydesk.exe'; a = "--install `"$pf86\AnyDesk`" --silent --create-shortcuts --create-desktop-icon"; s = 'AnyDesk|philandro'
            done = @("$pf86\AnyDesk\AnyDesk.exe") }
@@ -75,7 +75,8 @@ function Install-App($a) {
   $p = if ($file -like '*.msi') { Start-Process msiexec.exe -ArgumentList "/i `"$file`" $($a.a)" -PassThru } else { Start-Process $file -ArgumentList $a.a -PassThru }
   # some installers leave an updater running: wait for the program file, not for every child process
   for ($i = 0; $i -lt 300; $i++) { if ($a.done | Where-Object { Test-Path $_ }) { break }; if ($p.HasExited -and $i -gt 20) { break }; Start-Sleep -Seconds 1 }
-  if ($a.done | Where-Object { Test-Path $_ }) { Write-Host "  [OK]   $($a.n) installed" -ForegroundColor Green; Add-DesktopShortcuts }
+  if ($a.done | Where-Object { Test-Path $_ }) { Write-Host "  [OK]   $($a.n) installed" -ForegroundColor Green; Add-DesktopShortcuts
+    if ($a.slim) { Write-Host "  Making $($a.n) light (no Safe Browsing / bloat, memory saver, English only, hardware acceleration off) ..." -ForegroundColor Cyan; & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'JDO-Tools.ps1') -Slim $a.slim } }
   else { Write-Host "  [FAIL] $($a.n) did not finish (exit code $(if ($p.HasExited) { $p.ExitCode } else { 'still running' })) - restart and try again" -ForegroundColor Red }
 }
 

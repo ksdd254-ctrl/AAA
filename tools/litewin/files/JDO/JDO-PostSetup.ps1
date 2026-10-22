@@ -74,6 +74,9 @@ if (Test-Path $braveExe) {
   $lnk = Join-Path ([Environment]::GetFolderPath('CommonDesktopDirectory')) 'Brave.lnk'
   $s = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk); $s.TargetPath = $braveExe; $s.WorkingDirectory = Split-Path $braveExe; $s.Save()
   Ok 'Brave on the desktop'
+  Say '  making Brave light (no Safe Browsing / bloat, memory saver, English only, hardware acceleration off)...' 'Cyan'
+  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'JDO-Tools.ps1') -Slim Brave | Out-Null
+  Ok 'Brave is light'
   $startLnk = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\Brave.lnk'
   if (-not (Test-Path $startLnk)) { Copy-Item $lnk $startLnk -Force }
   if (Pin-Taskbar $startLnk) { Ok 'Brave on the taskbar' } else { Bad 'Brave not pinned' 'right-click Brave on the desktop > Pin to taskbar' }

@@ -7,7 +7,7 @@
 #   JDO-Tools.ps1 -Devices   disable unneeded devices + USB power saving off, no questions (first boot runs this)
 #   JDO-Tools.ps1 -Power     create and switch to the JDO Ultimate power plan, no questions (first boot runs this)
 #   JDO-Tools.ps1 -Services  Windows Update / Store / account services off once setup is done (first boot runs this)
-param([switch]$Devices, [switch]$Power, [switch]$Services)
+param([switch]$Devices, [switch]$Power, [switch]$Services, [string]$Slim)   # -Slim Brave,Chrome,Discord: lighten those apps, no questions
 $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -18,6 +18,7 @@ if (-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
   if ($Devices) { $a += ' -Devices' }
   if ($Power) { $a += ' -Power' }
   if ($Services) { $a += ' -Services' }
+  if ($Slim) { $a += " -Slim $Slim" }
   Start-Process powershell.exe -Verb RunAs -ArgumentList $a
   return
 }
@@ -604,6 +605,25 @@ function Stop-Updater([string]$TaskPattern, [string[]]$Services) {
     ForEach-Object { Write-Host "  task off: $($_.TaskName)" }
   foreach ($s in $Services) { if (Get-Service $s -ErrorAction SilentlyContinue) { Stop-Service $s -Force -ErrorAction SilentlyContinue; Set-Service $s -StartupType Manual; Write-Host "  service manual: $s" } }
 }
+# language files: only English (+ Arabic for browsers) stay; every other .pak is deleted (browser updates may bring them back)
+function Remove-Locales([string]$Dir, [string[]]$Keep) {
+  $n = 0
+  foreach ($d in Get-Item $Dir -ErrorAction SilentlyContinue) {
+    Get-ChildItem $d.FullName -Filter *.pak -File -ErrorAction SilentlyContinue | Where-Object { $Keep -notcontains $_.BaseName } | ForEach-Object { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue; $n++ }
+  }
+  if ($n) { Write-Host "  $n language files removed (kept: $($Keep -join ', '))" } else { Write-Host '  language files: nothing to remove' -ForegroundColor DarkGray }
+}
+# light-weight policies for Chrome / Brave: no Safe Browsing, no location / notification prompts, no background run,
+# memory saver on, hardware acceleration off, no prefetch, no promos / sign-in nags
+function Set-LightBrowser([string]$Key) {
+  foreach ($v in @{ SafeBrowsingProtectionLevel=0; SafeBrowsingEnabled=0; SafeBrowsingExtendedReportingEnabled=0; HighEfficiencyModeEnabled=1; MemorySaverModeSavings=2
+                    DefaultGeolocationSetting=2; DefaultNotificationsSetting=2; DefaultSensorsSetting=2; BackgroundModeEnabled=0; StartupBoostEnabled=0
+                    HardwareAccelerationModeEnabled=0; NetworkPredictionOptions=2; MetricsReportingEnabled=0; UserFeedbackAllowed=0; SpellCheckServiceEnabled=0
+                    SearchSuggestEnabled=0; ShoppingListEnabled=0; PromotionsEnabled=0; PromotionalTabsEnabled=0; DefaultBrowserSettingEnabled=0
+                    TranslateEnabled=0; ShowRecommendationsEnabled=0; PasswordManagerEnabled=0; AutofillCreditCardEnabled=0; MediaRecommendationsEnabled=0
+                    BrowserSignin=0; SyncDisabled=1; BatterySaverModeAvailability=0 }.GetEnumerator()) { Set-Dword $Key $v.Key $v.Value }
+  Write-Host '  Safe Browsing off, location / notifications blocked, memory saver on, hardware acceleration off, no background run, no promos'
+}
 function Set-BrowserPolicies([string]$Key) {
   # no running after the window closes, no startup boost, no telemetry, memory saver on
   foreach ($v in @{ BackgroundModeEnabled=0; StartupBoostEnabled=0; MetricsReportingEnabled=0; HighEfficiencyModeEnabled=1;
@@ -615,6 +635,8 @@ function Slim-Chrome {
   Write-Host 'Google Chrome' -ForegroundColor Cyan
   Get-Process chrome -ErrorAction SilentlyContinue | Stop-Process -Force
   Set-BrowserPolicies 'HKLM:\SOFTWARE\Policies\Google\Chrome'
+  Set-LightBrowser 'HKLM:\SOFTWARE\Policies\Google\Chrome'
+  Remove-Locales "$env:ProgramFiles\Google\Chrome\Application\*\Locales" @('en-US', 'ar')
   Stop-Updater 'GoogleUpdateTask*' @('gupdate', 'gupdatem', 'GoogleChromeElevationService')
   Remove-Startup 'Google|Chrome'
   Clear-Folders @("$env:LOCALAPPDATA\Google\Chrome\User Data\*\Cache", "$env:LOCALAPPDATA\Google\Chrome\User Data\*\Code Cache",
@@ -627,7 +649,9 @@ function Slim-Brave {
   Get-Process brave -ErrorAction SilentlyContinue | Stop-Process -Force
   $k = 'HKLM:\SOFTWARE\Policies\BraveSoftware\Brave'
   Set-BrowserPolicies $k
-  foreach ($v in @{ BraveRewardsDisabled=1; BraveWalletDisabled=1; BraveVPNDisabled=1; BraveAIChatEnabled=0; TorDisabled=1; BraveNewsDisabled=1; BraveTalkDisabled=1
+  Set-LightBrowser $k
+  Remove-Locales "$env:ProgramFiles\BraveSoftware\Brave-Browser\Application\*\Locales" @('en-US', 'ar')
+  foreach ($v in @{ BraveRewardsDisabled=1; BraveWalletDisabled=1; BraveVPNDisabled=1; BraveAIChatEnabled=0; TorDisabled=1; BraveNewsDisabled=1; BraveTalkDisabled=1; BraveWebDiscoveryEnabled=0; BraveSpeedreaderEnabled=0; BravePlaylistEnabled=0; BraveShieldsDisabledForUrls=0
                     BraveStatsPingEnabled=0; BraveP3AEnabled=0; UrlKeyedAnonymizedDataCollectionEnabled=0; SafeBrowsingExtendedReportingEnabled=0 }.GetEnumerator()) { Set-Dword $k $v.Key $v.Value }
   Stop-Updater 'BraveSoftwareUpdateTask*' @('brave', 'bravem', 'BraveElevationService', 'BraveVpnService', 'BraveVpnWireguardService')
   Remove-Startup 'Brave'
@@ -643,13 +667,15 @@ function Slim-Discord {
   $f = "$env:APPDATA\discord\settings.json"
   if (Test-Path $f) {
     $j = Get-Content $f -Raw | ConvertFrom-Json
-    foreach ($v in @{ OPEN_ON_STARTUP=$false; START_MINIMIZED=$true; MINIMIZE_TO_TRAY=$true; enableHardwareAcceleration=$false }.GetEnumerator()) {
+    foreach ($v in @{ OPEN_ON_STARTUP=$false; START_MINIMIZED=$true; MINIMIZE_TO_TRAY=$true; enableHardwareAcceleration=$false; SKIP_HOST_UPDATE=$true; DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING=$false }.GetEnumerator()) {
       $j | Add-Member -NotePropertyName $v.Key -NotePropertyValue $v.Value -Force
     }
     $j | ConvertTo-Json -Depth 10 | Set-Content $f -Encoding UTF8
     Write-Host '  no startup, no hardware acceleration (stops it taking GPU time from the game)'
   } else { Write-Host '  Discord settings not found (open Discord once first)' -ForegroundColor Yellow }
   Remove-Startup 'Discord'
+  # language files: English only (Electron locales of every installed Discord version)
+  Remove-Locales "$env:LOCALAPPDATA\Discord\app-*\locales" @('en-US')
   Clear-Folders @("$env:APPDATA\discord\Cache", "$env:APPDATA\discord\Code Cache", "$env:APPDATA\discord\GPUCache", "$env:LOCALAPPDATA\Discord\packages")
   Set-ProcessPriority 'Discord.exe' 5 1 2
 }
@@ -847,6 +873,14 @@ $actions = [ordered]@{
   '22' = @{ t = 'UNDO the JDO x QHT tweaks (restores every value from the backup)';                a = { Undo-Qht } }
 }
 $first = 23
+
+if ($Slim) {
+  foreach ($n in $Slim -split '[,; ]+' | Where-Object { $_ }) {
+    switch ($n) { 'Chrome' { Slim-Chrome } 'Brave' { Slim-Brave } 'Discord' { Slim-Discord } default { Write-Host "  unknown app: $n" -ForegroundColor Yellow } }
+  }
+  Stop-Transcript | Out-Null
+  return
+}
 
 while ($true) {
   Clear-Host

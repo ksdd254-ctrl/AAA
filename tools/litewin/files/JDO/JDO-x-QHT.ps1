@@ -11,10 +11,20 @@
 #   * DEP / process-mitigation changes and the vulnerable-driver blocklist (anti-cheats need them), activation scripts
 #   * NVIDIA telemetry switches and low priority for NVIDIA programs: with them the NVIDIA App stops with "There was a
 #     problem with NVIDIA App" (its plugins time out asking the telemetry service for the user id - seen in its logs)
-param([switch]$Auto, [switch]$Quiet, [switch]$DryRun)   # -Auto: started at sign-in   -DryRun: print only, change nothing
+param([switch]$Auto, [switch]$Quiet, [switch]$DryRun, [switch]$Force)   # -Auto: started at sign-in   -DryRun: print only, change nothing
 $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
+# Only the JDO x QHT Windows is tweaked. On any other Windows (the one you use now, for example) this file stops here and
+# changes nothing - unless you start it with -Force on purpose. (The image marks itself with C:\Windows\Setup\Scripts\firstboot.ps1.)
+if (-not $DryRun -and -not $Force -and -not (Test-Path (Join-Path $env:WINDIR 'Setup\Scripts\firstboot.ps1'))) {
+  Write-Host ''
+  Write-Host '  This is NOT the JDO x QHT Windows - nothing was changed.' -ForegroundColor Yellow
+  Write-Host '  These tweaks are made for the new Windows only. Install it from the ISO, they run there by themselves.' -ForegroundColor Gray
+  Write-Host '  (To force it on this Windows anyway: run the file with -Force. Every change would be backed up first.)' -ForegroundColor DarkGray
+  if (-not $Auto) { Read-Host '  Press Enter to close' | Out-Null }
+  return
+}
 $me = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if (-not $DryRun -and -not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
   $a = "-NoProfile -ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`""
@@ -85,6 +95,7 @@ function Svc-Set([string]$Svc, [string]$Sub, [string]$Name, $Value, [string]$Wha
   Reg-Set ($(if ($Sub) { "$base\$Sub" } else { $base })) $Name $Value 'DWord' $What
 }
 
+$script:watch = [Diagnostics.Stopwatch]::StartNew()
 Say "JDO x QHT - applying the tweaks   $(Get-Date -Format 'yyyy-MM-dd HH:mm')" 'Magenta'
 Say "Backup of every value it changes: $bk" 'DarkGray'
 
@@ -114,8 +125,10 @@ if (Test-Path $osExe) {
   Reg-Set $osk 'SubMenuAnimation' 'None' String 'Open-Shell: no sub-menu animation'
   Reg-Set $osk 'WinKey' 'ClassicMenu' String 'Windows key opens Open-Shell'
   Reg-Set $osk 'RecentPrograms' 'None' String 'Open-Shell: no recent-programs list'
-  Reg-Set $osk 'SkinW7' 'Metro' String 'Open-Shell skin: Metro (dark with the system theme)'
-}
+  Reg-Set $osk 'SkinW7' 'Midnight' String 'Open-Shell skin: Midnight (black / dark gray, no red accent)'
+  Reg-Set $osk 'SkinC1' 'Midnight' String 'Open-Shell skin (classic style): Midnight'
+  Reg-Set $osk 'SkinC2' 'Midnight' String 'Open-Shell skin (two-column style): Midnight'
+  }
 $smOff = Join-Path $root 'startmenu.off'
 $smExe = "$env:WINDIR\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost.exe"
 if (Test-Path $smOff) { Same-Line 'old Microsoft Start menu off' }
@@ -147,8 +160,9 @@ Reg-Set "$cu\Themes\Personalize" 'EnableTransparency' 0 DWord 'transparency off'
 Reg-Set "$cu\Themes\Personalize" 'ColorPrevalence' 0 DWord 'no accent colour on the taskbar (stays black)'
 
 # ---- mouse, keyboard (Control Panel) ----
-Section 'Mouse and keyboard' 'Pointer speed fast, no acceleration (raw aim), fastest key repeat, shortest repeat delay.'
-Reg-Set 'HKCU:\Control Panel\Mouse' 'MouseSensitivity' '20' String 'pointer speed: fast (11 of 11)'
+Section 'Mouse and keyboard' 'Your own settings: pointer speed 7 of 11 (value 12), no acceleration, fast double-click, fastest key repeat, shortest repeat delay.'
+Reg-Set 'HKCU:\Control Panel\Mouse' 'MouseSensitivity' '12' String 'pointer speed: 7 of 11 (as on your PC)'
+Reg-Set 'HKCU:\Control Panel\Mouse' 'DoubleClickSpeed' '200' String 'double-click speed: fast (200 ms)'
 Reg-Set 'HKCU:\Control Panel\Mouse' 'MouseSpeed' '0' String 'enhance pointer precision: off'
 Reg-Set 'HKCU:\Control Panel\Mouse' 'MouseThreshold1' '0' String 'acceleration threshold 1: off'
 Reg-Set 'HKCU:\Control Panel\Mouse' 'MouseThreshold2' '0' String 'acceleration threshold 2: off'
@@ -359,6 +373,7 @@ public static class QhtSvc {
 foreach ($s in @(@('UsoSvc', 4, 'Update Orchestrator (MoUSO worker) off'), @('WaaSMedicSvc', 4, 'Windows Update Medic off'), @('DoSvc', 4, 'Delivery Optimization off'),
                  @('TrustedInstaller', 3, 'Windows Modules Installer only on demand (no TiWorker at idle)'), @('wuauserv', 3, 'Windows Update service on demand (the Store needs it)'),
                  @('uhssvc', 4, 'Microsoft Update Health Service off'),
+                 @('NgcSvc', 4, 'PIN / Windows Hello service off'), @('NgcCtnrSvc', 4, 'PIN / Windows Hello container off'),
                  @('sppsvc', 3, 'activation service on demand (one process less)'),
                  @('GameInputSvc', 4, 'GameInput service off (Epic installs it; Fortnite and controllers do not need it - 2 processes less)'))) {
   $cur = (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\$($s[0])" -ErrorAction SilentlyContinue).Start
@@ -385,6 +400,19 @@ foreach ($f in '\Microsoft\Windows\UpdateOrchestrator\', '\Microsoft\Windows\Win
   $n = @($tasks | Disable-ScheduledTask -ErrorAction SilentlyContinue).Count
   if ($n -eq $tasks.Count) { Done-Line "tasks off: $f ($n)" } else { Say "  [~]    tasks off: $f ($n of $($tasks.Count) - the rest are protected by Windows, they stay idle)" 'DarkYellow' }
 }
+
+# ---- PIN: no PIN sign-in, no "set up a PIN" nag, any saved PIN deleted ----
+Section 'PIN' 'The account has no password and signs in by itself: PIN / Windows Hello is switched off and its saved data deleted.'
+Reg-Set 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'AllowDomainPINLogon' 0 DWord 'PIN sign-in off'
+Reg-Set 'HKLM:\SOFTWARE\Policies\Microsoft\PassportForWork' 'Enabled' 0 DWord 'Windows Hello for Business off'
+Reg-Set 'HKLM:\SOFTWARE\Policies\Microsoft\PassportForWork' 'DisablePostLogonProvisioning' 1 DWord 'no PIN setup after sign-in'
+$ngc = "$env:WINDIR\ServiceProfiles\LocalService\AppData\Local\Microsoft\Ngc"
+if (Test-Path $ngc) {
+  if ($DryRun) { Say '  DRY    delete saved PIN data' }
+  else { & takeown.exe /f $ngc /r /d y 2>$null | Out-Null; & icacls.exe $ngc /grant '*S-1-5-32-544:F' /t /c /q 2>$null | Out-Null
+         Remove-Item $ngc -Recurse -Force -ErrorAction SilentlyContinue
+         if (-not (Get-ChildItem $ngc -Force -ErrorAction SilentlyContinue)) { Done-Line 'saved PIN data deleted' } else { Fail-Line 'PIN data (Ngc folder) not fully deleted' 'Settings > Accounts > Sign-in options > PIN > Remove' } }
+} else { Same-Line 'no saved PIN' }
 
 # ---- guard: nothing (this file, another tweak pack, EXM...) may break Task Scheduler, Microsoft apps, NVIDIA or the network ----
 Section 'Guard' 'Services that Task Scheduler, the Store, the NVIDIA App, sign-in and the network need - put back if something disabled them.'
@@ -418,10 +446,10 @@ Say ("== Result: {0} changed, {1} already right, {2} failed" -f $script:ok, $scr
 foreach ($b in $script:bad) { Say "   $b" 'Yellow' }
 Say "   Full log: $logs\JDO-x-QHT.log    Undo everything: JDO-Tools option 22" 'DarkGray'
 if ($first) {
-  # the first-boot job (power plan, devices, tasks) must finish before the restart: up to 4 minutes
+  # the first-boot job (power plan, devices, tasks) must finish before the restart: up to 100 seconds
   $fin = Join-Path $env:WINDIR 'Setup\Scripts\firstboot.finished'
   $t0 = Get-Date
-  while (-not (Test-Path $fin) -and ((Get-Date) - $t0).TotalSeconds -lt 240 -and (Test-Path (Join-Path $env:WINDIR 'Setup\Scripts\firstboot.ps1'))) { Start-Sleep -Seconds 3 }
+  while (-not (Test-Path $fin) -and ((Get-Date) - $t0).TotalSeconds -lt 100 -and (Test-Path (Join-Path $env:WINDIR 'Setup\Scripts\firstboot.ps1'))) { Start-Sleep -Seconds 3 }
   New-Item -ItemType File $firstMark -Force | Out-Null
   Remove-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'JDO x QHT' -ErrorAction SilentlyContinue   # one time only
   Say ''; Say 'Restarting in 10 seconds...' 'Magenta'
@@ -437,7 +465,7 @@ if (-not $DryRun) {
   Add-Type -Namespace Qht -Name Ui -MemberDefinition '[DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr SendMessageTimeout(IntPtr h, int m, IntPtr w, string l, int f, int t, out IntPtr r);
     [DllImport("user32.dll")] public static extern bool SystemParametersInfo(int a, int p, IntPtr v, int f);' -ErrorAction SilentlyContinue
   $r = [IntPtr]::Zero
-  [void][Qht.Ui]::SystemParametersInfo(0x71, 0, [IntPtr]20, 3)      # SPI_SETMOUSESPEED 20
+  [void][Qht.Ui]::SystemParametersInfo(0x71, 0, [IntPtr]12, 3)      # SPI_SETMOUSESPEED 12
   [void][Qht.Ui]::SystemParametersInfo(0x0B, 31, [IntPtr]::Zero, 3) # SPI_SETKEYBOARDSPEED
   [void][Qht.Ui]::SystemParametersInfo(0x17, 0, [IntPtr]::Zero, 3)  # SPI_SETKEYBOARDDELAY
   [void][Qht.Ui]::SendMessageTimeout([IntPtr]0xffff, 0x1A, [IntPtr]::Zero, 'ImmersiveColorSet', 2, 3000, [ref]$r)

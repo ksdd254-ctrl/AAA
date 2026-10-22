@@ -19,6 +19,7 @@ param(
   [switch]$KeepDefender,
   [switch]$NoMitigations,   # Spectre/Meltdown mitigations off: a few % on older CPUs, less secure
   [switch]$NoSlim,          # skip the size slimming step
+  [switch]$MergeSvchost,    # UNSAFE, not default: moves two services to other svchost groups (a black screen at sign-in was seen after it)
   [switch]$KeepServicing,   # keep WinSxS (Windows Update / adding features keep working, ISO ~1 GB bigger)
   [switch]$SkipIso,         # stop after the image (no ISO)
   [switch]$IsoOnly          # only rebuild the ISO from the folder a previous run left in -Work\iso
@@ -72,9 +73,9 @@ $services = [ordered]@{
   sppsvc=3   # activation: on demand (its triggers start it when Windows checks the licence) - one process less
   vmickvpexchange=4; vmicguestinterface=4; vmicshutdown=4; vmicheartbeat=4; vmicvmsession=4; vmicrdv=4; vmictimesync=4; vmicvss=4; HvHost=4   # Hyper-V guest: only inside a VM
   SensorService=4; SensrSvc=4; SensorDataService=4   # sensors (a desktop has none)
-  NgcSvc=4; NgcCtnrSvc=4   # PIN / Windows Hello (the account has no password)
-  BDESVC=4; CertPropSvc=4; WEPHOSTSVC=4; dcsvc=4; NaturalAuthentication=4   # BitLocker, smart cards, enterprise encryption / MDM, dynamic lock
-  WebClient=4; fhsvc=4; spectrum=4; AssignedAccessManagerSvc=4; embeddedmode=4; autotimesvc=4   # WebDAV, File History, mixed reality, kiosk, embedded, cellular time
+  WebClient=4; fhsvc=4; spectrum=4   # WebDAV, File History, mixed reality
+  NgcSvc=4; NgcCtnrSvc=4   # PIN / Windows Hello (the account has no password; asked to remove the PIN)
+  # (PIN / Hello, BitLocker, smart cards, kiosk, MDM... are on-demand and cost no process: left as Windows ships them, nothing sign-in related is touched)
   DoSvc=4   # Delivery Optimization (peer-to-peer update downloads): off - asked for by the owner
   # Bluetooth (BTHUSB is the radio driver itself)
   bthserv=4; BTAGService=4; BthAvctpSvc=4; BluetoothUserService=4; BTHUSB=4
@@ -418,10 +419,11 @@ try {
   }
   # (no LetAppsRunInBackground policy and no global background-app switch: they stopped Start menu search from working)
 
-  # svchost merge (asked for by the owner): two services that sit alone in their own svchost move into a group of the
+  # svchost merge - OFF unless build.ps1 -MergeSvchost (a black screen at sign-in was seen right after it was added): two services that sit alone in their own svchost move into a group of the
   # same account - audio endpoints (LocalSystem) into netsvcs, the UI message registrar (LocalService) into LocalService.
   # 9 -> 7 svchost processes at idle. Network services are not moved. JDO-Tools switch "svchost merge" puts it back.
   $svchost = 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Svchost'
+  if ($MergeSvchost) {
   foreach ($m in @(@('AudioEndpointBuilder', 'LocalSystemNetworkRestricted', 'netsvcs'), @('CoreMessagingRegistrar', 'LocalServiceNoNetwork', 'LocalService'))) {
     $sk = "SYSTEM\ControlSet001\Services\$($m[0])"
     $img = (Get-ItemProperty "Registry::HKEY_LOCAL_MACHINE\$(HiveKey $sk)" -Name ImagePath -ErrorAction SilentlyContinue).ImagePath
@@ -430,6 +432,7 @@ try {
     if ($list -notcontains $m[0]) { [OffReg]::SetMultiString((HiveKey $svchost), $m[2], [string[]]($list + $m[0])) }
     [OffReg]::SetExpandString((HiveKey $sk), 'ImagePath', ($img -replace "-k\s+$($m[1])\b", "-k $($m[2])"))
     Write-Host "  svchost merge: $($m[0]) -> $($m[2])"
+  }
   }
 
   # fewer processes: group services into shared svchost hosts instead of one per service
