@@ -75,6 +75,14 @@ namespace JdoTweak
             var rev = UI.IconBtn("", L.T("revertAll"), "Ghost", async (o, e) => await RevertAll((Button)o)); rev.Margin = new Thickness(10, 0, 0, 0);
             rec.IsEnabled = !VendorMissing;
             if (!embedded) btns.Children.Add(rec);
+            if (!embedded && c.Id != "mouse" && c.Id != "keyboard" && c.Id != "advanced")
+            {
+                var allBtn = UI.IconBtn("", L.T("applyAll"), "Ghost", async (o, e) => await ApplyAll((Button)o));
+                allBtn.Margin = new Thickness(10, 0, 0, 0);
+                allBtn.IsEnabled = !VendorMissing;
+                allBtn.ToolTip = L.T("applyAllD");
+                btns.Children.Add(allBtn);
+            }
             btns.Children.Add(rev);
             DockPanel.SetDock(btns, Dock.Right);
             bar.Children.Add(btns);
@@ -341,6 +349,49 @@ namespace JdoTweak
                         reboot |= t.Reboot;
                     }
                     catch { }
+            });
+            b.IsEnabled = true;
+            if (reboot) win.NeedReboot();
+            Render();
+        }
+
+        // Every tweak on this page that can be undone exactly (registry only), within the user's plan.
+        // Commands (no automatic undo) and anything marked risky are left for the user to switch on by hand.
+        List<Tweak> AllApplicable()
+        {
+            var hw = App.Hardware;
+            return App.Catalog.Tweaks.Where(t => t.Cat == category.Id && t.Tier <= UserTier && t.Risk <= 1 && !t.NoUndo
+                    && (t.MinRam == 0 || hw == null || hw.RamGb >= t.MinRam) && (t.Vendor == null || hw == null || t.Vendor == hw.GpuVendor)
+                    && (t.HasOptions ? t.Options.All(o => o.Apply.All(a => a.IsRegistry)) : t.Apply.Count > 0 && t.Apply.All(a => a.IsRegistry)))
+                .ToList();
+        }
+
+        async Task ApplyAll(Button b)
+        {
+            var todo = AllApplicable();
+            if (todo.Count == 0) return;
+            int risky = todo.Count(t => t.Risk == 1);
+            string msg = string.Format(L.T("applyAllAsk"), todo.Count.ToString("N0"), risky.ToString("N0"));
+            if (!UI.Ask(win, L.T("applyAll"), msg, true, risky > 0)) return;
+            win.EnsureRestorePoint();
+            b.IsEnabled = false;
+            var hw = App.Hardware;
+            bool reboot = false;
+            await Task.Run(() =>
+            {
+                Engine.BeginBatch();
+                try
+                {
+                    foreach (var t in todo)
+                        try
+                        {
+                            if (t.HasOptions) { int i = t.RecommendedOption(hw); if (i >= 0 && !t.Options[i].IsDefault && Engine.CurrentOption(t) != i) Engine.ApplyOption(t, i); }
+                            else if (!Engine.IsApplied(t)) Engine.ApplyTweak(t);
+                            reboot |= t.Reboot;
+                        }
+                        catch { }
+                }
+                finally { Engine.EndBatch(); }
             });
             b.IsEnabled = true;
             if (reboot) win.NeedReboot();
