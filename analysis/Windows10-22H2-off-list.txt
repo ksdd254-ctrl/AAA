@@ -1,0 +1,568 @@
+﻿==========================================================================================
+  الأشياء المطفأة / المحذوفة في نسخ ويندوز 10 - 22H2 (19045)
+==========================================================================================
+الأنظمة: KirbyOS 10 22H2, SharawyOS 10 22H2 V4.7, SkiiOS Finale (22H2), KernelOS10 22H2 AiO 1.5.1, FSOS XR10 (playbook), XOS 0.574 (playbook)
+المجموع: 514   |   مطفي في JDO بعد: 269   |   مو مطفي في JDO: 245
+محذوف منها: أي شيء له علاقة بالسيريلات أو إعدادات النت.
+
+شكل السطر:   [JDO]  العدد  |  الوصف  |  الاسم التقني  |  الأنظمة
+   [OK] = نظامك JDO يطفيه بعد        [--] = نظامك ما يطفيه
+
+==========================================================================================
+  الخصوصية والتليمتري   (21)
+==========================================================================================
+[OK]  6/6  |  سجل النشاطات (Timeline)  |  Activity history  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  معرّف الإعلانات  |  Advertising ID  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[--]  6/6  |  برنامج تحسين تجربة العملاء (CEIP)  |  CEIP  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  طلبات الملاحظات (Feedback)  |  Feedback prompts  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  جمع بيانات الكتابة والحبر (تخصيص الإدخال)  |  Inking & typing personalization  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  التجارب المخصصة من بيانات التشخيص  |  Tailored experiences  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  التليمتري (إرسال بيانات التشخيص لمايكروسوفت)  |  Telemetry  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[--]  5/6  |  صلاحيات التطبيقات (جهات الاتصال، التقويم، الرسائل، الملفات...)  |  App permissions  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  سجل الحافظة ومزامنتها  |  Clipboard history  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  5/6  |  تقارير الأخطاء (Windows Error Reporting)  |  Error reporting  |  FSOS, KernelOS10, SharawyOS, SkiiOS, XOS
+[--]  5/6  |  سجلات الأحداث الخلفية (Autologgers / ETW)  |  Event trace autologgers  |  FSOS, KernelOS10, SharawyOS, SkiiOS, XOS
+[--]  5/6  |  مشاركة بيانات خط اليد  |  Handwriting data sharing  |  FSOS, KernelOS10, SharawyOS, SkiiOS, XOS
+[OK]  5/6  |  سجل الملفات والبرامج الأخيرة  |  Recent files / frequent folders  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  4/6  |  تليمتري توافق التطبيقات (AIT / Inventory / UAR)  |  App compatibility telemetry  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[--]  4/6  |  تليمتري NVIDIA  |  NVIDIA telemetry  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  4/6  |  التعرف على الصوت أونلاين  |  Online speech recognition  |  FSOS, KernelOS10, SkiiOS, XOS
+[--]  4/6  |  مزامنة الإعدادات مع الحساب  |  Settings sync  |  KernelOS10, SharawyOS, SkiiOS, XOS
+[--]  4/6  |  تجارب الأجهزة المشتركة (Cross-device / CDP)  |  Shared experiences (CDP)  |  FSOS, KernelOS10, KirbyOS, SharawyOS
+[--]  3/6  |  العثور على جهازي  |  Find my device  |  KernelOS10, SharawyOS, XOS
+[--]  3/6  |  مزامنة الرسائل  |  Message sync  |  KernelOS10, SharawyOS, SkiiOS
+[OK]  2/6  |  الموقع الجغرافي  |  Location  |  FSOS, SkiiOS
+
+==========================================================================================
+  الإعلانات والاقتراحات والميزات الأونلاين   (17)
+==========================================================================================
+[OK]  6/6  |  ميزات المستهلك (تنزيل ألعاب وتطبيقات مقترحة)  |  Consumer features  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  الإشعارات ومركز الإشعارات  |  Notifications / Action Center  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  Windows Spotlight وصور شاشة القفل المتغيرة  |  Spotlight / rotating lock screen  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  الإعلانات والاقتراحات وتثبيت التطبيقات تلقائياً (Content Delivery)  |  Suggestions & silent app installs  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  النصائح و"لنكمل إعداد جهازك"  |  Tips & setup nags  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  بحث Bing / الويب في قائمة ابدأ  |  Web / Bing search in Start  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  5/6  |  كورتانا  |  Cortana  |  FSOS, KirbyOS, SharawyOS, SkiiOS, XOS
+[--]  5/6  |  اختصار Edge على سطح المكتب  |  Edge desktop shortcut  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  الأخبار والاهتمامات / الويدجت  |  News & Interests / Widgets  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  5/6  |  OneDrive  |  OneDrive  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[--]  5/6  |  إشعارات مزودي المزامنة في المستكشف (إعلانات OneDrive)  |  Sync provider ads in Explorer  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[--]  4/6  |  زر الدردشة / Teams في شريط المهام  |  Chat / Teams button  |  FSOS, KernelOS10, KirbyOS, XOS
+[--]  4/6  |  Copilot  |  Copilot  |  FSOS, KernelOS10, KirbyOS, SharawyOS
+[--]  4/6  |  البحث في المتجر عند فتح ملف مجهول  |  Store "open with" lookup  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[--]  3/6  |  Recall وميزات الذكاء الاصطناعي  |  Recall / AI features  |  FSOS, KirbyOS, XOS
+[--]  3/6  |  إبرازات البحث (Search highlights)  |  Search highlights  |  FSOS, KirbyOS, XOS
+[--]  2/6  |  تنزيل تحديثات تطبيقات المتجر تلقائياً  |  Store auto-download  |  FSOS, XOS
+
+==========================================================================================
+  التحديثات   (7)
+==========================================================================================
+[OK]  6/6  |  التحديث التلقائي لويندوز  |  Automatic Windows Update  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  6/6  |  تحديث التعريفات من Windows Update  |  Driver updates via Windows Update  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  5/6  |  أداة إزالة البرمجيات الخبيثة (MRT) عبر التحديث  |  MRT through Windows Update  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  إيقاف التحديثات مؤقتاً لمدة طويلة  |  Updates paused  |  FSOS, KernelOS10, SharawyOS, SkiiOS, XOS
+[--]  4/6  |  تسجيل الدخول التلقائي بعد إعادة التشغيل (ARSO)  |  Auto restart sign-on  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[--]  4/6  |  إشعارات إعادة التشغيل للتحديث  |  Update restart notifications  |  FSOS, KernelOS10, SharawyOS, SkiiOS
+[--]  2/6  |  تثبيت إصدار ويندوز (منع الترقية لإصدار جديد)  |  Feature update locked to a version  |  FSOS, KernelOS10
+
+==========================================================================================
+  الحماية والأمان   (14)
+==========================================================================================
+[OK]  6/6  |  SmartScreen  |  SmartScreen  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  5/6  |  Windows Defender (مكافح الفيروسات)  |  Microsoft Defender Antivirus  |  FSOS, KernelOS10, KirbyOS, SharawyOS, XOS
+[OK]  5/6  |  حماية Spectre / Meltdown  |  Spectre / Meltdown mitigations  |  FSOS, KernelOS10, SharawyOS, SkiiOS, XOS
+[--]  5/6  |  التحكم بحساب المستخدم UAC (كامل)  |  UAC  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  5/6  |  VBS / سلامة الذاكرة (HVCI) / Credential Guard  |  VBS / Memory integrity  |  FSOS, KernelOS10, SharawyOS, SkiiOS, XOS
+[--]  4/6  |  التشغيل التلقائي للأقراص والفلاشات (AutoPlay)  |  AutoPlay / AutoRun  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  4/6  |  تحذير الملفات المحمّلة من الإنترنت  |  Downloaded-file warning  |  FSOS, KernelOS10, KirbyOS, SkiiOS
+[--]  4/6  |  الحماية من العبث (Tamper Protection)  |  Tamper Protection  |  KernelOS10, KirbyOS, SharawyOS, XOS
+[OK]  3/6  |  نافذة تأكيد UAC للمسؤول  |  UAC prompt  |  KirbyOS, SharawyOS, XOS
+[OK]  2/6  |  تسجيل الدخول بـ PIN / Windows Hello  |  PIN / Windows Hello  |  KernelOS10, SharawyOS
+[OK]  2/6  |  المساعدة عن بعد (Remote Assistance)  |  Remote Assistance  |  FSOS, SkiiOS
+[--]  2/6  |  Smart App Control  |  Smart App Control  |  KernelOS10, XOS
+[OK]  2/6  |  إشعارات أمن ويندوز  |  Windows Security notifications  |  KirbyOS, SkiiOS
+[--]  1/6  |  حمايات النواة والعمليات (CFG / ASLR ...)  |  Kernel / process mitigations  |  SkiiOS
+
+==========================================================================================
+  النظام والأداء   (24)
+==========================================================================================
+[--]  6/6  |  تشغيل التطبيقات في الخلفية  |  Background apps  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[--]  5/6  |  ملفات تفريغ الأعطال (Crash dumps)  |  Crash dumps  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  بدء التشغيل السريع (Fast Startup)  |  Fast Startup  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[--]  5/6  |  أنيميشن أول تسجيل دخول  |  First sign-in animation  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  تسجيل الألعاب Game DVR / Game Bar  |  Game DVR / Game Bar capture  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  الإسبات (Hibernate)  |  Hibernation  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[--]  5/6  |  إخفاء صفحات من الإعدادات  |  Hidden Settings pages  |  FSOS, KernelOS10, SharawyOS, SkiiOS, XOS
+[OK]  5/6  |  الشفافية  |  Transparency  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[--]  4/6  |  نقل نواة النظام للذاكرة الافتراضية (Paging Executive)  |  Paging executive  |  FSOS, KirbyOS, SharawyOS, SkiiOS
+[--]  4/6  |  خنق الطاقة للعمليات (Power Throttling)  |  Power Throttling  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  4/6  |  مستشعر التخزين (Storage Sense)  |  Storage Sense  |  FSOS, KernelOS10, KirbyOS, SharawyOS
+[OK]  3/6  |  الأنيميشن والمؤثرات البصرية  |  Animations / visual effects  |  FSOS, KirbyOS, SkiiOS
+[OK]  3/6  |  شاشة القفل  |  Lock screen  |  KernelOS10, KirbyOS, SharawyOS
+[OK]  3/6  |  التحديث التلقائي للخرائط  |  Maps auto-update  |  FSOS, SharawyOS, XOS
+[OK]  3/6  |  تسريع الماوس (Enhance pointer precision)  |  Mouse acceleration  |  FSOS, SkiiOS, XOS
+[--]  3/6  |  Prefetch / Superfetch  |  Prefetch / Superfetch  |  KernelOS10, SharawyOS, SkiiOS
+[--]  3/6  |  دراسة النوم (Sleep Study)  |  Sleep Study  |  FSOS, SkiiOS, XOS
+[OK]  2/6  |  الصيانة التلقائية  |  Automatic maintenance  |  FSOS, SkiiOS
+[--]  2/6  |  وضع اللعب (Game Mode)  |  Game Mode  |  SharawyOS, SkiiOS
+[OK]  2/6  |  اختصارات المفاتيح اللاصقة / التصفية  |  Sticky / Filter keys hotkeys  |  KernelOS10, XOS
+[OK]  1/6  |  تحسينات ملء الشاشة (Fullscreen Optimizations)  |  Fullscreen optimizations  |  SkiiOS
+[OK]  1/6  |  طبقات العرض المتعددة (MPO)  |  Multiplane overlay (MPO)  |  XOS
+[--]  1/6  |  ضغط الملفات في NTFS / آخر وصول / أسماء 8.3  |  NTFS last-access / 8.3 names  |  SkiiOS
+[--]  1/6  |  تأخير برامج بدء التشغيل  |  Startup delay  |  KirbyOS
+
+==========================================================================================
+  الإقلاع والذاكرة (bcdedit / MMAgent)   (8)
+==========================================================================================
+[OK]  3/6  |  Dynamic tick (توفير طاقة المؤقت)  |  Dynamic tick (توفير طاقة المؤقت)  |  KernelOS10, SharawyOS, SkiiOS
+[--]  3/6  |  Hyper-V hypervisor عند الإقلاع  |  Hyper-V hypervisor عند الإقلاع  |  KernelOS10, SharawyOS, SkiiOS
+[OK]  3/6  |  أنيميشن / شعار الإقلاع  |  أنيميشن / شعار الإقلاع  |  KernelOS10, SharawyOS, SkiiOS
+[--]  3/6  |  حمايات العمليات (Set-ProcessMitigation)  |  حمايات العمليات (Set-ProcessMitigation)  |  FSOS, KernelOS10, XOS
+[--]  2/6  |  DEP (منع تنفيذ البيانات) مخفّف/مطفأ  |  DEP (منع تنفيذ البيانات) مخفّف/مطفأ  |  KernelOS10, SharawyOS
+[--]  1/6  |  TPM boot entropy  |  TPM boot entropy  |  SkiiOS
+[--]  1/6  |  السياق المعزول (isolatedcontext)  |  السياق المعزول (isolatedcontext)  |  SkiiOS
+[OK]  1/6  |  ضغط الذاكرة (Memory Compression)  |  ضغط الذاكرة (Memory Compression)  |  SkiiOS
+
+==========================================================================================
+  الخدمات والتعريفات المطفأة (Disabled)   (184)
+==========================================================================================
+[OK]  6/6  |  التليمتري (تجارب المستخدم المتصلة)  |  DiagTrack  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  الملفات دون اتصال  |  CscService  |  FSOS, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  جامع التشخيص  |  diagnosticshub.standardcollector.service  |  FSOS, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  التشخيص  |  diagsvc  |  FSOS, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  رسائل WAP / تليمتري الأجهزة  |  dmwappushservice  |  FSOS, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  تحديث Edge  |  edgeupdate  |  FSOS, KernelOS10, SharawyOS, SkiiOS
+[OK]  4/6  |  تحديث Edge  |  edgeupdatem  |  FSOS, KernelOS10, SharawyOS, SkiiOS
+[--]  4/6  |  قياس طاقة كرت الشاشة  |  GpuEnergyDrv  |  FSOS, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  مدير الخرائط  |  MapsBroker  |  FSOS, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  مساعد توافق البرامج  |  PcaSvc  |  FSOS, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  وضع العرض في المحلات  |  RetailDemo  |  FSOS, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  الطباعة (Spooler)  |  Spooler  |  FSOS, KirbyOS, SharawyOS, XOS
+[OK]  4/6  |  الكاميرات والماسحات (WIA)  |  stisvc  |  FSOS, SharawyOS, SkiiOS, XOS
+[--]  4/6  |  تليمتري (اسم في السكربت)  |  Telemetry  |  FSOS, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  Windows Insider  |  wisvc  |  FSOS, SharawyOS, SkiiOS, XOS
+[OK]  3/6  |  منصة الأجهزة المتصلة (للمستخدم)  |  CDPUserSvc  |  FSOS, SharawyOS, SkiiOS
+[OK]  3/6  |  مشاركة البيانات  |  DsSvc  |  SharawyOS, SkiiOS, XOS
+[OK]  3/6  |  الموقع الجغرافي  |  lfsvc  |  FSOS, SharawyOS, SkiiOS
+[OK]  3/6  |  الرسائل النصية  |  MessagingService  |  FSOS, SharawyOS, SkiiOS
+[OK]  3/6  |  فهرسة جهات الاتصال  |  PimIndexMaintenanceSvc  |  FSOS, SharawyOS, SkiiOS
+[OK]  3/6  |  الدفع و NFC  |  SEMgrSvc  |  FSOS, SharawyOS, SkiiOS
+[OK]  3/6  |  حماية وقت التشغيل  |  SgrmBroker  |  FSOS, SkiiOS, XOS
+[--]  3/6  |  الأجهزة المشتركة  |  shpamsvc  |  FSOS, SharawyOS, SkiiOS
+[--]  3/6  |  التحقق من الأقراص  |  svsvc  |  FSOS, SkiiOS, XOS
+[OK]  3/6  |  تتبع الروابط  |  TrkWks  |  FSOS, SharawyOS, SkiiOS
+[OK]  3/6  |  مستكشف الأخطاء الموصى به  |  TroubleshootingSvc  |  FSOS, SkiiOS, XOS
+[OK]  3/6  |  التشخيص  |  WdiServiceHost  |  SharawyOS, SkiiOS, XOS
+[OK]  3/6  |  التشخيص  |  WdiSystemHost  |  SharawyOS, SkiiOS, XOS
+[--]  3/6  |  حماية الويب (SmartScreen)  |  webthreatdefsvc  |  FSOS, SkiiOS, XOS
+[--]  3/6  |  حماية الويب (SmartScreen)  |  webthreatdefusersvc  |  FSOS, SkiiOS, XOS
+[OK]  3/6  |  جامع الأحداث  |  Wecsvc  |  FSOS, SharawyOS, SkiiOS
+[OK]  3/6  |  تقارير الأخطاء  |  wercplsupport  |  FSOS, SharawyOS, XOS
+[OK]  3/6  |  تقارير الأخطاء  |  WerSvc  |  FSOS, SharawyOS, SkiiOS
+[OK]  3/6  |  الرقابة الأبوية  |  WpcMonSvc  |  FSOS, SharawyOS, SkiiOS
+[--]  2/6  |  هوية التطبيقات (AppLocker)  |  AppIDSvc  |  FSOS, SkiiOS
+[--]  2/6  |  App-V (تطبيقات افتراضية للشركات)  |  AppVClient  |  FSOS, SharawyOS
+[OK]  2/6  |  تسجيل وبث الألعاب (Game DVR)  |  BcastDVRUserService  |  FSOS, SkiiOS
+[--]  2/6  |  صوت الصافرة من اللوحة الأم  |  Beep  |  SharawyOS, SkiiOS
+[OK]  2/6  |  بلوتوث التحكم بالصوت  |  BthAvctpSvc  |  FSOS, SharawyOS
+[--]  2/6  |  مدير نشاط سطح المكتب (الاستعداد الحديث)  |  dam  |  SkiiOS, XOS
+[--]  2/6  |  استعلام الأجهزة في الخلفية  |  DevQueryBroker  |  FSOS, SharawyOS
+[--]  2/6  |  حجب النوافذ  |  DialogBlockingService  |  FSOS, SharawyOS
+[OK]  2/6  |  سياسة التشخيص  |  DPS  |  SkiiOS, XOS
+[--]  2/6  |  تشفير الملفات EFS  |  EFS  |  FSOS, SharawyOS
+[OK]  2/6  |  الفاكس  |  Fax  |  FSOS, SharawyOS
+[--]  2/6  |  أداء الرسوميات (مراقبة)  |  GraphicsPerfSvc  |  SkiiOS, XOS
+[--]  2/6  |  كيبورد Hyper-V  |  hyperkbd  |  FSOS, XOS
+[--]  2/6  |  شاشة Hyper-V  |  hypervideo  |  FSOS, XOS
+[--]  2/6  |  جرد التطبيقات (تليمتري)  |  InventorySvc  |  FSOS, XOS
+[OK]  2/6  |  Edge  |  MicrosoftEdgeElevationService  |  SharawyOS, SkiiOS
+[--]  2/6  |  Defender (فلتر الأمان)  |  MsSecFlt  |  SkiiOS, XOS
+[OK]  2/6  |  الهاتف  |  PhoneSvc  |  SharawyOS, SkiiOS
+[--]  2/6  |  الطباعة  |  PrintDeviceConfigurationService  |  FSOS, XOS
+[OK]  2/6  |  الطباعة (الإشعارات)  |  PrintNotify  |  FSOS, XOS
+[--]  2/6  |  الطباعة والمسح  |  PrintScanBrokerService  |  FSOS, XOS
+[OK]  2/6  |  الطباعة (سير العمل)  |  printworkflowusersvc  |  FSOS, XOS
+[OK]  2/6  |  البطاقات الذكية  |  SCardSvr  |  FSOS, SharawyOS
+[OK]  2/6  |  البطاقات الذكية  |  ScDeviceEnum  |  FSOS, SharawyOS
+[OK]  2/6  |  أمن ويندوز  |  SecurityHealthService  |  SkiiOS, XOS
+[OK]  2/6  |  Defender للشركات (ATP)  |  Sense  |  SkiiOS, XOS
+[OK]  2/6  |  المستشعرات  |  SensorDataService  |  SharawyOS, SkiiOS
+[OK]  2/6  |  المستشعرات  |  SensorService  |  SharawyOS, SkiiOS
+[OK]  2/6  |  مراقبة المستشعرات  |  SensrSvc  |  SharawyOS, SkiiOS
+[OK]  2/6  |  إعدادات سطح المكتب البعيد  |  SessionEnv  |  SharawyOS, XOS
+[OK]  2/6  |  حماية وقت التشغيل  |  SgrmAgent  |  FSOS, SkiiOS
+[--]  2/6  |  وكيل SSH  |  ssh-agent  |  SharawyOS, SkiiOS
+[OK]  2/6  |  SysMain (Superfetch)  |  SysMain  |  SharawyOS, SkiiOS
+[--]  2/6  |  الاتصالات الهاتفية  |  TapiSrv  |  SharawyOS, SkiiOS
+[OK]  2/6  |  سطح المكتب البعيد  |  TermService  |  SharawyOS, XOS
+[OK]  2/6  |  تحديث المنطقة الزمنية تلقائياً  |  tzautoupdate  |  SharawyOS, SkiiOS
+[--]  2/6  |  حماية الإعدادات الافتراضية للتطبيقات  |  UCPD  |  FSOS, XOS
+[OK]  2/6  |  أدوات Update Health  |  uhssvc  |  FSOS, SharawyOS
+[--]  2/6  |  تعريف طابعات USB  |  usbprint  |  FSOS, XOS
+[OK]  2/6  |  بيانات المستخدم  |  UserDataSvc  |  SharawyOS, SkiiOS
+[--]  2/6  |  تعريف Hyper-V  |  Vid  |  FSOS, XOS
+[OK]  2/6  |  Defender (إقلاع)  |  WdBoot  |  SkiiOS, XOS
+[OK]  2/6  |  Defender (فلتر)  |  WdFilter  |  SkiiOS, XOS
+[OK]  2/6  |  Defender (فحص الشبكة)  |  WdNisDrv  |  SkiiOS, XOS
+[OK]  2/6  |  Defender (فحص الشبكة)  |  WdNisSvc  |  SkiiOS, XOS
+[OK]  2/6  |  Defender  |  WinDefend  |  SkiiOS, XOS
+[--]  2/6  |  ذكاء اصطناعي (ويندوز 11)  |  WSAIFabricSvc  |  FSOS, XOS
+[OK]  2/6  |  مركز الأمان  |  wscsvc  |  SkiiOS, XOS
+[OK]  2/6  |  Xbox Live  |  XblAuthManager  |  FSOS, SharawyOS
+[OK]  2/6  |  حفظ ألعاب Xbox  |  XblGameSave  |  FSOS, SharawyOS
+[OK]  2/6  |  ملحقات Xbox (يد التحكم)  |  XboxGipSvc  |  FSOS, SharawyOS
+[--]  2/6  |  Xbox Live (شبكة)  |  XboxNetApiSvc  |  FSOS, SharawyOS
+[--]  1/6  |  سجلات AMD  |  amdlog  |  SkiiOS
+[--]  1/6  |  تجهيز التطبيقات عند أول دخول  |  AppReadiness  |  SkiiOS
+[--]  1/6  |  وضع الكشك (Kiosk)  |  AssignedAccessManagerSvc  |  FSOS
+[--]  1/6  |  مراقب نشاط الخلفية  |  bam  |  SkiiOS
+[--]  1/6  |  BitLocker  |  BDESVC  |  SharawyOS
+[OK]  1/6  |  بلوتوث (للمستخدم)  |  BluetoothUserService  |  FSOS
+[OK]  1/6  |  بلوتوث صوت (سماعات)  |  BTAGService  |  FSOS
+[--]  1/6  |  بلوتوث صوت A2DP  |  BthA4dp  |  FSOS
+[--]  1/6  |  تعريف بلوتوث  |  BthEnum  |  FSOS
+[--]  1/6  |  بلوتوث Hands-free  |  BthHFEnum  |  FSOS
+[--]  1/6  |  بلوتوث منخفض الطاقة  |  BthLEEnum  |  FSOS
+[--]  1/6  |  تعريف بلوتوث  |  BthMini  |  FSOS
+[--]  1/6  |  مودم بلوتوث  |  BTHMODEM  |  FSOS
+[--]  1/6  |  منفذ بلوتوث  |  BTHPORT  |  FSOS
+[OK]  1/6  |  خدمة البلوتوث  |  bthserv  |  FSOS
+[OK]  1/6  |  تعريف بلوتوث USB  |  BTHUSB  |  FSOS
+[--]  1/6  |  فلتر بلوتوث  |  bttflt  |  XOS
+[OK]  1/6  |  التقاط الشاشة للتطبيقات  |  CaptureService  |  SkiiOS
+[OK]  1/6  |  الحافظة (سجل الحافظة)  |  cbdhsvc  |  SharawyOS
+[--]  1/6  |  نظام ملفات الأقراص CD  |  cdfs  |  SharawyOS
+[OK]  1/6  |  منصة الأجهزة المتصلة  |  CDPSvc  |  SharawyOS
+[--]  1/6  |  تعريف CD/DVD  |  cdrom  |  SharawyOS
+[--]  1/6  |  تسريع التشفير بالعتاد  |  cnghwassist  |  SharawyOS
+[--]  1/6  |  تعريف ناقل الأجهزة المركبة  |  CompositeBus  |  FSOS
+[--]  1/6  |  خدمات التشفير (التحقق من التواقيع والشهادات)  |  CryptSvc  |  SkiiOS
+[--]  1/6  |  تعريف الملفات دون اتصال  |  CSC  |  XOS
+[--]  1/6  |  منصة الإعدادات (Data Collection)  |  dcpsvc  |  SkiiOS
+[--]  1/6  |  اتصال الأجهزة (للمستخدم)  |  DevicesFlowUserSvc  |  SharawyOS
+[OK]  1/6  |  سياسة العرض  |  DispBrokerDesktopSvc  |  SharawyOS
+[OK]  1/6  |  تحسين سطوع الشاشة  |  DisplayEnhancementService  |  SharawyOS
+[--]  1/6  |  لانشر التطوير  |  dLauncherLoopback  |  SharawyOS
+[--]  1/6  |  رسائل WAP / تليمتري الأجهزة  |  dmwappushsvc  |  SkiiOS
+[--]  1/6  |  إعداد الأجهزة  |  DsmSvc  |  SharawyOS
+[--]  1/6  |  تعريف تقارير أخطاء العتاد  |  ErrDev  |  FSOS
+[--]  1/6  |  تعريف الفلوبي  |  fdc  |  FSOS
+[OK]  1/6  |  سجل الملفات (File History)  |  fhsvc  |  FSOS
+[--]  1/6  |  تعريف الفلوبي  |  flpydisk  |  FSOS
+[--]  1/6  |  ذاكرة الخطوط  |  FontCache  |  SharawyOS
+[OK]  1/6  |  ذاكرة خطوط WPF  |  FontCache3.0.0.0  |  SkiiOS
+[--]  1/6  |  خادم إطارات الكاميرا  |  FrameServer  |  SkiiOS
+[--]  1/6  |  عداد الأجيال (VM)  |  gencounter  |  XOS
+[--]  1/6  |  أجهزة إدخال بلوتوث  |  HidBth  |  FSOS
+[--]  1/6  |  تفريغ أعطال Hyper-V  |  hvcrash  |  FSOS
+[OK]  1/6  |  مضيف Hyper-V  |  HvHost  |  FSOS
+[--]  1/6  |  خدمة Hyper-V  |  hvservice  |  FSOS
+[--]  1/6  |  إدارة MCP (ويندوز 11)  |  McpManagementService  |  XOS
+[--]  1/6  |  Defender الأساسي  |  MDCoreSvc  |  XOS
+[--]  1/6  |  بلوتوث تحكم الوسائط  |  Microsoft_Bluetooth_AvrcpTransport  |  FSOS
+[--]  1/6  |  Copilot  |  MicrosoftCopilotElevationService  |  XOS
+[--]  1/6  |  MIDI  |  midisrv  |  XOS
+[OK]  1/6  |  الواقع المختلط  |  MixedRealityOpenXRSvc  |  SharawyOS
+[--]  1/6  |  المعاملات الموزعة MSDTC  |  MSDTC  |  XOS
+[--]  1/6  |  فلتر الكيبورد (Kiosk)  |  MsKeyboardFilter  |  SharawyOS
+[--]  1/6  |  Defender (نواة الأمان)  |  MsSecCore  |  XOS
+[--]  1/6  |  Defender (فلتر الشبكة)  |  MsSecWfp  |  XOS
+[--]  1/6  |  جلسات الوسائط الحالية  |  NPSMSvc  |  SharawyOS
+[--]  1/6  |  تليمتري NVIDIA  |  NvTelemetryContainer  |  SkiiOS
+[OK]  1/6  |  المزامنة (بريد/تقويم)  |  OneSyncSvc  |  SharawyOS
+[--]  1/6  |  محاكاة الواقع المختلط  |  perceptionsimulation  |  SkiiOS
+[--]  1/6  |  ReadyBoost  |  rdyboost  |  SkiiOS
+[OK]  1/6  |  الريجستري عن بعد  |  RemoteRegistry  |  FSOS
+[--]  1/6  |  بروتوكول بلوتوث  |  RFCOMM  |  FSOS
+[--]  1/6  |  المنفذ التسلسلي  |  serenum  |  FSOS
+[--]  1/6  |  المنفذ التسلسلي  |  serial  |  FSOS
+[--]  1/6  |  ماوس المنفذ التسلسلي  |  sermouse  |  FSOS
+[--]  1/6  |  تعريف الفلوبي  |  sfloppy  |  FSOS
+[--]  1/6  |  البيانات المكانية  |  SharedRealitySvc  |  SkiiOS
+[OK]  1/6  |  التشغيل التلقائي للأجهزة  |  ShellHWDetection  |  SharawyOS
+[--]  1/6  |  لوحة اللمس وخط اليد  |  TabletInputService  |  SharawyOS
+[--]  1/6  |  الثيمات  |  Themes  |  SharawyOS
+[--]  1/6  |  حسابات الويب (تسجيل الدخول للتطبيقات)  |  TokenBroker  |  SharawyOS
+[--]  1/6  |  مزامنة إعدادات المستخدم UE-V  |  UevAgentService  |  SharawyOS
+[OK]  1/6  |  سطح المكتب البعيد (المنافذ)  |  UmRdpService  |  XOS
+[OK]  1/6  |  تخزين بيانات المستخدم  |  UnistoreSvc  |  SharawyOS
+[--]  1/6  |  متحقق التعريفات  |  VerifierExt  |  SharawyOS
+[--]  1/6  |  Hyper-V ضيف  |  vmgid  |  XOS
+[OK]  1/6  |  Hyper-V ضيف  |  vmicguestinterface  |  FSOS
+[OK]  1/6  |  Hyper-V ضيف  |  vmicheartbeat  |  FSOS
+[OK]  1/6  |  Hyper-V ضيف  |  vmickvpexchange  |  FSOS
+[OK]  1/6  |  Hyper-V ضيف  |  vmicrdv  |  FSOS
+[OK]  1/6  |  Hyper-V ضيف  |  vmicshutdown  |  FSOS
+[OK]  1/6  |  Hyper-V ضيف  |  vmictimesync  |  FSOS
+[OK]  1/6  |  Hyper-V ضيف  |  vmicvmsession  |  FSOS
+[OK]  1/6  |  Hyper-V ضيف  |  vmicvss  |  FSOS
+[--]  1/6  |  PCI افتراضي (Hyper-V)  |  vpci  |  XOS
+[OK]  1/6  |  المحفظة  |  WalletService  |  SharawyOS
+[OK]  1/6  |  البصمة / الوجه  |  WbioSrvc  |  SharawyOS
+[OK]  1/6  |  WebDAV  |  WebClient  |  SharawyOS
+[--]  1/6  |  تشفير التخزين  |  WEPHOSTSVC  |  SkiiOS
+[--]  1/6  |  تجارب الصحة  |  whesvc  |  FSOS
+[--]  1/6  |  تسجيل دخول حساب مايكروسوفت  |  wlidsvc  |  SharawyOS
+[--]  1/6  |  الأجهزة المحمولة (MTP)  |  WPDBusEnum  |  SharawyOS
+[OK]  1/6  |  الإشعارات  |  WpnService  |  FSOS
+[OK]  1/6  |  الإشعارات (للمستخدم)  |  WpnUserService  |  SharawyOS
+[OK]  1/6  |  فهرسة البحث  |  WSearch  |  SharawyOS
+[--]  1/6  |  WSL  |  WslService  |  XOS
+[--]  1/6  |  كشف التهديدات (ويندوز 11)  |  wtd  |  XOS
+[--]  1/6  |  Xbox Game Monitoring  |  xbgm  |  FSOS
+
+==========================================================================================
+  خدمات وتعريفات محذوفة من النسخة نهائياً   (32)
+==========================================================================================
+[--]  1/6  |  المساعد الصوتي  |  AarSvc  |  SharawyOS
+[--]  1/6  |  تثبيت ActiveX  |  AxInstSV  |  SharawyOS
+[--]  1/6  |  تسجيل وبث الألعاب (Game DVR)  |  BcastDVRUserService  |  SharawyOS
+[--]  1/6  |  شهادات البطاقة الذكية  |  CertPropSvc  |  SharawyOS
+[--]  1/6  |  تحديث Edge  |  edgeupdate  |  KirbyOS
+[--]  1/6  |  تحديث Edge  |  edgeupdatem  |  KirbyOS
+[--]  1/6  |  GameInput  |  GameInputSvc  |  SkiiOS
+[--]  1/6  |  مدير الخرائط  |  MapsBroker  |  SharawyOS
+[--]  1/6  |  المزامنة (بريد/تقويم)  |  OneSyncSvc  |  SharawyOS
+[--]  1/6  |  محاكاة الواقع المختلط  |  perceptionsimulation  |  SharawyOS
+[--]  1/6  |  الهاتف  |  PhoneSvc  |  SharawyOS
+[--]  1/6  |  البطاقات الذكية  |  SCardSvr  |  SharawyOS
+[--]  1/6  |  البطاقات الذكية  |  ScDeviceEnum  |  SharawyOS
+[--]  1/6  |  البطاقات الذكية  |  scfilter  |  SharawyOS
+[--]  1/6  |  البطاقات الذكية  |  SCPolicySvc  |  SharawyOS
+[--]  1/6  |  البيانات المكانية  |  SharedRealitySvc  |  SharawyOS
+[--]  1/6  |  الأجهزة المشتركة  |  shpamsvc  |  SharawyOS
+[--]  1/6  |  إدراك ويندوز (الواقع المختلط)  |  spectrum  |  SharawyOS
+[--]  1/6  |  وكيل SSH  |  ssh-agent  |  KirbyOS
+[--]  1/6  |  الاتصالات الهاتفية  |  TapiSrv  |  SharawyOS
+[--]  1/6  |  مستكشف الأخطاء الموصى به  |  TroubleshootingSvc  |  SharawyOS
+[--]  1/6  |  حماية الإعدادات الافتراضية للتطبيقات  |  UCPD  |  SkiiOS
+[--]  1/6  |  الصوت الحجمي  |  VacSvc  |  SharawyOS
+[--]  1/6  |  Windows Update Medic  |  WaaSMedicSvc  |  SharawyOS
+[--]  1/6  |  تقارير الأخطاء  |  wercplsupport  |  SkiiOS
+[--]  1/6  |  الرقابة الأبوية  |  WpcMonSvc  |  SharawyOS
+[--]  1/6  |  Xbox Live  |  XblAuthManager  |  SharawyOS
+[--]  1/6  |  حفظ ألعاب Xbox  |  XblGameSave  |  SharawyOS
+[--]  1/6  |  -  |  xboxgip  |  SharawyOS
+[--]  1/6  |  ملحقات Xbox (يد التحكم)  |  XboxGipSvc  |  SharawyOS
+[--]  1/6  |  Xbox Live (شبكة)  |  XboxNetApiSvc  |  SharawyOS
+[--]  1/6  |  -  |  xinputhid  |  SharawyOS
+
+==========================================================================================
+  المهام المجدولة المطفأة   (157)
+==========================================================================================
+[OK]  4/6  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser  |  KernelOS10, SharawyOS, SkiiOS, XOS
+[OK]  4/6  |  تشخيص القرص  |  \Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector  |  KernelOS10, SharawyOS, SkiiOS, XOS
+[OK]  3/6  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\ProgramDataUpdater  |  KernelOS10, SharawyOS, XOS
+[OK]  3/6  |  تليمتري الإقلاع  |  \Microsoft\Windows\Autochk\Proxy  |  KernelOS10, SharawyOS, XOS
+[OK]  3/6  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\Consolidator  |  KernelOS10, SharawyOS, XOS
+[OK]  3/6  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\UsbCeip  |  KernelOS10, SharawyOS, XOS
+[OK]  3/6  |  التشخيص  |  \Microsoft\Windows\Diagnosis\Scheduled  |  KernelOS10, SharawyOS, XOS
+[OK]  3/6  |  تحليل مساحة القرص  |  \Microsoft\Windows\DiskFootprint\Diagnostics  |  KernelOS10, SharawyOS, XOS
+[--]  3/6  |  فحص الذاكرة  |  \Microsoft\Windows\MemoryDiagnostic\ProcessMemoryDiagnosticEvents  |  KernelOS10, SkiiOS, XOS
+[--]  3/6  |  فحص الذاكرة  |  \Microsoft\Windows\MemoryDiagnostic\RunFullMemoryDiagnostic  |  KernelOS10, SkiiOS, XOS
+[OK]  3/6  |  تشخيص الطاقة  |  \Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem  |  KernelOS10, SkiiOS, XOS
+[OK]  3/6  |  تقارير الأخطاء  |  \Microsoft\Windows\Windows Error Reporting\QueueReporting  |  KernelOS10, SkiiOS, XOS
+[OK]  3/6  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\Scheduled Start  |  KernelOS10, SkiiOS, XOS
+[OK]  2/6  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\AitAgent  |  KernelOS10, SkiiOS
+[OK]  2/6  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\PcaPatchDbTask  |  KernelOS10, SharawyOS
+[OK]  2/6  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\StartupAppTask  |  KernelOS10, SharawyOS
+[OK]  2/6  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask  |  KernelOS10, XOS
+[OK]  2/6  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\Uploader  |  KernelOS10, XOS
+[--]  2/6  |  إلغاء التجزئة  |  \Microsoft\Windows\Defrag\ScheduledDefrag  |  KernelOS10, SharawyOS
+[OK]  2/6  |  التشخيص  |  \Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner  |  SharawyOS, XOS
+[--]  2/6  |  -  |  \Microsoft\Windows\DiskCleanup\SilentCleanup  |  KernelOS10, SharawyOS
+[OK]  2/6  |  تحليل مساحة القرص  |  \Microsoft\Windows\DiskFootprint\StorageSense  |  KernelOS10, SharawyOS
+[--]  2/6  |  -  |  \Microsoft\Windows\FileHistory\File History (maintenance mode)  |  KernelOS10, XOS
+[--]  2/6  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\ScanForUpdates  |  KernelOS10, XOS
+[--]  2/6  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\ScanForUpdatesAsUser  |  KernelOS10, XOS
+[--]  2/6  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\SmartRetry  |  KernelOS10, XOS
+[--]  2/6  |  الطباعة  |  \Microsoft\Windows\Printing\EduPrintProv  |  KernelOS10, XOS
+[--]  2/6  |  نسخ الريجستري الاحتياطي  |  \Microsoft\Windows\Registry\RegIdleBackup  |  KernelOS10, XOS
+[--]  2/6  |  -  |  \Microsoft\Windows\RemoteAssistance\RemoteAssistanceTask  |  KernelOS10, XOS
+[OK]  2/6  |  وضع العرض  |  \Microsoft\Windows\RetailDemo\CleanupOfflineContent  |  KernelOS10, XOS
+[OK]  2/6  |  الواجهة (Shell)  |  \Microsoft\Windows\Shell\FamilySafetyMonitor  |  KernelOS10, XOS
+[OK]  2/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Driver Install  |  FSOS, XOS
+[OK]  2/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Report policies  |  KernelOS10, XOS
+[OK]  2/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Scan  |  KernelOS10, XOS
+[OK]  2/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Scan Static Task  |  KernelOS10, XOS
+[OK]  2/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Work  |  KernelOS10, XOS
+[OK]  2/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UpdateModelTask  |  KernelOS10, XOS
+[OK]  2/6  |  Update Medic  |  \Microsoft\Windows\WaaSMedic\PerformRemediation  |  KernelOS10, XOS
+[OK]  2/6  |  Defender  |  \Microsoft\Windows\Windows Defender\Windows Defender Cache Maintenance  |  FSOS, XOS
+[OK]  2/6  |  Defender  |  \Microsoft\Windows\Windows Defender\Windows Defender Cleanup  |  FSOS, XOS
+[OK]  2/6  |  Defender  |  \Microsoft\Windows\Windows Defender\Windows Defender Scheduled Scan  |  FSOS, XOS
+[OK]  2/6  |  Defender  |  \Microsoft\Windows\Windows Defender\Windows Defender Verification  |  FSOS, XOS
+[--]  2/6  |  -  |  \MicrosoftEdgeUpdateTaskMachineCore  |  KernelOS10, XOS
+[--]  2/6  |  -  |  \MicrosoftEdgeUpdateTaskMachineUA  |  KernelOS10, XOS
+[--]  1/6  |  -  |  \Microsoft\Office\Office 15 Subscription Heartbeat  |  SharawyOS
+[--]  1/6  |  -  |  \Microsoft\Office\OfficeTelemetryAgentFallBack  |  SharawyOS
+[--]  1/6  |  -  |  \Microsoft\Office\OfficeTelemetryAgentLogOn  |  SharawyOS
+[--]  1/6  |  -  |  \Microsoft\Windows\AccountHealth\RecoverabilityToastTask  |  XOS
+[--]  1/6  |  هوية التطبيقات  |  \Microsoft\Windows\AppID\SmartScreenSpecific  |  KernelOS10
+[OK]  1/6  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\MareBackup  |  XOS
+[OK]  1/6  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser Exp  |  XOS
+[--]  1/6  |  تنظيف التطبيقات  |  \Microsoft\Windows\AppxDeploymentClient\UCPD velocity  |  KernelOS10
+[--]  1/6  |  مهام الخلفية  |  \Microsoft\Windows\BrokerInfrastructure\BgTaskRegistrationMaintenanceTask  |  KernelOS10
+[OK]  1/6  |  إعداد الحساب  |  \Microsoft\Windows\CloudExperienceHost\CreateObjectTask  |  KernelOS10
+[--]  1/6  |  -  |  \Microsoft\Windows\CloudRestore\Backup  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\CloudRestore\Restore  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\CrossDevice\CleanupResumeTimelineData  |  FSOS
+[OK]  1/6  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\BthSQM  |  XOS
+[OK]  1/6  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\Server\ServerCeipAssistant  |  XOS
+[OK]  1/6  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\Server\ServerRoleCollector  |  XOS
+[OK]  1/6  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\Server\ServerRoleUsageCollector  |  XOS
+[--]  1/6  |  فحص سلامة البيانات  |  \Microsoft\Windows\Data Integrity Scan\Data Integrity Check And Scan  |  XOS
+[--]  1/6  |  فحص سلامة البيانات  |  \Microsoft\Windows\Data Integrity Scan\Data Integrity Scan  |  XOS
+[--]  1/6  |  فحص سلامة البيانات  |  \Microsoft\Windows\Data Integrity Scan\Data Integrity Scan for Crash Recovery  |  XOS
+[OK]  1/6  |  معلومات الجهاز (تليمتري)  |  \Microsoft\Windows\Device Information\Device  |  SharawyOS
+[--]  1/6  |  معلومات الجهاز (تليمتري)  |  \Microsoft\Windows\Device Information\Device User  |  SharawyOS
+[--]  1/6  |  -  |  \Microsoft\Windows\Device Setup\Metadata Refresh  |  KernelOS10
+[OK]  1/6  |  التشخيص  |  \Microsoft\Windows\Diagnosis\UnexpectedCodepath  |  XOS
+[--]  1/6  |  تشخيص القرص  |  \Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticResolver  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\DUSM\dusmtask  |  SharawyOS
+[--]  1/6  |  -  |  \Microsoft\Windows\EnterpriseMgmt\MDMMaintenenceTask  |  SharawyOS
+[--]  1/6  |  Exploit Guard  |  \Microsoft\Windows\ExploitGuard\ExploitGuard MDM policy Refresh  |  XOS
+[OK]  1/6  |  الملاحظات  |  \Microsoft\Windows\Feedback\Siuf\DmClient  |  XOS
+[OK]  1/6  |  الملاحظات  |  \Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\Hotpatch\Monitoring  |  XOS
+[--]  1/6  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\RestoreDevice  |  XOS
+[--]  1/6  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\WakeUpAndContinueUpdates  |  XOS
+[--]  1/6  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\WakeUpAndScanForUpdates  |  XOS
+[OK]  1/6  |  اللغة  |  \Microsoft\Windows\International\Synchronize Language Settings  |  KernelOS10
+[OK]  1/6  |  الصيانة  |  \Microsoft\Windows\Maintenance\WinSAT  |  XOS
+[OK]  1/6  |  الخرائط  |  \Microsoft\Windows\Maps\MapsToastTask  |  XOS
+[--]  1/6  |  فحص الذاكرة  |  \Microsoft\Windows\MemoryDiagnostic\AutomaticOfflineMemoryDiagnostic  |  XOS
+[--]  1/6  |  الإنترنت المحمول  |  \Microsoft\Windows\Mobile Broadband Accounts\MNO Metadata Parser  |  KernelOS10
+[--]  1/6  |  -  |  \Microsoft\Windows\Multimedia\Microsoft\Windows\Multimedia  |  KernelOS10
+[--]  1/6  |  -  |  \Microsoft\Windows\PerformanceTrace\RequestTrace  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\PerformanceTrace\WhesvcToast  |  XOS
+[OK]  1/6  |  تليمتري  |  \Microsoft\Windows\PI\Sqm-Tasks  |  KernelOS10
+[--]  1/6  |  الطباعة  |  \Microsoft\Windows\Printing\PrinterCleanupTask  |  XOS
+[--]  1/6  |  الطباعة  |  \Microsoft\Windows\Printing\PrintJobCleanupTask  |  XOS
+[--]  1/6  |  التثبيت عن بعد  |  \Microsoft\Windows\PushToInstall\LoginCheck  |  KernelOS10
+[--]  1/6  |  مزامنة الإعدادات  |  \Microsoft\Windows\SettingSync\BackgroundUploadTask  |  XOS
+[--]  1/6  |  مزامنة الإعدادات  |  \Microsoft\Windows\SettingSync\NetworkStateChangeTask  |  XOS
+[OK]  1/6  |  الواجهة (Shell)  |  \Microsoft\Windows\Shell\FamilySafetyRefresh  |  KernelOS10
+[OK]  1/6  |  الواجهة (Shell)  |  \Microsoft\Windows\Shell\FamilySafetyRefreshTask  |  XOS
+[OK]  1/6  |  الواجهة (Shell)  |  \Microsoft\Windows\Shell\FamilySafetyUpload  |  KernelOS10
+[OK]  1/6  |  الواجهة (Shell)  |  \Microsoft\Windows\Shell\IndexerAutomaticMaintenance  |  SharawyOS
+[--]  1/6  |  التفعيل  |  \Microsoft\Windows\SoftwareProtectionPlatform\SvcRestartTaskLogon  |  KernelOS10
+[--]  1/6  |  التفعيل  |  \Microsoft\Windows\SoftwareProtectionPlatform\SvcRestartTaskNetwork  |  KernelOS10
+[--]  1/6  |  مستودع الحالة  |  \Microsoft\Windows\StateRepository\MaintenanceTasks  |  KernelOS10
+[--]  1/6  |  استهلاك الطاقة  |  \Microsoft\Windows\Sustainability\PowerGridForecastTask  |  XOS
+[--]  1/6  |  استهلاك الطاقة  |  \Microsoft\Windows\Sustainability\SustainabilityTelemetry  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\SystemUptime\Resume on Boot  |  FSOS
+[--]  1/6  |  مزامنة الوقت  |  \Microsoft\Windows\Time Synchronization\ForceSynchronizeTime  |  KernelOS10
+[--]  1/6  |  مزامنة الوقت  |  \Microsoft\Windows\Time Synchronization\SynchronizeTime  |  KernelOS10
+[--]  1/6  |  المنطقة الزمنية  |  \Microsoft\Windows\Time Zone\SynchronizeTimeZone  |  KernelOS10
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\AC Power Download  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\AC Power Install  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Backup Scan  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Battery Saver Deferred Install  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Maintenance Install  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\MusUx_LogonUpdateResults  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\MusUx_UpdateInterval  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Policy Install  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Reboot  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Reboot_AC  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Reboot_Battery  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Refresh Settings  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Resume On Boot  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Maintenance Work  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Retry Scan  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Wake To Work  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Start Oobe Expedite Work  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\StartOobeAppsScan  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\StartOobeAppsScan_LicenseAccepted  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\StartOobeAppsScan_OobeAppReady  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UIEOrchestrator  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Universal Orchestrator Idle Start  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Universal Orchestrator Start  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UpdateAssistant  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UpdateAssistantAllUsersRun  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UpdateAssistantCalendarRun  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UpdateAssistantWakeupRun  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\USO_Broker_Display  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\USO_UxBroker  |  KernelOS10
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\USO_UxBroker_Display  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\USO_UxBroker_ReadyToReboot  |  XOS
+[OK]  1/6  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UUS Failover Task  |  XOS
+[--]  1/6  |  UPnP  |  \Microsoft\Windows\UPnP\UPnPHostConfig  |  KernelOS10
+[--]  1/6  |  -  |  \Microsoft\Windows\UsageAndQualityInsights\UsageAndQualityInsights-MaintenanceTask  |  XOS
+[--]  1/6  |  التشخيص  |  \Microsoft\Windows\WDI\ResolutionHost  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\WindowsAI\ClickToDo\ModelCachingIdle  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\WindowsAI\ClickToDo\ModelCachingLimit  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\WindowsAI\ClickToDo\ModelCachingUpdate  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\WindowsAI\Recall\PolicyConfiguration  |  XOS
+[--]  1/6  |  -  |  \Microsoft\Windows\WindowsAI\Settings\InitialConfiguration  |  XOS
+[OK]  1/6  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\AUScheduledInstall  |  XOS
+[OK]  1/6  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\AUSessionConnect  |  XOS
+[OK]  1/6  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\Automatic App Update  |  XOS
+[OK]  1/6  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\RUXIM\PLUGScheduler  |  XOS
+[OK]  1/6  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\Scheduled Start With Network  |  XOS
+[OK]  1/6  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\sih  |  XOS
+[OK]  1/6  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\sihboot  |  XOS
+[OK]  1/6  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\sihpostreboot  |  XOS
+[--]  1/6  |  -  |  \Microsoft\XblGameSave\XblGameSaveTask  |  FSOS
+[--]  1/6  |  -  |  \MicrosoftEdgeUpdateBrowserReplacementTask  |  KernelOS10
+[--]  1/6  |  -  |  \StartOobeAppsScanAfterUpdate  |  XOS
+[--]  1/6  |  -  |  \UCPD velocity  |  XOS
+
+==========================================================================================
+  تطبيقات المتجر المحذوفة   (38)
+==========================================================================================
+[OK]  5/6  |  Cortana  |  Microsoft.549981C3F5F10  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  الطقس  |  Microsoft.BingWeather  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  احصل على مساعدة  |  Microsoft.GetHelp  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  التلميحات  |  Microsoft.Getstarted  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  عارض 3D  |  Microsoft.Microsoft3DViewer  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  Office / Microsoft 365  |  Microsoft.MicrosoftOfficeHub  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  لعبة سوليتير  |  Microsoft.MicrosoftSolitaireCollection  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  الملاحظات اللاصقة  |  Microsoft.MicrosoftStickyNotes  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  بوابة الواقع المختلط  |  Microsoft.MixedReality.Portal  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  OneNote  |  Microsoft.Office.OneNote  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  جهات الاتصال  |  Microsoft.People  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  Skype  |  Microsoft.SkypeApp  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  البريد والتقويم  |  microsoft.windowscommunicationsapps  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  مركز الملاحظات  |  Microsoft.WindowsFeedbackHub  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  الخرائط  |  Microsoft.WindowsMaps  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  مسجل الصوت  |  Microsoft.WindowsSoundRecorder  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  الموسيقى / Media Player  |  Microsoft.ZuneMusic  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  5/6  |  الأفلام والتلفزيون  |  Microsoft.ZuneVideo  |  FSOS, KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  4/6  |  الصور  |  Microsoft.Windows.Photos  |  KernelOS10, KirbyOS, SharawyOS, SkiiOS
+[OK]  4/6  |  المنبه والساعة  |  Microsoft.WindowsAlarms  |  FSOS, KernelOS10, SharawyOS, SkiiOS
+[OK]  4/6  |  الكاميرا  |  Microsoft.WindowsCamera  |  FSOS, KernelOS10, SharawyOS, SkiiOS
+[OK]  3/6  |  Paint 3D  |  Microsoft.MSPaint  |  KernelOS10, SharawyOS, SkiiOS
+[OK]  3/6  |  الآلة الحاسبة  |  Microsoft.WindowsCalculator  |  KernelOS10, KirbyOS, SharawyOS
+[OK]  3/6  |  Xbox (واجهة)  |  Microsoft.Xbox.TCUI  |  FSOS, KernelOS10, SharawyOS
+[OK]  3/6  |  تطبيق Xbox  |  Microsoft.XboxApp  |  FSOS, KernelOS10, SharawyOS
+[OK]  3/6  |  Xbox Game Bar (قديم)  |  Microsoft.XboxGameOverlay  |  FSOS, KernelOS10, SharawyOS
+[OK]  3/6  |  Xbox Game Bar  |  Microsoft.XboxGamingOverlay  |  FSOS, KernelOS10, SharawyOS
+[OK]  3/6  |  Xbox تحويل الصوت لنص  |  Microsoft.XboxSpeechToTextOverlay  |  FSOS, KernelOS10, SharawyOS
+[OK]  3/6  |  Phone Link  |  Microsoft.YourPhone  |  KernelOS10, KirbyOS, SharawyOS
+[OK]  2/6  |  أداة القص  |  Microsoft.ScreenSketch  |  KernelOS10, SharawyOS
+[--]  2/6  |  الشراء من المتجر  |  Microsoft.StorePurchaseApp  |  KernelOS10, SharawyOS
+[OK]  2/6  |  المحفظة  |  Microsoft.Wallet  |  KernelOS10, SharawyOS
+[OK]  2/6  |  امتدادات الوسائط  |  Microsoft.WebMediaExtensions  |  KernelOS10, SharawyOS
+[--]  2/6  |  متجر مايكروسوفت  |  Microsoft.WindowsStore  |  FSOS, KernelOS10
+[--]  2/6  |  تسجيل دخول Xbox  |  Microsoft.XboxIdentityProvider  |  FSOS, KernelOS10
+[OK]  1/6  |  صور HEIF  |  Microsoft.HEIFImageExtension  |  KernelOS10
+[OK]  1/6  |  فيديو VP9  |  Microsoft.VP9VideoExtensions  |  KernelOS10
+[OK]  1/6  |  صور WebP  |  Microsoft.WebpImageExtension  |  KernelOS10
+
+==========================================================================================
+  مكونات ويندوز المحذوفة   (12)
+==========================================================================================
+[--]  2/6  |  -  |  Telemetry: CompatTelRunner  |  KirbyOS, SkiiOS
+[--]  1/6  |  -  |  Paint الكلاسيكي  |  SharawyOS
+[--]  1/6  |  -  |  People bar  |  SkiiOS
+[OK]  1/6  |  -  |  Quick Assist  |  SharawyOS
+[--]  1/6  |  -  |  SmartScreen  |  KirbyOS
+[OK]  1/6  |  -  |  Snipping Tool  |  SharawyOS
+[--]  1/6  |  -  |  Telemetry: DiagTrack  |  SkiiOS
+[--]  1/6  |  -  |  Windows Media Player  |  KirbyOS
+[--]  1/6  |  -  |  Windows-Defender-Default-Definitions  |  FSOS
+[OK]  1/6  |  -  |  WordPad  |  SharawyOS
+[--]  1/6  |  -  |  بيئة الاسترداد WinRE  |  SharawyOS
+[--]  1/6  |  -  |  خدمة تحديث ويندوز Medic  |  SharawyOS
+

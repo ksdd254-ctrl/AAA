@@ -97,6 +97,8 @@ $qargs = @(
   '-drive', "file=$testIso,if=none,id=c0,media=cdrom,format=raw", '-device', 'ide-cd,drive=c0,bus=ahci.1,bootindex=2',
   '-netdev', 'user,id=n0', '-device', 'e1000,netdev=n0',
   '-device', 'qemu-xhci', '-device', 'usb-tablet',
+  # a sound card (no host output): Windows Audio must find a device and run
+  '-audiodev', 'none,id=snd0', '-device', 'intel-hda', '-device', 'hda-duplex,audiodev=snd0',
   '-display', $Display, '-vga', 'std', '-name', 'JDO Lite - VM test',
   '-monitor', "tcp:127.0.0.1:${mon},server,nowait",
   '-rtc', 'base=localtime', '-no-reboot-on-shutdown'

@@ -52,7 +52,10 @@ Check 'dark mode' ((Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVe
 
 # ---------- 2. idle processes after things settle ----------
 Say '== 2. processes at idle'
-Start-Sleep -Seconds 240
+# the apps step after the restart (Brave, AnyDesk, Store update) must be finished first, or its installers are counted
+for ($i = 0; $i -lt 60 -and -not (Test-Path 'C:\JDO\postsetup.done'); $i++) { Start-Sleep -Seconds 10 }
+Start-Sleep -Seconds 180
+# tasklist itself starts WMI hosts: take the snapshot first, list the services per svchost afterwards
 $procs = Get-Process | Where-Object { $_.Id -ne 0 }   # Idle (pid 0) is not a real process
 $mine = $procs | Where-Object { $_.Id -eq $PID -or $_.Name -in 'powershell', 'conhost' }   # this test itself
 $count = $procs.Count - $mine.Count
@@ -65,6 +68,9 @@ $cpu = (Get-Counter '\Processor(_Total)\% Processor Time' -SampleInterval 2 -Max
 Say ('  CPU at idle: {0:N1} %' -f $cpu.Average)
 Say ('  RAM in use: {0:N0} MB' -f (($os.TotalVisibleMemorySize - (Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory) / 1KB))
 Say ('  C: used: {0:N2} GB' -f ((Get-PSDrive C).Used / 1GB))
+Check 'Windows Audio running (sound service; the VM itself has no sound card)' ((Get-Service Audiosrv).Status -eq 'Running' -and (Get-Service AudioEndpointBuilder).Status -eq 'Running')
+Say '  --- svchost groups ---'
+& tasklist.exe /svc /fi 'imagename eq svchost.exe' | Select-Object -Skip 3 | ForEach-Object { Say "  $_" }
 
 # ---------- 3. network (stock) ----------
 Say '== 3. network'

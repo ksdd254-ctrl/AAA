@@ -89,7 +89,7 @@ try {
   $netSvc = 'Tcpip','Tcpip6','TCPIP6TUNNEL','tcpipreg','AFD','afunix','NetBT','NDIS','NdisCap','NdisVirtualBus','NdisWan','Ndisuio','nsiproxy',
             'Dhcp','Dnscache','NlaSvc','nsi','netprofm','NcbService','NcaSvc','NcdAutoSetup','Netman','Netlogon','WinHttpAutoProxySvc',
             'wcncsvc','WwanSvc','icssvc','mpssvc','BFE','mpsdrv','SharedAccess','iphlpsvc','IpxlatCfgSvc',
-            'SSDPSRV','upnphost','FDResPub','fdPHost','RemoteAccess',
+            'upnphost','FDResPub','fdPHost','RemoteAccess',
             'WinRM','Dot3Svc','QWAVE','Psched','lltdsvc','rspndr','mrxsmb','mrxsmb20','srv2','srvnet',
             'bowser','rdbss','AJRouter','ALG','WinNat','vwififlt','WFPLWFS'
   foreach ($s in $netSvc) {
@@ -142,7 +142,7 @@ try {
   Check 'WaaSMedicSvc off' ((Get-ItemProperty "$LiteCS\Services\WaaSMedicSvc").Start -eq 4)
   Check 'Update orchestrator off (no MoUSO worker)' ((Get-ItemProperty "$LiteCS\Services\UsoSvc").Start -eq 4)
   Check 'Delivery Optimization off (owner asked)' ((Get-ItemProperty "$LiteCS\Services\DoSvc").Start -eq 4)
-  Check 'svchost groups stock (the merge is off: a black screen was seen with it)' (((Get-ItemProperty "$LiteCS\Services\AudioEndpointBuilder").ImagePath -match '-k LocalSystemNetworkRestricted') -and ((Get-ItemProperty "$LiteCS\Services\CoreMessagingRegistrar").ImagePath -match '-k LocalServiceNoNetwork'))
+  Check 'svchost groups stock (merging CoreMessagingRegistrar = black screen, proven in the VM)' ((((Get-ItemProperty "$LiteCS\Services\AudioEndpointBuilder").ImagePath -match '-k LocalSystemNetworkRestricted') -and ((Get-ItemProperty "$LiteCS\Services\CoreMessagingRegistrar").ImagePath -match '-k LocalServiceNoNetwork')))
   Check 'activation on demand (sppsvc), Hyper-V guest / sensors / PIN off' (((Get-ItemProperty "$LiteCS\Services\sppsvc").Start -eq 3) -and ((Get-ItemProperty "$LiteCS\Services\vmicheartbeat").Start -eq 4) -and ((Get-ItemProperty "$LiteCS\Services\SensorService").Start -eq 4) -and ((Get-ItemProperty "$LiteCS\Services\NgcSvc").Start -eq 4))
   # boot safety: nothing that starts automatically may depend on a service that is disabled or missing, and every
   # svchost group a service names must exist in the group list - either one stops Windows from reaching the desktop

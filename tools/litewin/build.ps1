@@ -20,7 +20,7 @@ param(
   [switch]$KeepDefender,
   [switch]$NoMitigations,   # Spectre/Meltdown mitigations off: a few % on older CPUs, less secure
   [switch]$NoSlim,          # skip the size slimming step
-  [switch]$MergeSvchost,    # UNSAFE, not default: moves two services to other svchost groups (a black screen at sign-in was seen after it)
+  [switch]$NoMergeSvchost,  # keep CoreMessagingRegistrar in its own svchost (the merge into LocalService saves one process)
   [string]$UpdateMsu,        # a Windows cumulative update (.msu) installed into the image BEFORE the slimming: updated Windows, same size
   [switch]$NoOwnerServices,  # test only: leave the services disabled on the owner's PC (network ones included) as Windows ships them
   [switch]$KeepNgc,          # test only: leave PIN / Windows Hello services as Windows ships them
@@ -91,6 +91,31 @@ $services = [ordered]@{
   NgcSvc=4; NgcCtnrSvc=4   # PIN / Windows Hello (the account has no password; asked to remove the PIN)
   # (PIN / Hello, BitLocker, smart cards, kiosk, MDM... are on-demand and cost no process: left as Windows ships them, nothing sign-in related is touched)
   DoSvc=4   # Delivery Optimization (peer-to-peer update downloads): off - asked for by the owner
+  # asked for by the owner (one process each, no setting / serial / MAC changes): home-network device discovery (UPnP)
+  # and the per-app data usage counter
+  SSDPSRV=4; DusmSvc=4
+  # off as in KirbyOS / SharawyOS / SkiiOS / KernelOS / FSOS / XOS (asked for: everything they disable that is not network,
+  # serials, the Store, sound, typing or NVIDIA): printing / scanning leftovers, App-V, kiosk, mixed reality, disk checks
+  # at idle, telemetry inventory, graphics performance monitor, health experiences, SSH agent, beep, encrypted files
+  svsvc=4; Beep=4; EFS=4; GraphicsPerfSvc=4; InventorySvc=4
+  'ssh-agent'=4
+  whesvc=4
+  # from the comparison of five Windows 11 gaming builds (owner's list): only drivers / services for hardware a gaming
+  # desktop does not have or features JDO x QHT removed. Not here on purpose: anything network (QWAVE, Xbox Live net,
+  # SMB Direct, mobile broadband, DFS, telephony), CD/DVD (ISO mounting), Themes / FontCache / EventSystem / Vault
+  # (Store, sign-in), BAM / mitigations (anti-cheats), TRIM (defragsvc), MTP phones, file encryption, shadow copies.
+  GpuEnergyDrv=4; hyperkbd=4; HyperVideo=4; Vid=4; hvservice=4; vmgid=4                                  # Hyper-V (hypervisor is off)
+  BthEnum=4; BthHFEnum=4; BthLEEnum=4; BthMini=4; BTHMODEM=4; BTHPORT=4; HidBth=4; RFCOMM=4; BthA4dp=4; bttflt=4   # Bluetooth (off already)
+  Microsoft_Bluetooth_AvrcpTransport=4
+  ErrDev=4; fdc=4; flpydisk=4; sfloppy=4; Serenum=4; Serial=4; sermouse=4; Parport=4; pcmcia=4             # floppy, serial / parallel ports, PC cards
+  '3ware'=4; arcsas=4; SiSRaid2=4; SiSRaid4=4; vsmraid=4; VSTXRAID=4; acpipagr=4; AcpiPmi=4                # server RAID cards, server ACPI
+  circlass=4; buttonconverter=4; TsUsbFlt=4                                                               # IR remotes, tablet buttons, USB over RDP
+  MsSecCore=4; MDCoreSvc=4; wtd=4                                                                          # Defender core (Defender is removed)
+  PrintDeviceConfigurationService=4; PrintScanBrokerService=4; usbprint=4                                 # printing (Spooler is off)
+  AssignedAccessManagerSvc=4; AppVClient=4; shpamsvc=4; DialogBlockingService=4; UevAgentService=4       # kiosk, App-V, shared PC, UE-V
+  MicrosoftCopilotElevationService=4; McpManagementService=4; WSAIFabricSvc=4                             # Copilot / AI
+  perceptionsimulation=4; SharedRealitySvc=4; SpatialGraphFilter=4; VacSvc=4                              # mixed reality
+  refsdedupsvc=4; WslService=4; xbgm=4; CldFlt=4; cloudidsvc=4; embeddedmode=4                            # ReFS dedup, WSL, Xbox monitor, OneDrive files, cloud ID, embedded
   # Bluetooth (BTHUSB is the radio driver itself)
   bthserv=4; BTAGService=4; BthAvctpSvc=4; BluetoothUserService=4; BTHUSB=4
   # Xbox Live / Game Pass sign-in (not used); the controller service stays on demand
@@ -118,7 +143,15 @@ $services = [ordered]@{
 if ($Win11) {
   # Windows 11 only: app inventory, "health and optimized experiences", voice-assistant runtime, WSL file share, pen.
   # (TextInputManagementService stays: typing in Windows 11 needs it.)
-  foreach ($k in 'InventorySvc', 'whesvc', 'AarSvc', 'P9RdrService', 'PenService') { $services[$k] = 4 }
+  foreach ($k in 'InventorySvc', 'whesvc', 'AarSvc', 'P9RdrService', 'PenService', 'NPSMSvc') { $services[$k] = 4 }   # NPSMSvc: "now playing" media flyout
+# the five-build driver list was made for Windows 11: on Windows 10 the VM test stopped on a black screen at the first
+# boot with it, so Windows 10 keeps these drivers as Windows ships them (Beep too)
+if (-not $Win11) {
+  foreach ($k in 'GpuEnergyDrv','hyperkbd','HyperVideo','Vid','hvservice','vmgid','BthEnum','BthHFEnum','BthLEEnum','BthMini','BTHMODEM','BTHPORT','HidBth',
+                 'RFCOMM','BthA4dp','bttflt','Microsoft_Bluetooth_AvrcpTransport','ErrDev','fdc','flpydisk','sfloppy','Serenum','Serial','sermouse','Parport',
+                 'pcmcia','3ware','arcsas','SiSRaid2','SiSRaid4','vsmraid','VSTXRAID','acpipagr','AcpiPmi','circlass','buttonconverter','TsUsbFlt','MsSecCore',
+                 'MDCoreSvc','wtd','SpatialGraphFilter','VacSvc','refsdedupsvc','WslService','CldFlt','cloudidsvc','embeddedmode','Beep') { $services.Remove($k) }
+}
   # XdzlOS sets the Network Setup Service to start automatically; Windows ships it on demand (trigger start): back to stock
   $services['NetSetupSvc'] = 3
   # XdzlOS starts the app state store at boot (its own svchost "appmodel"); on demand it only runs when an app needs it
@@ -274,8 +307,8 @@ function Slim-BootWim {
   Mount-WindowsImage -ImagePath $bw -Index 1 -Path $bm -ScratchDirectory $scr | Out-Null
   try {
     $sxs = "$bm\Windows\WinSxS"
-    & takeown.exe /f $sxs /r /a /d y | Out-Null
-    & icacls.exe $sxs /grant '*S-1-5-32-544:F' /t /c /q | Out-Null
+    & cmd.exe /c "takeown.exe /f `"$sxs`" /r /a /d y >nul 2>&1"
+    & cmd.exe /c "icacls.exe `"$sxs`" /grant *S-1-5-32-544:F /t /c /q >nul 2>&1"
     Get-ChildItem -LiteralPath $sxs -Force | Where-Object { $_.Name -notmatch $keepSxs } | ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue }
     Get-ChildItem -LiteralPath "$sxs\Manifests" -File -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -notmatch $keepSxs } | Remove-Item -Force -ErrorAction SilentlyContinue
     foreach ($p in "$bm\Windows\Speech", "$bm\Windows\System32\Speech", "$bm\Windows\System32\Speech_OneCore") { Remove-Owned $p }
@@ -375,7 +408,8 @@ try {
   foreach ($p in 'Edge', 'EdgeUpdate', 'EdgeCore') { Remove-Owned "$mount\Program Files (x86)\Microsoft\$p" }   # EdgeWebView (WebView2) stays
   # Windows 11 carries WebView2 twice: its own copy in System32 (search, Settings) stays; the 2022 copy in Program Files
   # never updates (Edge Update is off) - an app that needs WebView2 installs the current one itself
-  if ($Win11) { Remove-Owned "$mount\Program Files (x86)\Microsoft\EdgeWebView" }
+  if ($Win11) { Remove-Owned "$mount\Program Files (x86)\Microsoft\EdgeWebView"
+                Remove-Owned "$mount\Users\Default\Desktop\AnyDesk.exe" }   # left on the desktop by XdzlOS (JDO x QHT installs AnyDesk itself)
   foreach ($p in "$mount\Windows\SysWOW64\OneDriveSetup.exe", "$mount\Windows\System32\OneDriveSetup.exe",
                  "$mount\ProgramData\Microsoft\Windows\Start Menu\Programs\Microsoft Edge.lnk",
                  "$mount\Users\Public\Desktop\Microsoft Edge.lnk") { Remove-Owned $p }
@@ -439,6 +473,11 @@ try {
 
   foreach ($s in $services.Keys) { Set-Svc $s $services[$s] }
   if ((Get-ItemProperty "Registry::HKEY_LOCAL_MACHINE\JDO_SYSTEM\ControlSet001\Services\TrustedInstaller").Start -ne 3) { [OffReg]::SetDword('JDO_SYSTEM\ControlSet001\Services\TrustedInstaller', 'Start', 3) }
+  # Windows Audio and Data Usage each run in a svchost of their own (service type 16): type 32 lets them share the svchost of
+  # their own group (LocalServiceNetworkRestricted) - 2 processes less at idle. Their group, account and settings stay as shipped.
+  foreach ($s in 'Audiosrv', 'DusmSvc') {
+    if ((Get-ItemProperty "Registry::HKEY_LOCAL_MACHINE\JDO_SYSTEM\ControlSet001\Services\$s" -ErrorAction SilentlyContinue).Type -eq 16) { [OffReg]::SetDword("JDO_SYSTEM\ControlSet001\Services\$s", 'Type', 32) }
+  }
   if (-not $KeepDefender) {
     foreach ($s in $defender.Keys) { Set-Svc $s $defender[$s] }
     Set-Reg 'SOFTWARE\Policies\Microsoft\Windows Defender' 'DisableAntiSpyware' 1
@@ -470,14 +509,14 @@ try {
     Set-Reg "NTUSER\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\$c" 'Value' 'Allow'
     Set-Reg "NTUSER\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\$c\NonPackaged" 'Value' 'Allow'
   }
-  # (no LetAppsRunInBackground policy and no global background-app switch: they stopped Start menu search from working)
 
-  # svchost merge - OFF unless build.ps1 -MergeSvchost (a black screen at sign-in was seen right after it was added): two services that sit alone in their own svchost move into a group of the
+  # svchost merge - ON unless build.ps1 -NoMergeSvchost: CoreMessagingRegistrar joins the LocalService svchost (same account)
   # same account - audio endpoints (LocalSystem) into netsvcs, the UI message registrar (LocalService) into LocalService.
   # 9 -> 7 svchost processes at idle. Network services are not moved. JDO-Tools switch "svchost merge" puts it back.
-  $svchost = 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Svchost'
-  if ($MergeSvchost) {
-  foreach ($m in @(@('AudioEndpointBuilder', 'LocalSystemNetworkRestricted', 'netsvcs'), @('CoreMessagingRegistrar', 'LocalServiceNoNetwork', 'LocalService'))) {
+  # svchost merge removed for good (both Windows versions)
+  # NEVER merged: proven by the Windows 11 VM test - CoreMessaging then fails ("incompatible service SID type") = black screen
+  if ($false) {
+  foreach ($m in @(,@('CoreMessagingRegistrar', 'LocalServiceNoNetwork', 'LocalService'))) {
     $sk = "SYSTEM\ControlSet001\Services\$($m[0])"
     $img = (Get-ItemProperty "Registry::HKEY_LOCAL_MACHINE\$(HiveKey $sk)" -Name ImagePath -ErrorAction SilentlyContinue).ImagePath
     if ($img -notmatch "-k\s+$($m[1])\b") { Write-Host "  svchost merge: $($m[0]) not in $($m[1]) ($img) - left alone" -ForegroundColor Yellow; continue }
@@ -518,6 +557,27 @@ try {
   Set-Reg "$pol\CloudContent" 'DisableWindowsConsumerFeatures' 1
   Set-Reg "$pol\CloudContent" 'DisableSoftLanding' 1
   Set-Reg "$pol\CloudContent" 'DisableCloudOptimizedContent' 1
+  # from the five-build comparison: policies only (no network / serial value among them)
+  Set-Reg "$pol\CloudContent" 'DisableWindowsSpotlightFeatures' 1               # Spotlight / rotating lock screen
+  Set-Reg "$pol\CloudContent" 'DisableThirdPartySuggestions' 1
+  Set-Reg 'NTUSER\Software\Policies\Microsoft\Windows\CloudContent' 'DisableWindowsSpotlightFeatures' 1
+  Set-Reg 'NTUSER\Software\Policies\Microsoft\Windows\CloudContent' 'DisableTailoredExperiencesWithDiagnosticData' 1
+  Set-Reg 'SOFTWARE\Policies\Microsoft\SQMClient\Windows' 'CEIPEnable' 0       # Customer Experience Improvement Program
+  Set-Reg "$pol\HandwritingErrorReports" 'PreventHandwritingErrorReports' 1
+  Set-Reg "$pol\TabletPC" 'PreventHandwritingDataSharing' 1
+  Set-Reg "$pol\System" 'EnableCdp' 0                                           # shared experiences across devices
+  Set-Reg "$pol\SettingSync" 'DisableSettingSync' 2
+  Set-Reg "$pol\SettingSync" 'DisableSettingSyncUserOverride' 1
+  Set-Reg 'SOFTWARE\Policies\Microsoft\FindMyDevice' 'AllowFindMyDevice' 0
+  Set-Reg "$pol\Windows Search" 'EnableDynamicContentInWSB' 0                  # search highlights
+  Set-Reg "$pol\Explorer" 'NoUseStoreOpenWith' 1                               # no Store lookup for unknown files
+  Set-Reg 'NTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'ShowSyncProviderNotifications' 0   # OneDrive ads in Explorer
+  Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'DisableAutomaticRestartSignOn' 1           # no sign-in after update restarts
+  Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'EnableFirstLogonAnimation' 0
+  Set-Reg 'SOFTWARE\Microsoft\WindowsUpdate\UX\Settings' 'RestartNotificationsAllowed2' 0
+  Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer' 'NoDriveTypeAutoRun' 255                 # AutoPlay / AutoRun off
+  Set-Reg 'NTUSER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer' 'NoDriveTypeAutoRun' 255
+  Set-Reg 'NTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers' 'DisableAutoplay' 1
   # telemetry, ads, activity history, error reports, compatibility inventory
   Set-Reg "$pol\DataCollection" 'AllowTelemetry' 0
   Set-Reg "$pol\DataCollection" 'DoNotShowFeedbackNotifications' 1
@@ -563,6 +623,24 @@ try {
   Set-Reg "$pol\WindowsUpdate\AU" 'NoAUShutdownOption' 1          # no "Update and shut down / restart"
   Set-Reg "$pol\WindowsUpdate\AU" 'NoAUAsDefaultShutdownOption' 1
   Set-Reg "$pol\GameDVR" 'AllowGameDVR' 0
+  # the same builds' policies (none touch the network, the Store or sign-in)
+  Set-Reg 'SOFTWARE\Policies\Microsoft\SQMClient\Windows' 'CEIPEnable' 0                       # Customer Experience Improvement Program
+  Set-Reg "$pol\TabletPC" 'PreventHandwritingDataSharing' 1                                    # handwriting data sharing
+  Set-Reg "$pol\HandwritingErrorReports" 'PreventHandwritingErrorReports' 1
+  Set-Reg "$pol\SettingSync" 'DisableSettingSync' 2; Set-Reg "$pol\SettingSync" 'DisableSettingSyncUserOverride' 1   # settings sync
+  Set-Reg "$pol\System" 'EnableCdp' 0                                                          # cross-device experiences
+  Set-Reg 'SOFTWARE\Policies\Microsoft\FindMyDevice' 'AllowFindMyDevice' 0                    # find my device
+  Set-Reg "$pol\Messaging" 'AllowMessageSync' 0                                                # message sync
+  Set-Reg "$pol\WindowsCopilot" 'TurnOffWindowsCopilot' 1                                      # Copilot
+  Set-Reg "$pol\Explorer" 'NoUseStoreOpenWith' 1                                               # no Store lookup for unknown files
+  Set-Reg "$pol\Windows Search" 'EnableDynamicContentInWSB' 0                                  # search highlights
+  Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'DisableAutomaticRestartSignOn' 1   # no sign-in after update restarts
+  Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer' 'NoDriveTypeAutoRun' 255           # AutoPlay / AutoRun off
+  Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer' 'NoAutorun' 1
+  Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'EnableFirstLogonAnimation' 0      # no first sign-in animation
+  Set-Reg "$pol\WindowsUpdate" 'TargetReleaseVersion' 1; Set-Reg "$pol\WindowsUpdate" 'ProductVersion' 'Windows 10'; Set-Reg "$pol\WindowsUpdate" 'TargetReleaseVersionInfo' '22H2'   # stays on 22H2
+  Set-Reg 'SYSTEM\ControlSet001\Control\CrashControl' 'CrashDumpEnabled' 0                     # no crash dump files
+  Set-Reg 'SYSTEM\ControlSet001\Control\Power' 'SleepStudyDisabled' 1                          # sleep study
   # Start menu search and the text input host stay, at the lowest priority Windows has (CPU idle, I/O very low,
   # memory lowest): they sleep until you open Start or type, and never compete with the game
   $ifeo = 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options'
@@ -700,6 +778,23 @@ try {
     # network values XdzlOS changed (not part of JDO x QHT): back to how Windows ships them
     Remove-RegValue 'SYSTEM\ControlSet001\Services\Tcpip\Parameters' 'EnableICMPRedirect'
     Remove-RegValue 'SOFTWARE\Policies\Microsoft\Windows\Network Connections' 'NC_PersonalFirewallConfig'
+    # XdzlOS's own first-sign-in commands (search icon, accent colour, background apps off - which breaks search - ...):
+    # nothing of the base build may run or override JDO x QHT
+    foreach ($n in 'AccentAccentColorMenu', 'AccentStartColorMenu', 'WindowMetricsMinAnimate', 'DesktopUserPreferencesMask', 'InprocServer32',
+                   'PersonalizeAppsUseLightTheme', 'PersonalizeSystemUsesLightTheme', 'SearchSearchboxTaskbarMode',
+                   'BackgroundAccessApplicationsGlobalUserDisabled', 'SearchBackgroundAppGlobalToggle', 'User ProfileHttpAcceptLanguageOptOut') {
+      Remove-RegValue "$cv\RunOnce" $n
+    }
+    foreach ($n in 'SystemShutdownWithoutLogon', 'dmwappushserviceStart', 'SmartGlassUserAuthPolicy', 'SystemIndexEnableFindMyFiles') {
+      Remove-RegValue 'SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' $n
+    }
+    # one process each at idle, nothing uses them here: SmartScreen (the protection is off, files carry no download mark)
+    # and the Windows 11 search window (Open-Shell has its own search; the taskbar search icon is hidden)
+    foreach ($exe in 'smartscreen.exe', 'SearchHost.exe') { Set-Reg "$ifeo\$exe" 'Debugger' '%SystemRoot%\System32\taskkill.exe' }
+    Set-Reg "$cv\Search" 'SearchboxTaskbarMode' 0
+    # hidden / system files stay hidden (XdzlOS shows them: two desktop.ini on the desktop)
+    Set-Reg "$cv\Explorer\Advanced" 'ShowSuperHidden' 0
+    Set-Reg "$cv\Explorer\Advanced" 'Hidden' 2
   }
 
   Unload-Hives
@@ -777,8 +872,8 @@ try {
     # links, so they stay. After this the image cannot be serviced: no Windows Update / adding features or languages.
     Step 'Slimming: WinSxS - keeping only run-time side-by-side assemblies (takes a while)'
     $sxs = "$mount\Windows\WinSxS"
-    & takeown.exe /f $sxs /r /a /d y | Out-Null
-    & icacls.exe $sxs /grant '*S-1-5-32-544:F' /t /c /q | Out-Null
+    & cmd.exe /c "takeown.exe /f `"$sxs`" /r /a /d y >nul 2>&1"
+    & cmd.exe /c "icacls.exe `"$sxs`" /grant *S-1-5-32-544:F /t /c /q >nul 2>&1"
     $before = (Get-ChildItem $mount -Recurse -Force -File -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
     # The servicing stack stays too (newest version of each part): Windows Setup runs the offlineServicing pass with it
     # while installing, and without it setup stops with "could not apply unattend settings during pass

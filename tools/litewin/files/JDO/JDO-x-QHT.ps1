@@ -517,10 +517,10 @@ Say ("== Result: {0} changed, {1} already right, {2} failed" -f $script:ok, $scr
 foreach ($b in $script:bad) { Say "   $b" 'Yellow' }
 Say "   Full log: $logs\JDO-x-QHT.log    Undo everything: JDO-Tools option 22" 'DarkGray'
 if ($first) {
-  # the first-boot job (power plan, devices, tasks) must finish before the restart: up to 100 seconds
+  # the first-boot job (power plan, devices, tasks) must finish before the restart: up to 10 minutes (the VM test caught the restart cutting it off at 100 s)
   $fin = Join-Path $env:WINDIR 'Setup\Scripts\firstboot.finished'
   $t0 = Get-Date
-  while (-not (Test-Path $fin) -and ((Get-Date) - $t0).TotalSeconds -lt 100 -and (Test-Path (Join-Path $env:WINDIR 'Setup\Scripts\firstboot.ps1'))) { Start-Sleep -Seconds 3 }
+  while (-not (Test-Path $fin) -and ((Get-Date) - $t0).TotalSeconds -lt 600 -and (Test-Path (Join-Path $env:WINDIR 'Setup\Scripts\firstboot.ps1'))) { Start-Sleep -Seconds 3 }
   New-Item -ItemType File $firstMark -Force | Out-Null
   Remove-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'JDO x QHT' -ErrorAction SilentlyContinue   # one time only
   Say ''; Say 'Restarting in 10 seconds...' 'Magenta'

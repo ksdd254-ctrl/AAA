@@ -1,0 +1,585 @@
+﻿==========================================================================================
+  الأشياء المطفأة / المحذوفة في نسخ ويندوز 11 - 23H2 (22631)
+==========================================================================================
+الأنظمة: LuminV2 2.52 (23H2), SapphireOS 23H2 0.9.5 Ultralite, XdzlOS 11 23H2 V9, FSOS XR10 (playbook), XOS 0.574 (playbook)
+المجموع: 530   |   مطفي في JDO بعد: 259   |   مو مطفي في JDO: 271
+محذوف منها: أي شيء له علاقة بالسيريلات أو إعدادات النت.
+عمود JDO لويندوز 11 مأخوذ من build.ps1 (ما فيه نسخة ويندوز 11 مبنية للحين).
+
+شكل السطر:   [JDO]  العدد  |  الوصف  |  الاسم التقني  |  الأنظمة
+   [OK] = نظامك JDO يطفيه بعد        [--] = نظامك ما يطفيه
+
+==========================================================================================
+  الخصوصية والتليمتري   (20)
+==========================================================================================
+[OK]  5/5  |  سجل النشاطات (Timeline)  |  Activity history  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[--]  5/5  |  سجلات الأحداث الخلفية (Autologgers / ETW)  |  Event trace autologgers  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  5/5  |  طلبات الملاحظات (Feedback)  |  Feedback prompts  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  5/5  |  جمع بيانات الكتابة والحبر (تخصيص الإدخال)  |  Inking & typing personalization  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  5/5  |  التجارب المخصصة من بيانات التشخيص  |  Tailored experiences  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  5/5  |  التليمتري (إرسال بيانات التشخيص لمايكروسوفت)  |  Telemetry  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  4/5  |  معرّف الإعلانات  |  Advertising ID  |  FSOS, SapphireOS, XdzlOS, XOS
+[OK]  4/5  |  الموقع الجغرافي  |  Location  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  سجل الملفات والبرامج الأخيرة  |  Recent files / frequent folders  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  3/5  |  تليمتري توافق التطبيقات (AIT / Inventory / UAR)  |  App compatibility telemetry  |  LuminV2, SapphireOS, XdzlOS
+[--]  3/5  |  صلاحيات التطبيقات (جهات الاتصال، التقويم، الرسائل، الملفات...)  |  App permissions  |  FSOS, SapphireOS, XdzlOS
+[--]  3/5  |  برنامج تحسين تجربة العملاء (CEIP)  |  CEIP  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  تقارير الأخطاء (Windows Error Reporting)  |  Error reporting  |  FSOS, SapphireOS, XOS
+[--]  3/5  |  مشاركة بيانات خط اليد  |  Handwriting data sharing  |  FSOS, SapphireOS, XOS
+[--]  3/5  |  تليمتري NVIDIA  |  NVIDIA telemetry  |  LuminV2, SapphireOS, XdzlOS
+[--]  3/5  |  تجارب الأجهزة المشتركة (Cross-device / CDP)  |  Shared experiences (CDP)  |  FSOS, LuminV2, XdzlOS
+[OK]  2/5  |  سجل الحافظة ومزامنتها  |  Clipboard history  |  XdzlOS, XOS
+[OK]  2/5  |  التعرف على الصوت أونلاين  |  Online speech recognition  |  FSOS, XOS
+[--]  2/5  |  مزامنة الإعدادات مع الحساب  |  Settings sync  |  SapphireOS, XOS
+[--]  1/5  |  العثور على جهازي  |  Find my device  |  XOS
+
+==========================================================================================
+  الإعلانات والاقتراحات والميزات الأونلاين   (17)
+==========================================================================================
+[OK]  5/5  |  كورتانا  |  Cortana  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  5/5  |  الإشعارات ومركز الإشعارات  |  Notifications / Action Center  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[--]  5/5  |  Windows Spotlight وصور شاشة القفل المتغيرة  |  Spotlight / rotating lock screen  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[--]  5/5  |  الإعلانات والاقتراحات وتثبيت التطبيقات تلقائياً (Content Delivery)  |  Suggestions & silent app installs  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  5/5  |  النصائح و"لنكمل إعداد جهازك"  |  Tips & setup nags  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  4/5  |  زر الدردشة / Teams في شريط المهام  |  Chat / Teams button  |  FSOS, LuminV2, XdzlOS, XOS
+[OK]  4/5  |  ميزات المستهلك (تنزيل ألعاب وتطبيقات مقترحة)  |  Consumer features  |  FSOS, SapphireOS, XdzlOS, XOS
+[OK]  4/5  |  Copilot  |  Copilot  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  الأخبار والاهتمامات / الويدجت  |  News & Interests / Widgets  |  LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  4/5  |  OneDrive  |  OneDrive  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  بحث Bing / الويب في قائمة ابدأ  |  Web / Bing search in Start  |  FSOS, SapphireOS, XdzlOS, XOS
+[--]  3/5  |  اختصار Edge على سطح المكتب  |  Edge desktop shortcut  |  FSOS, LuminV2, SapphireOS
+[--]  3/5  |  إبرازات البحث (Search highlights)  |  Search highlights  |  FSOS, SapphireOS, XOS
+[--]  3/5  |  إشعارات مزودي المزامنة في المستكشف (إعلانات OneDrive)  |  Sync provider ads in Explorer  |  FSOS, LuminV2, SapphireOS
+[--]  2/5  |  Recall وميزات الذكاء الاصطناعي  |  Recall / AI features  |  FSOS, XOS
+[--]  2/5  |  تنزيل تحديثات تطبيقات المتجر تلقائياً  |  Store auto-download  |  FSOS, XOS
+[--]  1/5  |  البحث في المتجر عند فتح ملف مجهول  |  Store "open with" lookup  |  SapphireOS
+
+==========================================================================================
+  التحديثات   (7)
+==========================================================================================
+[OK]  5/5  |  التحديث التلقائي لويندوز  |  Automatic Windows Update  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  5/5  |  تحديث التعريفات من Windows Update  |  Driver updates via Windows Update  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[--]  5/5  |  إيقاف التحديثات مؤقتاً لمدة طويلة  |  Updates paused  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  4/5  |  أداة إزالة البرمجيات الخبيثة (MRT) عبر التحديث  |  MRT through Windows Update  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[--]  4/5  |  إشعارات إعادة التشغيل للتحديث  |  Update restart notifications  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[--]  3/5  |  تسجيل الدخول التلقائي بعد إعادة التشغيل (ARSO)  |  Auto restart sign-on  |  LuminV2, SapphireOS, XdzlOS
+[--]  1/5  |  تثبيت إصدار ويندوز (منع الترقية لإصدار جديد)  |  Feature update locked to a version  |  FSOS
+
+==========================================================================================
+  الحماية والأمان   (13)
+==========================================================================================
+[OK]  5/5  |  Windows Defender (مكافح الفيروسات)  |  Microsoft Defender Antivirus  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  5/5  |  SmartScreen  |  SmartScreen  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[--]  4/5  |  الحماية من العبث (Tamper Protection)  |  Tamper Protection  |  LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  4/5  |  VBS / سلامة الذاكرة (HVCI) / Credential Guard  |  VBS / Memory integrity  |  FSOS, SapphireOS, XdzlOS, XOS
+[--]  3/5  |  التشغيل التلقائي للأقراص والفلاشات (AutoPlay)  |  AutoPlay / AutoRun  |  LuminV2, SapphireOS, XdzlOS
+[--]  3/5  |  التحكم بحساب المستخدم UAC (كامل)  |  UAC  |  LuminV2, SapphireOS, XOS
+[OK]  2/5  |  تحذير الملفات المحمّلة من الإنترنت  |  Downloaded-file warning  |  FSOS, SapphireOS
+[OK]  2/5  |  حماية Spectre / Meltdown  |  Spectre / Meltdown mitigations  |  FSOS, XOS
+[OK]  2/5  |  نافذة تأكيد UAC للمسؤول  |  UAC prompt  |  LuminV2, XOS
+[--]  1/5  |  حمايات النواة والعمليات (CFG / ASLR ...)  |  Kernel / process mitigations  |  SapphireOS
+[OK]  1/5  |  تسجيل الدخول بـ PIN / Windows Hello  |  PIN / Windows Hello  |  SapphireOS
+[OK]  1/5  |  المساعدة عن بعد (Remote Assistance)  |  Remote Assistance  |  FSOS
+[OK]  1/5  |  Smart App Control  |  Smart App Control  |  XOS
+
+==========================================================================================
+  النظام والأداء   (18)
+==========================================================================================
+[--]  5/5  |  إخفاء صفحات من الإعدادات  |  Hidden Settings pages  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[--]  4/5  |  تشغيل التطبيقات في الخلفية  |  Background apps  |  FSOS, SapphireOS, XdzlOS, XOS
+[--]  4/5  |  ملفات تفريغ الأعطال (Crash dumps)  |  Crash dumps  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  تسجيل الألعاب Game DVR / Game Bar  |  Game DVR / Game Bar capture  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  3/5  |  الأنيميشن والمؤثرات البصرية  |  Animations / visual effects  |  FSOS, LuminV2, SapphireOS
+[OK]  3/5  |  بدء التشغيل السريع (Fast Startup)  |  Fast Startup  |  FSOS, SapphireOS, XdzlOS
+[--]  3/5  |  دراسة النوم (Sleep Study)  |  Sleep Study  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  مستشعر التخزين (Storage Sense)  |  Storage Sense  |  FSOS, LuminV2, XdzlOS
+[--]  2/5  |  أنيميشن أول تسجيل دخول  |  First sign-in animation  |  FSOS, SapphireOS
+[OK]  2/5  |  الإسبات (Hibernate)  |  Hibernation  |  FSOS, SapphireOS
+[OK]  2/5  |  التحديث التلقائي للخرائط  |  Maps auto-update  |  FSOS, XOS
+[OK]  2/5  |  تسريع الماوس (Enhance pointer precision)  |  Mouse acceleration  |  FSOS, XOS
+[OK]  2/5  |  الشفافية  |  Transparency  |  SapphireOS, XOS
+[OK]  1/5  |  الصيانة التلقائية  |  Automatic maintenance  |  FSOS
+[--]  1/5  |  وضع اللعب (Game Mode)  |  Game Mode  |  LuminV2
+[OK]  1/5  |  طبقات العرض المتعددة (MPO)  |  Multiplane overlay (MPO)  |  XOS
+[--]  1/5  |  نقل نواة النظام للذاكرة الافتراضية (Paging Executive)  |  Paging executive  |  FSOS
+[OK]  1/5  |  اختصارات المفاتيح اللاصقة / التصفية  |  Sticky / Filter keys hotkeys  |  XOS
+
+==========================================================================================
+  الإقلاع والذاكرة (bcdedit / MMAgent)   (1)
+==========================================================================================
+[--]  2/5  |  حمايات العمليات (Set-ProcessMitigation)  |  حمايات العمليات (Set-ProcessMitigation)  |  FSOS, XOS
+
+==========================================================================================
+  الخدمات والتعريفات المطفأة (Disabled)   (210)
+==========================================================================================
+[OK]  5/5  |  التليمتري (تجارب المستخدم المتصلة)  |  DiagTrack  |  FSOS, LuminV2, SapphireOS, XdzlOS, XOS
+[OK]  3/5  |  جامع التشخيص  |  diagnosticshub.standardcollector.service  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  التشخيص  |  diagsvc  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  رسائل WAP / تليمتري الأجهزة  |  dmwappushservice  |  FSOS, SapphireOS, XOS
+[--]  3/5  |  قياس طاقة كرت الشاشة  |  GpuEnergyDrv  |  FSOS, SapphireOS, XOS
+[--]  3/5  |  كيبورد Hyper-V  |  hyperkbd  |  FSOS, SapphireOS, XOS
+[--]  3/5  |  شاشة Hyper-V  |  HyperVideo  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  جرد التطبيقات (تليمتري)  |  InventorySvc  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  مدير الخرائط  |  MapsBroker  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  مساعد توافق البرامج  |  PcaSvc  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  وضع العرض في المحلات  |  RetailDemo  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  حماية وقت التشغيل  |  SgrmBroker  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  الطباعة (Spooler)  |  Spooler  |  FSOS, SapphireOS, XOS
+[--]  3/5  |  تليمتري (اسم في السكربت)  |  Telemetry  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  مستكشف الأخطاء الموصى به  |  TroubleshootingSvc  |  FSOS, SapphireOS, XOS
+[--]  3/5  |  تعريف Hyper-V  |  Vid  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  تقارير الأخطاء  |  wercplsupport  |  FSOS, SapphireOS, XOS
+[OK]  3/5  |  Windows Insider  |  wisvc  |  FSOS, SapphireOS, XOS
+[--]  3/5  |  ذكاء اصطناعي (ويندوز 11)  |  WSAIFabricSvc  |  FSOS, SapphireOS, XOS
+[--]  2/5  |  هوية التطبيقات (AppLocker)  |  AppIDSvc  |  FSOS, SapphireOS
+[OK]  2/5  |  تسجيل وبث الألعاب (Game DVR)  |  BcastDVRUserService  |  FSOS, SapphireOS
+[OK]  2/5  |  بلوتوث (للمستخدم)  |  BluetoothUserService  |  FSOS, SapphireOS
+[OK]  2/5  |  بلوتوث صوت (سماعات)  |  BTAGService  |  FSOS, SapphireOS
+[--]  2/5  |  بلوتوث صوت A2DP  |  BthA4dp  |  FSOS, SapphireOS
+[OK]  2/5  |  بلوتوث التحكم بالصوت  |  BthAvctpSvc  |  FSOS, SapphireOS
+[--]  2/5  |  تعريف بلوتوث  |  BthEnum  |  FSOS, SapphireOS
+[--]  2/5  |  بلوتوث Hands-free  |  BthHFEnum  |  FSOS, SapphireOS
+[--]  2/5  |  بلوتوث منخفض الطاقة  |  BthLEEnum  |  FSOS, SapphireOS
+[--]  2/5  |  تعريف بلوتوث  |  BthMini  |  FSOS, SapphireOS
+[--]  2/5  |  مودم بلوتوث  |  BTHMODEM  |  FSOS, SapphireOS
+[--]  2/5  |  منفذ بلوتوث  |  BTHPORT  |  FSOS, SapphireOS
+[OK]  2/5  |  خدمة البلوتوث  |  bthserv  |  FSOS, SapphireOS
+[OK]  2/5  |  تعريف بلوتوث USB  |  BTHUSB  |  FSOS, SapphireOS
+[--]  2/5  |  فلتر بلوتوث  |  bttflt  |  SapphireOS, XOS
+[OK]  2/5  |  منصة الأجهزة المتصلة (للمستخدم)  |  CDPUserSvc  |  FSOS, SapphireOS
+[--]  2/5  |  تعريف ناقل الأجهزة المركبة  |  CompositeBus  |  FSOS, SapphireOS
+[OK]  2/5  |  الملفات دون اتصال  |  CscService  |  FSOS, XOS
+[OK]  2/5  |  سياسة التشخيص  |  DPS  |  SapphireOS, XOS
+[OK]  2/5  |  مشاركة البيانات  |  DsSvc  |  SapphireOS, XOS
+[OK]  2/5  |  تحديث Edge  |  edgeupdate  |  FSOS, SapphireOS
+[OK]  2/5  |  تحديث Edge  |  edgeupdatem  |  FSOS, SapphireOS
+[--]  2/5  |  تعريف تقارير أخطاء العتاد  |  ErrDev  |  FSOS, SapphireOS
+[--]  2/5  |  تعريف الفلوبي  |  fdc  |  FSOS, SapphireOS
+[--]  2/5  |  تعريف الفلوبي  |  flpydisk  |  FSOS, SapphireOS
+[--]  2/5  |  عداد الأجيال (VM)  |  gencounter  |  SapphireOS, XOS
+[--]  2/5  |  أجهزة إدخال بلوتوث  |  HidBth  |  FSOS, SapphireOS
+[OK]  2/5  |  مضيف Hyper-V  |  HvHost  |  FSOS, SapphireOS
+[--]  2/5  |  خدمة Hyper-V  |  hvservice  |  FSOS, SapphireOS
+[OK]  2/5  |  الموقع الجغرافي  |  lfsvc  |  FSOS, SapphireOS
+[OK]  2/5  |  الرسائل النصية  |  MessagingService  |  FSOS, SapphireOS
+[--]  2/5  |  بلوتوث تحكم الوسائط  |  Microsoft_Bluetooth_AvrcpTransport  |  FSOS, SapphireOS
+[--]  2/5  |  MIDI  |  midisrv  |  SapphireOS, XOS
+[--]  2/5  |  المعاملات الموزعة MSDTC  |  MSDTC  |  SapphireOS, XOS
+[--]  2/5  |  Defender (نواة الأمان)  |  MsSecCore  |  SapphireOS, XOS
+[--]  2/5  |  Defender (فلتر الأمان)  |  MsSecFlt  |  SapphireOS, XOS
+[--]  2/5  |  Defender (فلتر الشبكة)  |  MsSecWfp  |  SapphireOS, XOS
+[OK]  2/5  |  فهرسة جهات الاتصال  |  PimIndexMaintenanceSvc  |  FSOS, SapphireOS
+[--]  2/5  |  الطباعة  |  PrintDeviceConfigurationService  |  FSOS, XOS
+[OK]  2/5  |  الطباعة (الإشعارات)  |  PrintNotify  |  FSOS, XOS
+[--]  2/5  |  الطباعة والمسح  |  PrintScanBrokerService  |  FSOS, XOS
+[OK]  2/5  |  الطباعة (سير العمل)  |  printworkflowusersvc  |  FSOS, XOS
+[--]  2/5  |  بروتوكول بلوتوث  |  RFCOMM  |  FSOS, SapphireOS
+[OK]  2/5  |  أمن ويندوز  |  SecurityHealthService  |  SapphireOS, XOS
+[OK]  2/5  |  Defender للشركات (ATP)  |  Sense  |  SapphireOS, XOS
+[--]  2/5  |  المنفذ التسلسلي  |  Serenum  |  FSOS, SapphireOS
+[--]  2/5  |  المنفذ التسلسلي  |  Serial  |  FSOS, SapphireOS
+[--]  2/5  |  ماوس المنفذ التسلسلي  |  sermouse  |  FSOS, SapphireOS
+[OK]  2/5  |  إعدادات سطح المكتب البعيد  |  SessionEnv  |  SapphireOS, XOS
+[--]  2/5  |  تعريف الفلوبي  |  sfloppy  |  FSOS, SapphireOS
+[OK]  2/5  |  الكاميرات والماسحات (WIA)  |  stisvc  |  FSOS, XOS
+[--]  2/5  |  التحقق من الأقراص  |  svsvc  |  FSOS, XOS
+[OK]  2/5  |  سطح المكتب البعيد  |  TermService  |  SapphireOS, XOS
+[OK]  2/5  |  تتبع الروابط  |  TrkWks  |  FSOS, SapphireOS
+[--]  2/5  |  حماية الإعدادات الافتراضية للتطبيقات  |  UCPD  |  FSOS, XOS
+[OK]  2/5  |  سطح المكتب البعيد (المنافذ)  |  UmRdpService  |  SapphireOS, XOS
+[--]  2/5  |  تعريف طابعات USB  |  usbprint  |  FSOS, XOS
+[--]  2/5  |  Hyper-V ضيف  |  vmgid  |  SapphireOS, XOS
+[OK]  2/5  |  Hyper-V ضيف  |  vmicguestinterface  |  FSOS, SapphireOS
+[OK]  2/5  |  Hyper-V ضيف  |  vmicheartbeat  |  FSOS, SapphireOS
+[OK]  2/5  |  Hyper-V ضيف  |  vmickvpexchange  |  FSOS, SapphireOS
+[OK]  2/5  |  Hyper-V ضيف  |  vmicrdv  |  FSOS, SapphireOS
+[OK]  2/5  |  Hyper-V ضيف  |  vmicshutdown  |  FSOS, SapphireOS
+[OK]  2/5  |  Hyper-V ضيف  |  vmictimesync  |  FSOS, SapphireOS
+[OK]  2/5  |  Hyper-V ضيف  |  vmicvmsession  |  FSOS, SapphireOS
+[OK]  2/5  |  Hyper-V ضيف  |  vmicvss  |  FSOS, SapphireOS
+[--]  2/5  |  PCI افتراضي (Hyper-V)  |  vpci  |  SapphireOS, XOS
+[OK]  2/5  |  Windows Update Medic  |  WaaSMedicSvc  |  SapphireOS, XdzlOS
+[OK]  2/5  |  Defender (إقلاع)  |  WdBoot  |  SapphireOS, XOS
+[OK]  2/5  |  Defender (فلتر)  |  WdFilter  |  SapphireOS, XOS
+[OK]  2/5  |  التشخيص  |  WdiServiceHost  |  SapphireOS, XOS
+[OK]  2/5  |  التشخيص  |  WdiSystemHost  |  SapphireOS, XOS
+[OK]  2/5  |  Defender (فحص الشبكة)  |  WdNisDrv  |  SapphireOS, XOS
+[OK]  2/5  |  Defender (فحص الشبكة)  |  WdNisSvc  |  SapphireOS, XOS
+[OK]  2/5  |  حماية الويب (SmartScreen)  |  webthreatdefsvc  |  FSOS, XOS
+[OK]  2/5  |  حماية الويب (SmartScreen)  |  webthreatdefusersvc  |  FSOS, XOS
+[OK]  2/5  |  جامع الأحداث  |  Wecsvc  |  FSOS, SapphireOS
+[OK]  2/5  |  تقارير الأخطاء  |  WerSvc  |  FSOS, SapphireOS
+[OK]  2/5  |  Defender  |  WinDefend  |  SapphireOS, XOS
+[OK]  2/5  |  الإشعارات  |  WpnService  |  FSOS, SapphireOS
+[--]  1/5  |  تعريف RAID قديم  |  3ware  |  SapphireOS
+[--]  1/5  |  تعريف ACPI إضافي  |  acpiex  |  SapphireOS
+[--]  1/5  |  تجميع المعالجات ACPI (سيرفرات)  |  acpipagr  |  SapphireOS
+[--]  1/5  |  قياس الطاقة ACPI  |  AcpiPmi  |  SapphireOS
+[--]  1/5  |  ساعة التنبيه ACPI  |  acpitime  |  SapphireOS
+[--]  1/5  |  App-V (تطبيقات افتراضية للشركات)  |  AppVClient  |  FSOS
+[--]  1/5  |  تعريف RAID/SAS للسيرفرات  |  arcsas  |  SapphireOS
+[--]  1/5  |  وضع الكشك (Kiosk)  |  AssignedAccessManagerSvc  |  FSOS
+[--]  1/5  |  مراقب نشاط الخلفية  |  bam  |  SapphireOS
+[--]  1/5  |  صوت الصافرة من اللوحة الأم  |  Beep  |  SapphireOS
+[--]  1/5  |  أزرار الأجهزة اللوحية  |  buttonconverter  |  SapphireOS
+[OK]  1/5  |  الحافظة (سجل الحافظة)  |  cbdhsvc  |  SapphireOS
+[OK]  1/5  |  منصة الأجهزة المتصلة  |  CDPSvc  |  SapphireOS
+[--]  1/5  |  تعريف CD/DVD  |  cdrom  |  SapphireOS
+[--]  1/5  |  نظام ملفات الحاويات  |  CimFS  |  SapphireOS
+[--]  1/5  |  الأشعة تحت الحمراء (ريموت)  |  circlass  |  SapphireOS
+[--]  1/5  |  ملفات السحابة (OneDrive عند الطلب)  |  CldFlt  |  SapphireOS
+[--]  1/5  |  هوية مايكروسوفت السحابية  |  cloudidsvc  |  SapphireOS
+[--]  1/5  |  تسريع التشفير بالعتاد  |  cnghwassist  |  SapphireOS
+[--]  1/5  |  تعريف الملفات دون اتصال  |  CSC  |  XOS
+[--]  1/5  |  مدير نشاط سطح المكتب (الاستعداد الحديث)  |  dam  |  XOS
+[--]  1/5  |  إلغاء التجزئة / تحسين الأقراص  |  defragsvc  |  SapphireOS
+[--]  1/5  |  إقران الأجهزة  |  DeviceAssociationBroker  |  SapphireOS
+[--]  1/5  |  إقران الأجهزة  |  DeviceAssociationService  |  SapphireOS
+[--]  1/5  |  اتصال الأجهزة (للمستخدم)  |  DevicesFlowUserSvc  |  SapphireOS
+[--]  1/5  |  استعلام الأجهزة في الخلفية  |  DevQueryBroker  |  FSOS
+[--]  1/5  |  عميل DFS (مجلدات الشبكة الموزعة)  |  Dfsc  |  SapphireOS
+[--]  1/5  |  حجب النوافذ  |  DialogBlockingService  |  FSOS
+[OK]  1/5  |  تحسين سطوع الشاشة  |  DisplayEnhancementService  |  SapphireOS
+[--]  1/5  |  إعداد الأجهزة  |  DsmSvc  |  SapphireOS
+[--]  1/5  |  تشفير الملفات EFS  |  EFS  |  FSOS
+[--]  1/5  |  نظام أحداث COM+  |  EventSystem  |  SapphireOS
+[OK]  1/5  |  الفاكس  |  Fax  |  FSOS
+[OK]  1/5  |  سجل الملفات (File History)  |  fhsvc  |  FSOS
+[--]  1/5  |  تتبع الملفات  |  Filetrace  |  SapphireOS
+[--]  1/5  |  ذاكرة الخطوط  |  FontCache  |  SapphireOS
+[OK]  1/5  |  ذاكرة خطوط WPF  |  FontCache3.0.0.0  |  SapphireOS
+[--]  1/5  |  تعريف تشفير BitLocker  |  fvevol  |  SapphireOS
+[--]  1/5  |  أداء الرسوميات (مراقبة)  |  GraphicsPerfSvc  |  XOS
+[--]  1/5  |  تفريغ أعطال Hyper-V  |  hvcrash  |  FSOS
+[--]  1/5  |  معاملات النواة لـ MSDTC  |  KtmRm  |  SapphireOS
+[--]  1/5  |  افتراضية ملفات UAC  |  luafv  |  SapphireOS
+[--]  1/5  |  إدارة MCP (ويندوز 11)  |  McpManagementService  |  XOS
+[--]  1/5  |  Defender الأساسي  |  MDCoreSvc  |  XOS
+[--]  1/5  |  Copilot  |  MicrosoftCopilotElevationService  |  XOS
+[OK]  1/5  |  Edge  |  MicrosoftEdgeElevationService  |  SapphireOS
+[OK]  1/5  |  الواقع المختلط  |  MixedRealityOpenXRSvc  |  SapphireOS
+[OK]  1/5  |  المزامنة (بريد/تقويم)  |  OneSyncSvc  |  SapphireOS
+[OK]  1/5  |  مشاركة ملفات WSL  |  P9RdrService  |  SapphireOS
+[--]  1/5  |  المنفذ المتوازي  |  Parport  |  SapphireOS
+[--]  1/5  |  PCMCIA  |  pcmcia  |  SapphireOS
+[--]  1/5  |  حماية المحتوى (DRM)  |  PEAUTH  |  SapphireOS
+[--]  1/5  |  محاكاة الواقع المختلط  |  perceptionsimulation  |  SapphireOS
+[OK]  1/5  |  الهاتف  |  PhoneSvc  |  SapphireOS
+[--]  1/5  |  إدارة الموارد  |  PRM  |  SapphireOS
+[--]  1/5  |  جودة الصوت والفيديو  |  QWAVEdrv  |  SapphireOS
+[--]  1/5  |  ReadyBoost  |  rdyboost  |  SapphireOS
+[--]  1/5  |  نظام ملفات ReFS  |  ReFS  |  SapphireOS
+[--]  1/5  |  إزالة التكرار ReFS  |  refsdedupsvc  |  SapphireOS
+[--]  1/5  |  نظام ملفات ReFS  |  ReFSv1  |  SapphireOS
+[OK]  1/5  |  الريجستري عن بعد  |  RemoteRegistry  |  FSOS
+[OK]  1/5  |  البطاقات الذكية  |  SCardSvr  |  FSOS
+[OK]  1/5  |  البطاقات الذكية  |  ScDeviceEnum  |  FSOS
+[OK]  1/5  |  الدفع و NFC  |  SEMgrSvc  |  FSOS
+[OK]  1/5  |  المستشعرات  |  SensorDataService  |  SapphireOS
+[OK]  1/5  |  المستشعرات  |  SensorService  |  SapphireOS
+[OK]  1/5  |  مراقبة المستشعرات  |  SensrSvc  |  SapphireOS
+[OK]  1/5  |  حماية وقت التشغيل  |  SgrmAgent  |  FSOS
+[--]  1/5  |  البيانات المكانية  |  SharedRealitySvc  |  SapphireOS
+[OK]  1/5  |  التشغيل التلقائي للأجهزة  |  ShellHWDetection  |  SapphireOS
+[--]  1/5  |  الأجهزة المشتركة  |  shpamsvc  |  FSOS
+[--]  1/5  |  تعريف RAID قديم (SiS)  |  SiSRaid2  |  SapphireOS
+[--]  1/5  |  تعريف RAID قديم (SiS)  |  SiSRaid4  |  SapphireOS
+[--]  1/5  |  الواقع المختلط  |  SpatialGraphFilter  |  SapphireOS
+[OK]  1/5  |  إدراك ويندوز (الواقع المختلط)  |  spectrum  |  SapphireOS
+[--]  1/5  |  فلتر التخزين (Hyper-V)  |  storflt  |  SapphireOS
+[--]  1/5  |  جودة التخزين  |  storqosflt  |  SapphireOS
+[OK]  1/5  |  SysMain (Superfetch)  |  SysMain  |  SapphireOS
+[--]  1/5  |  الاتصالات الهاتفية  |  TapiSrv  |  SapphireOS
+[--]  1/5  |  الثيمات  |  Themes  |  SapphireOS
+[--]  1/5  |  USB عبر سطح المكتب البعيد  |  TsUsbFlt  |  SapphireOS
+[OK]  1/5  |  أدوات Update Health  |  uhssvc  |  FSOS
+[--]  1/5  |  ناقل وضع المستخدم  |  umbus  |  SapphireOS
+[--]  1/5  |  نظام ملفات الحاويات  |  UnionFS  |  SapphireOS
+[OK]  1/5  |  تخزين بيانات المستخدم  |  UnistoreSvc  |  SapphireOS
+[OK]  1/5  |  بيانات المستخدم  |  UserDataSvc  |  SapphireOS
+[OK]  1/5  |  منسق التحديثات  |  UsoSvc  |  SapphireOS
+[--]  1/5  |  الصوت الحجمي  |  VacSvc  |  SapphireOS
+[--]  1/5  |  مدير بيانات الاعتماد  |  VaultSvc  |  SapphireOS
+[--]  1/5  |  تعريف الأقراص الافتراضية  |  vdrvroot  |  SapphireOS
+[--]  1/5  |  تعريف RAID قديم  |  vsmraid  |  SapphireOS
+[--]  1/5  |  النسخ الاحتياطية (Shadow Copy)  |  VSS  |  SapphireOS
+[--]  1/5  |  تعريف RAID قديم  |  VSTXRAID  |  SapphireOS
+[--]  1/5  |  WARP JIT  |  WarpJITSvc  |  SapphireOS
+[--]  1/5  |  أسماء الحاويات  |  wcnfs  |  SapphireOS
+[--]  1/5  |  تشفير التخزين  |  WEPHOSTSVC  |  SapphireOS
+[OK]  1/5  |  تجارب الصحة  |  whesvc  |  FSOS
+[--]  1/5  |  تجارب الصحة  |  whesvcs  |  SapphireOS
+[--]  1/5  |  وقت التشغيل الآمن  |  WindowsTrustedRTProxy  |  SapphireOS
+[--]  1/5  |  تعريف WMI للـ ACPI  |  WmiAcpi  |  SapphireOS
+[OK]  1/5  |  الرقابة الأبوية  |  WPCMonSvc  |  FSOS
+[--]  1/5  |  الأجهزة المحمولة (MTP)  |  WPDBusEnum  |  SapphireOS
+[OK]  1/5  |  مركز الأمان  |  wscsvc  |  XOS
+[OK]  1/5  |  فهرسة البحث  |  WSearch  |  SapphireOS
+[--]  1/5  |  WSL  |  WslService  |  XOS
+[--]  1/5  |  كشف التهديدات (ويندوز 11)  |  wtd  |  XOS
+[--]  1/5  |  Xbox Game Monitoring  |  xbgm  |  FSOS
+[OK]  1/5  |  Xbox Live  |  XblAuthManager  |  FSOS
+[OK]  1/5  |  حفظ ألعاب Xbox  |  XblGameSave  |  FSOS
+[OK]  1/5  |  ملحقات Xbox (يد التحكم)  |  XboxGipSvc  |  FSOS
+[--]  1/5  |  Xbox Live (شبكة)  |  XboxNetApiSvc  |  FSOS
+
+==========================================================================================
+  خدمات وتعريفات محذوفة من النسخة نهائياً   (68)
+==========================================================================================
+[--]  2/5  |  شهادات البطاقة الذكية  |  CertPropSvc  |  LuminV2, SapphireOS
+[--]  2/5  |  -  |  cht4vbd  |  LuminV2, SapphireOS
+[--]  2/5  |  -  |  HidIr  |  LuminV2, SapphireOS
+[--]  2/5  |  البطاقات الذكية  |  SCardSvr  |  LuminV2, SapphireOS
+[--]  2/5  |  البطاقات الذكية  |  ScDeviceEnum  |  LuminV2, SapphireOS
+[--]  2/5  |  البطاقات الذكية  |  scfilter  |  LuminV2, SapphireOS
+[--]  2/5  |  البطاقات الذكية  |  SCPolicySvc  |  LuminV2, SapphireOS
+[--]  2/5  |  الدفع و NFC  |  SEMgrSvc  |  LuminV2, SapphireOS
+[--]  2/5  |  -  |  usbcir  |  LuminV2, SapphireOS
+[--]  1/5  |  المساعد الصوتي  |  AarSvc  |  SapphireOS
+[--]  1/5  |  App-V (تطبيقات افتراضية للشركات)  |  AppVClient  |  SapphireOS
+[--]  1/5  |  App-V  |  AppvStrm  |  SapphireOS
+[--]  1/5  |  App-V  |  AppvVemgr  |  SapphireOS
+[--]  1/5  |  App-V  |  AppvVfs  |  SapphireOS
+[--]  1/5  |  تسجيل وبث الألعاب (Game DVR)  |  BcastDVRUserService  |  LuminV2
+[--]  1/5  |  ملفات السحابة (OneDrive عند الطلب)  |  CldFlt  |  LuminV2
+[--]  1/5  |  -  |  CmBatt  |  LuminV2
+[--]  1/5  |  تعريف الملفات دون اتصال  |  CSC  |  SapphireOS
+[--]  1/5  |  الملفات دون اتصال  |  CscService  |  SapphireOS
+[--]  1/5  |  مدير نشاط سطح المكتب (الاستعداد الحديث)  |  dam  |  SapphireOS
+[--]  1/5  |  -  |  dcsvc  |  LuminV2
+[--]  1/5  |  حجب النوافذ  |  DialogBlockingService  |  SapphireOS
+[--]  1/5  |  تحديث Edge  |  edgeupdate  |  LuminV2
+[--]  1/5  |  تحديث Edge  |  edgeupdatem  |  LuminV2
+[--]  1/5  |  -  |  EhStorClass  |  SapphireOS
+[--]  1/5  |  -  |  EhStorTcgDrv  |  SapphireOS
+[--]  1/5  |  -  |  embeddedmode  |  SapphireOS
+[--]  1/5  |  -  |  EntAppSvc  |  LuminV2
+[--]  1/5  |  تعريف الفلوبي  |  fdc  |  LuminV2
+[--]  1/5  |  تعريف الفلوبي  |  flpydisk  |  LuminV2
+[--]  1/5  |  أداء الرسوميات (مراقبة)  |  GraphicsPerfSvc  |  SapphireOS
+[--]  1/5  |  -  |  HidBatt  |  LuminV2
+[--]  1/5  |  -  |  IPT  |  SapphireOS
+[--]  1/5  |  -  |  kbldfltr  |  SapphireOS
+[--]  1/5  |  الموقع الجغرافي  |  lfsvc  |  LuminV2
+[--]  1/5  |  مدير الخرائط  |  MapsBroker  |  LuminV2
+[--]  1/5  |  -  |  MbbCx  |  SapphireOS
+[--]  1/5  |  إدارة MCP (ويندوز 11)  |  McpManagementService  |  SapphireOS
+[--]  1/5  |  المودم  |  Modem  |  SapphireOS
+[--]  1/5  |  فلتر الكيبورد (Kiosk)  |  MsKeyboardFilter  |  SapphireOS
+[--]  1/5  |  -  |  NDKPing  |  LuminV2
+[--]  1/5  |  محاكاة الواقع المختلط  |  perceptionsimulation  |  LuminV2
+[--]  1/5  |  الهاتف  |  PhoneSvc  |  LuminV2
+[--]  1/5  |  الطباعة (سير العمل)  |  PrintWorkflowUserSvc  |  SapphireOS
+[--]  1/5  |  -  |  PushToInstall  |  LuminV2
+[--]  1/5  |  -  |  rdpbus  |  SapphireOS
+[--]  1/5  |  -  |  RDPDR  |  SapphireOS
+[--]  1/5  |  -  |  RpcLocator  |  SapphireOS
+[--]  1/5  |  -  |  SDRSVC  |  SapphireOS
+[--]  1/5  |  تعريف الفلوبي  |  sfloppy  |  LuminV2
+[--]  1/5  |  -  |  smbdirect  |  SapphireOS
+[--]  1/5  |  -  |  SmsRouter  |  SapphireOS
+[--]  1/5  |  -  |  spaceport  |  SapphireOS
+[--]  1/5  |  وكيل SSH  |  ssh-agent  |  SapphireOS
+[--]  1/5  |  الاتصالات الهاتفية  |  TapiSrv  |  LuminV2
+[--]  1/5  |  -  |  terminpt  |  SapphireOS
+[--]  1/5  |  مستكشف الأخطاء الموصى به  |  TroubleshootingSvc  |  LuminV2
+[--]  1/5  |  -  |  TsUsbGD  |  SapphireOS
+[--]  1/5  |  -  |  tsusbhub  |  SapphireOS
+[--]  1/5  |  -  |  UevAgentDriver  |  SapphireOS
+[--]  1/5  |  مزامنة إعدادات المستخدم UE-V  |  UevAgentService  |  SapphireOS
+[--]  1/5  |  تعريف طابعات USB  |  usbprint  |  SapphireOS
+[--]  1/5  |  -  |  wbengine  |  SapphireOS
+[--]  1/5  |  البصمة / الوجه  |  WbioSrvc  |  SapphireOS
+[--]  1/5  |  Windows Insider  |  wisvc  |  LuminV2
+[--]  1/5  |  Xbox Live  |  XblAuthManager  |  LuminV2
+[--]  1/5  |  حفظ ألعاب Xbox  |  XblGameSave  |  LuminV2
+[--]  1/5  |  Xbox Live (شبكة)  |  XboxNetApiSvc  |  LuminV2
+
+==========================================================================================
+  المهام المجدولة المطفأة   (122)
+==========================================================================================
+[OK]  2/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Driver Install  |  FSOS, XOS
+[OK]  2/5  |  Defender  |  \Microsoft\Windows\Windows Defender\Windows Defender Cache Maintenance  |  FSOS, XOS
+[OK]  2/5  |  Defender  |  \Microsoft\Windows\Windows Defender\Windows Defender Cleanup  |  FSOS, XOS
+[OK]  2/5  |  Defender  |  \Microsoft\Windows\Windows Defender\Windows Defender Scheduled Scan  |  FSOS, XOS
+[OK]  2/5  |  Defender  |  \Microsoft\Windows\Windows Defender\Windows Defender Verification  |  FSOS, XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\AccountHealth\RecoverabilityToastTask  |  XOS
+[OK]  1/5  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\MareBackup  |  XOS
+[OK]  1/5  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser  |  XOS
+[OK]  1/5  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser Exp  |  XOS
+[OK]  1/5  |  تليمتري توافق البرامج  |  \Microsoft\Windows\Application Experience\ProgramDataUpdater  |  XOS
+[OK]  1/5  |  تليمتري الإقلاع  |  \Microsoft\Windows\Autochk\Proxy  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\CloudRestore\Backup  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\CloudRestore\Restore  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\CrossDevice\CleanupResumeTimelineData  |  FSOS
+[OK]  1/5  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\BthSQM  |  XOS
+[OK]  1/5  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\Consolidator  |  XOS
+[OK]  1/5  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask  |  XOS
+[OK]  1/5  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\Server\ServerCeipAssistant  |  XOS
+[OK]  1/5  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\Server\ServerRoleCollector  |  XOS
+[OK]  1/5  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\Server\ServerRoleUsageCollector  |  XOS
+[OK]  1/5  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\Uploader  |  XOS
+[OK]  1/5  |  تحسين تجربة العملاء (تليمتري)  |  \Microsoft\Windows\Customer Experience Improvement Program\UsbCeip  |  XOS
+[--]  1/5  |  فحص سلامة البيانات  |  \Microsoft\Windows\Data Integrity Scan\Data Integrity Check And Scan  |  XOS
+[--]  1/5  |  فحص سلامة البيانات  |  \Microsoft\Windows\Data Integrity Scan\Data Integrity Scan  |  XOS
+[--]  1/5  |  فحص سلامة البيانات  |  \Microsoft\Windows\Data Integrity Scan\Data Integrity Scan for Crash Recovery  |  XOS
+[OK]  1/5  |  التشخيص  |  \Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner  |  XOS
+[OK]  1/5  |  التشخيص  |  \Microsoft\Windows\Diagnosis\Scheduled  |  XOS
+[OK]  1/5  |  التشخيص  |  \Microsoft\Windows\Diagnosis\UnexpectedCodepath  |  XOS
+[OK]  1/5  |  تشخيص القرص  |  \Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector  |  XOS
+[--]  1/5  |  تشخيص القرص  |  \Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticResolver  |  XOS
+[OK]  1/5  |  تحليل مساحة القرص  |  \Microsoft\Windows\DiskFootprint\Diagnostics  |  XOS
+[--]  1/5  |  Exploit Guard  |  \Microsoft\Windows\ExploitGuard\ExploitGuard MDM policy Refresh  |  XOS
+[OK]  1/5  |  الملاحظات  |  \Microsoft\Windows\Feedback\Siuf\DmClient  |  XOS
+[OK]  1/5  |  الملاحظات  |  \Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\FileHistory\File History (maintenance mode)  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\Hotpatch\Monitoring  |  XOS
+[--]  1/5  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\RestoreDevice  |  XOS
+[--]  1/5  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\ScanForUpdates  |  XOS
+[--]  1/5  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\ScanForUpdatesAsUser  |  XOS
+[--]  1/5  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\SmartRetry  |  XOS
+[--]  1/5  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\WakeUpAndContinueUpdates  |  XOS
+[--]  1/5  |  تحديث تطبيقات المتجر  |  \Microsoft\Windows\InstallService\WakeUpAndScanForUpdates  |  XOS
+[OK]  1/5  |  الصيانة  |  \Microsoft\Windows\Maintenance\WinSAT  |  XOS
+[OK]  1/5  |  الخرائط  |  \Microsoft\Windows\Maps\MapsToastTask  |  XOS
+[--]  1/5  |  فحص الذاكرة  |  \Microsoft\Windows\MemoryDiagnostic\AutomaticOfflineMemoryDiagnostic  |  XOS
+[--]  1/5  |  فحص الذاكرة  |  \Microsoft\Windows\MemoryDiagnostic\ProcessMemoryDiagnosticEvents  |  XOS
+[--]  1/5  |  فحص الذاكرة  |  \Microsoft\Windows\MemoryDiagnostic\RunFullMemoryDiagnostic  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\PerformanceTrace\RequestTrace  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\PerformanceTrace\WhesvcToast  |  XOS
+[OK]  1/5  |  تشخيص الطاقة  |  \Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem  |  XOS
+[--]  1/5  |  الطباعة  |  \Microsoft\Windows\Printing\EduPrintProv  |  XOS
+[--]  1/5  |  الطباعة  |  \Microsoft\Windows\Printing\PrinterCleanupTask  |  XOS
+[--]  1/5  |  الطباعة  |  \Microsoft\Windows\Printing\PrintJobCleanupTask  |  XOS
+[--]  1/5  |  نسخ الريجستري الاحتياطي  |  \Microsoft\Windows\Registry\RegIdleBackup  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\RemoteAssistance\RemoteAssistanceTask  |  XOS
+[OK]  1/5  |  وضع العرض  |  \Microsoft\Windows\RetailDemo\CleanupOfflineContent  |  XOS
+[--]  1/5  |  مزامنة الإعدادات  |  \Microsoft\Windows\SettingSync\BackgroundUploadTask  |  XOS
+[--]  1/5  |  مزامنة الإعدادات  |  \Microsoft\Windows\SettingSync\NetworkStateChangeTask  |  XOS
+[OK]  1/5  |  الواجهة (Shell)  |  \Microsoft\Windows\Shell\FamilySafetyMonitor  |  XOS
+[OK]  1/5  |  الواجهة (Shell)  |  \Microsoft\Windows\Shell\FamilySafetyRefreshTask  |  XOS
+[--]  1/5  |  استهلاك الطاقة  |  \Microsoft\Windows\Sustainability\PowerGridForecastTask  |  XOS
+[--]  1/5  |  استهلاك الطاقة  |  \Microsoft\Windows\Sustainability\SustainabilityTelemetry  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\SystemUptime\Resume on Boot  |  FSOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\AC Power Download  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\AC Power Install  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Backup Scan  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Battery Saver Deferred Install  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Maintenance Install  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\MusUx_LogonUpdateResults  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\MusUx_UpdateInterval  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Policy Install  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Reboot  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Reboot_AC  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Reboot_Battery  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Refresh Settings  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Report policies  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Resume On Boot  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Maintenance Work  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Retry Scan  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Scan  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Scan Static Task  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Wake To Work  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Schedule Work  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Start Oobe Expedite Work  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\StartOobeAppsScan  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\StartOobeAppsScan_LicenseAccepted  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\StartOobeAppsScan_OobeAppReady  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UIEOrchestrator  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Universal Orchestrator Idle Start  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\Universal Orchestrator Start  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UpdateAssistant  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UpdateAssistantAllUsersRun  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UpdateAssistantCalendarRun  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UpdateAssistantWakeupRun  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UpdateModelTask  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\USO_Broker_Display  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\USO_UxBroker_Display  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\USO_UxBroker_ReadyToReboot  |  XOS
+[OK]  1/5  |  منسق التحديثات  |  \Microsoft\Windows\UpdateOrchestrator\UUS Failover Task  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\UsageAndQualityInsights\UsageAndQualityInsights-MaintenanceTask  |  XOS
+[OK]  1/5  |  Update Medic  |  \Microsoft\Windows\WaaSMedic\PerformRemediation  |  XOS
+[--]  1/5  |  التشخيص  |  \Microsoft\Windows\WDI\ResolutionHost  |  XOS
+[OK]  1/5  |  تقارير الأخطاء  |  \Microsoft\Windows\Windows Error Reporting\QueueReporting  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\WindowsAI\ClickToDo\ModelCachingIdle  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\WindowsAI\ClickToDo\ModelCachingLimit  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\WindowsAI\ClickToDo\ModelCachingUpdate  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\WindowsAI\Recall\PolicyConfiguration  |  XOS
+[--]  1/5  |  -  |  \Microsoft\Windows\WindowsAI\Settings\InitialConfiguration  |  XOS
+[OK]  1/5  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\AUScheduledInstall  |  XOS
+[OK]  1/5  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\AUSessionConnect  |  XOS
+[OK]  1/5  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\Automatic App Update  |  XOS
+[OK]  1/5  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\RUXIM\PLUGScheduler  |  XOS
+[OK]  1/5  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\Scheduled Start  |  XOS
+[OK]  1/5  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\Scheduled Start With Network  |  XOS
+[OK]  1/5  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\sih  |  XOS
+[OK]  1/5  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\sihboot  |  XOS
+[OK]  1/5  |  Windows Update  |  \Microsoft\Windows\WindowsUpdate\sihpostreboot  |  XOS
+[--]  1/5  |  -  |  \Microsoft\XblGameSave\XblGameSaveTask  |  FSOS
+[--]  1/5  |  -  |  \MicrosoftEdgeUpdateTaskMachineCore  |  XOS
+[--]  1/5  |  -  |  \MicrosoftEdgeUpdateTaskMachineUA  |  XOS
+[--]  1/5  |  -  |  \StartOobeAppsScanAfterUpdate  |  XOS
+[--]  1/5  |  -  |  \UCPD velocity  |  XOS
+
+==========================================================================================
+  تطبيقات المتجر المحذوفة   (44)
+==========================================================================================
+[OK]  4/5  |  Clipchamp (مونتاج)  |  Clipchamp.Clipchamp  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  Cortana  |  Microsoft.549981C3F5F10  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  الأخبار  |  Microsoft.BingNews  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  الطقس  |  Microsoft.BingWeather  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  احصل على مساعدة  |  Microsoft.GetHelp  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  التلميحات  |  Microsoft.Getstarted  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  Office / Microsoft 365  |  Microsoft.MicrosoftOfficeHub  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  لعبة سوليتير  |  Microsoft.MicrosoftSolitaireCollection  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  الملاحظات اللاصقة  |  Microsoft.MicrosoftStickyNotes  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  Outlook الجديد  |  Microsoft.OutlookForWindows  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  جهات الاتصال  |  Microsoft.People  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  Power Automate  |  Microsoft.PowerAutomateDesktop  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  تطبيق أمن ويندوز  |  Microsoft.SecHealthUI  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  To Do  |  Microsoft.Todos  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  Dev Home  |  Microsoft.Windows.DevHome  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  البريد والتقويم  |  microsoft.windowscommunicationsapps  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  مركز الملاحظات  |  Microsoft.WindowsFeedbackHub  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  الخرائط  |  Microsoft.WindowsMaps  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  مسجل الصوت  |  Microsoft.WindowsSoundRecorder  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  Xbox Game Bar  |  Microsoft.XboxGamingOverlay  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  Xbox تحويل الصوت لنص  |  Microsoft.XboxSpeechToTextOverlay  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  Family  |  MicrosoftCorporationII.MicrosoftFamily  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  المساعدة السريعة  |  MicrosoftCorporationII.QuickAssist  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  4/5  |  Teams  |  MSTeams  |  FSOS, LuminV2, SapphireOS, XdzlOS
+[OK]  3/5  |  فيديو AV1  |  Microsoft.AV1VideoExtension  |  LuminV2, SapphireOS, XdzlOS
+[OK]  3/5  |  تطبيق Xbox  |  Microsoft.GamingApp  |  FSOS, LuminV2, XdzlOS
+[OK]  3/5  |  فيديو MPEG-2  |  Microsoft.MPEG2VideoExtension  |  LuminV2, SapphireOS, XdzlOS
+[OK]  3/5  |  المنبه والساعة  |  Microsoft.WindowsAlarms  |  FSOS, SapphireOS, XdzlOS
+[OK]  3/5  |  الكاميرا  |  Microsoft.WindowsCamera  |  FSOS, SapphireOS, XdzlOS
+[OK]  3/5  |  Xbox (واجهة)  |  Microsoft.Xbox.TCUI  |  FSOS, LuminV2, XdzlOS
+[OK]  3/5  |  الأفلام والتلفزيون  |  Microsoft.ZuneVideo  |  FSOS, SapphireOS, XdzlOS
+[OK]  2/5  |  فيديو HEVC  |  Microsoft.HEVCVideoExtension  |  SapphireOS, XdzlOS
+[OK]  2/5  |  صور RAW  |  Microsoft.RawImageExtension  |  SapphireOS, XdzlOS
+[OK]  2/5  |  الآلة الحاسبة  |  Microsoft.WindowsCalculator  |  SapphireOS, XdzlOS
+[--]  2/5  |  متجر مايكروسوفت  |  Microsoft.WindowsStore  |  FSOS, LuminV2
+[OK]  2/5  |  Terminal  |  Microsoft.WindowsTerminal  |  SapphireOS, XdzlOS
+[--]  2/5  |  تسجيل دخول Xbox  |  Microsoft.XboxIdentityProvider  |  FSOS, LuminV2
+[OK]  2/5  |  Phone Link  |  Microsoft.YourPhone  |  LuminV2, SapphireOS
+[OK]  2/5  |  الموسيقى / Media Player  |  Microsoft.ZuneMusic  |  FSOS, SapphireOS
+[OK]  1/5  |  الرسام  |  Microsoft.Paint  |  XdzlOS
+[--]  1/5  |  الشراء من المتجر  |  Microsoft.StorePurchaseApp  |  LuminV2
+[OK]  1/5  |  امتدادات الوسائط  |  Microsoft.WebMediaExtensions  |  SapphireOS
+[OK]  1/5  |  الصور  |  Microsoft.Windows.Photos  |  XdzlOS
+[OK]  1/5  |  الويدجت  |  MicrosoftWindows.Client.WebExperience  |  SapphireOS
+
+==========================================================================================
+  مكونات ويندوز المحذوفة   (10)
+==========================================================================================
+[OK]  1/5  |  -  |  Edge WebView2  |  SapphireOS
+[OK]  1/5  |  -  |  Internet Explorer  |  LuminV2
+[--]  1/5  |  -  |  Narrator / الراوي  |  SapphireOS
+[OK]  1/5  |  -  |  PowerShell ISE  |  SapphireOS
+[--]  1/5  |  -  |  Windows-Defender-Default-Definitions  |  FSOS
+[OK]  1/5  |  -  |  الكلام / Speech  |  SapphireOS
+[--]  1/5  |  -  |  المكبّر Magnifier  |  SapphireOS
+[--]  1/5  |  -  |  برنامج الطباعة Spooler  |  SapphireOS
+[--]  1/5  |  -  |  تطبيق أمن ويندوز (Windows Security)  |  SapphireOS
+[--]  1/5  |  -  |  لوحة المفاتيح على الشاشة OSK  |  SapphireOS
+
