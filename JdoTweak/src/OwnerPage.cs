@@ -68,17 +68,6 @@ namespace JdoTweak
             rel.Children.Add(rbtn);
             rel.Children.Add(rstatus);
             sp.Children.Add(UI.Card(rel, 22));
-            sp.Children.Add(UI.Gap(14));
-
-            // users & keys live on the website admin
-            var web = new DockPanel();
-            var open = UI.IconBtn("", L.T("openAdmin"), "Ghost", (o, e) => { try { System.Diagnostics.Process.Start(App.Website + "/admin"); } catch { } });
-            DockPanel.SetDock(open, Dock.Right); web.Children.Add(open);
-            var wt = new StackPanel();
-            wt.Children.Add(UI.Text(L.T("usersKeys"), 15, "Text", true));
-            wt.Children.Add(UI.Text(L.T("usersKeysD"), 12.5, "Muted"));
-            web.Children.Add(wt);
-            sp.Children.Add(UI.Card(web));
             return Page(sp);
         }
 

@@ -375,6 +375,26 @@ app.post('/api/client/confirm', authLimit, (req, res) => {
   res.json({ ok: true });
 });
 
+// Forgotten password from the app: code to the email, then a new password. Same answer whether
+// the email exists or not, so accounts can't be probed.
+app.post('/api/client/forgot', authLimit, codeLimit, async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  if (!emailOk(email)) return res.status(400).json({ ok: false, error: 'email' });
+  if (db.prepare('SELECT 1 FROM users WHERE email = ?').get(email)) await sendCode(email, 'reset');
+  res.json({ ok: true });
+});
+
+app.post('/api/client/reset', authLimit, async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  if (!passOk(req.body.password)) return res.status(400).json({ ok: false, error: 'password' });
+  if (!checkCode(email, 'reset', req.body.code)) return res.status(400).json({ ok: false, error: 'code' });
+  const u = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+  if (!u) return res.status(400).json({ ok: false, error: 'code' });
+  db.prepare('UPDATE users SET pass_hash = ?, verified = 1 WHERE id = ?').run(await bcrypt.hash(req.body.password, 12), u.id);
+  db.prepare('DELETE FROM sessions WHERE user_id = ?').run(u.id);   // sign out everywhere
+  res.json({ ok: true });
+});
+
 app.post('/api/client/resend', authLimit, codeLimit, async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();
   const u = db.prepare('SELECT verified FROM users WHERE email = ?').get(email);

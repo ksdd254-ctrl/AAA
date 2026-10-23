@@ -93,7 +93,7 @@ namespace JdoTweak
 
             if (locked)
             {
-                var up = UI.IconBtn("", L.T("upgrade"), "Ghost", (o, e) => { try { System.Diagnostics.Process.Start(App.Website + "/#plans"); } catch { } });
+                var up = UI.IconBtn("", L.T("upgrade"), "Ghost", (o, e) => UI.Ask(Window.GetWindow((DependencyObject)o), L.T("upgrade"), L.T("upgradeHow"), false));
                 up.HorizontalAlignment = HorizontalAlignment.Left; up.Margin = new Thickness(0, 12, 0, 0);
                 sp.Children.Add(up);
             }
@@ -141,7 +141,7 @@ namespace JdoTweak
                     if (string.IsNullOrEmpty(url)) { UI.Ask(win, L.T("liteWin"), L.T("liteSoon"), false); return; }
                     try { System.Diagnostics.Process.Start(url); } catch { }
                 })
-                : UI.IconBtn("", L.T("upgrade"), "Ghost", (o, e) => { try { System.Diagnostics.Process.Start(App.Website + "/#plans"); } catch { } });
+                : UI.IconBtn("", L.T("upgrade"), "Ghost", (o, e) => UI.Ask(Window.GetWindow((DependencyObject)o), L.T("upgrade"), L.T("upgradeHow"), false));
             b.HorizontalAlignment = HorizontalAlignment.Left; b.Margin = new Thickness(0, 18, 0, 0);
             sp.Children.Add(b);
             var box = UI.Card(sp, 22);

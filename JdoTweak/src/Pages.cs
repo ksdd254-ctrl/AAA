@@ -283,7 +283,7 @@ namespace JdoTweak
             btns.Children.Add(UI.IconBtn("", L.T("copyHwid"), "Ghost", (o, e) => { try { Clipboard.SetText(hw.Hwid()); } catch { } }));
             var rp = UI.IconBtn("", L.T("refreshPlan"), "Ghost", async (o, e) => await RefreshPlan((Button)o));
             rp.Margin = new Thickness(10, 0, 0, 0); btns.Children.Add(rp);
-            var up = UI.IconBtn("", L.T("upgrade"), "Primary", (o, e) => { try { System.Diagnostics.Process.Start(App.Website + "/#plans"); } catch { } });
+            var up = UI.IconBtn("", L.T("upgrade"), "Primary", (o, e) => UI.Ask(Window.GetWindow((DependencyObject)o), L.T("upgrade"), L.T("upgradeHow"), false));
             up.Margin = new Thickness(10, 0, 0, 0); btns.Children.Add(up);
             var lo = UI.IconBtn("", L.T("logout"), "Ghost", (o, e) => { License.Logout(); App.SwitchTo(new LoginWindow(), this); });
             lo.Margin = new Thickness(10, 0, 0, 0); btns.Children.Add(lo);

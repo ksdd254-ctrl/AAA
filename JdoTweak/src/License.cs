@@ -139,6 +139,16 @@ namespace JdoTweak
             return ErrorOf(Post("/api/client/confirm", new Dictionary<string, object> { { "email", email }, { "code", code } }));
         }
 
+        public static string Forgot(string email)
+        {
+            return ErrorOf(Post("/api/client/forgot", new Dictionary<string, object> { { "email", email } }));
+        }
+
+        public static string Reset(string email, string code, string password)
+        {
+            return ErrorOf(Post("/api/client/reset", new Dictionary<string, object> { { "email", email }, { "code", code }, { "password", password } }));
+        }
+
         public static void Resend(string email)
         {
             Post("/api/client/resend", new Dictionary<string, object> { { "email", email } });

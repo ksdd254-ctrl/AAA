@@ -55,5 +55,16 @@ Check 'invalid plan number refused' ((Post '/api/owner/plan' @{ token = $o.token
 $me = ($list.users | Where-Object role -eq 'owner') ; if (-not $me) { $me = (Post '/api/owner/users' @{ token = $o.token; q = $env:E2E_OWNER_EMAIL }).users[0] }
 Check 'admin account plan cannot be changed' ((Post '/api/owner/plan' @{ token = $o.token; userId = $me.id; tier = 0 }).error -eq 'owner')
 
+# --- forgotten password from the app
+Check 'forgot sends a code' ((Post '/api/client/forgot' @{ email = $email }).ok)
+Check 'unknown email gets the same answer' ((Post '/api/client/forgot' @{ email = 'nobody@test.local' }).ok)
+Check 'reset refuses a wrong code' ((Post '/api/client/reset' @{ email = $email; code = '000000'; password = 'NewPass456!' }).error -eq 'code')
+$rc = LastCode $email
+Check 'reset refuses a short password' ((Post '/api/client/reset' @{ email = $email; code = $rc; password = 'short' }).error -eq 'password')
+Check 'reset with the right code' ((Post '/api/client/reset' @{ email = $email; code = $rc; password = 'NewPass456!' }).ok)
+Check 'old sessions are signed out' ((Post '/api/client/verify' @{ token = $c.token; hwid = 'PC-1' }).error -eq 'credentials')
+Check 'old password no longer works' ((Post '/api/client/login' @{ email = $email; password = $pw; hwid = 'PC-1' }).error -eq 'credentials')
+Check 'new password works' ((Post '/api/client/login' @{ email = $email; password = 'NewPass456!'; hwid = 'PC-1' }).ok)
+
 Write-Host "`nPASS $pass  FAIL $fail"
 exit $fail

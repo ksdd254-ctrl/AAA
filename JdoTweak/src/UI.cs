@@ -215,7 +215,7 @@ namespace JdoTweak
             sp.Children.Add(link);
             var forgot = UI.Text(L.T("forgotPass"), 12.5, "Muted");
             forgot.HorizontalAlignment = HorizontalAlignment.Center; forgot.Margin = new Thickness(0, 10, 0, 0); forgot.Cursor = Cursors.Hand;
-            forgot.MouseLeftButtonUp += (o, e) => { try { System.Diagnostics.Process.Start(App.Website + "/account"); } catch { } };
+            forgot.MouseLeftButtonUp += (o, e) => App.SwitchTo(new ResetWindow(), this);
             sp.Children.Add(forgot);
 
             var lang = UI.Text(L.Ar ? "English" : "عربي", 12.5, "Muted");
