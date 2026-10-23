@@ -50,3 +50,7 @@ desktop.ini
 
 # ---------- Lite Windows VM live view (tools/litewin/vmtest/vm-live.ps1) ----------
 tools/litewin/vmtest/live/
+
+# ---------- shareable copy of the app (rebuilt) ----------
+Release/share/*.exe
+Release/*.zip
