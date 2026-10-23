@@ -17,6 +17,20 @@ if (-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
   Start-Process powershell.exe -Verb RunAs -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`""
   return
 }
+# second pass, after a restart: the real idle numbers (no installers, no Store updates running) -> C:\JDO-TEST\idle.txt
+if (Test-Path "$out\idle-pass") {
+  Remove-Item "$out\idle-pass" -Force
+  Start-Sleep -Seconds 300   # 5 min: start-up jobs (licence refresh, Store, COM hosts) are over
+  # runonce.exe is this check's own launcher (RunOnce): not counted
+  $p = Get-Process | Where-Object { $_.Id -ne 0 -and $_.Id -ne $PID -and $_.Name -notin 'powershell', 'conhost', 'runonce' }
+  $os2 = Get-CimInstance Win32_OperatingSystem
+  $lines = @("idle after restart  $(Get-Date -Format s)", "processes: $($p.Count)",
+             ('RAM in use: {0:N0} MB' -f (($os2.TotalVisibleMemorySize - $os2.FreePhysicalMemory) / 1KB)),
+             ('  ' + (($p | Sort-Object Name | ForEach-Object { $_.Name }) -join ', ')), '--- svchost groups ---')
+  $lines += & tasklist.exe /svc /fi 'imagename eq svchost.exe'
+  Set-Content "$out\idle.txt" $lines
+  return
+}
 $win11 = [Environment]::OSVersion.Version.Build -ge 22000
 function Say([string]$t) { Add-Content -LiteralPath $rep -Value $t -Encoding UTF8 }
 function Check([string]$name, [bool]$ok, [string]$detail = '') { Say ("{0}  {1}  {2}" -f $(if ($ok) { 'PASS' } else { 'FAIL' }), $name, $detail) }
@@ -98,6 +112,7 @@ foreach ($e in 'notepad.exe', 'cmd.exe', 'taskmgr.exe', 'regedit.exe', 'mmc.exe'
 # side-by-side assemblies: a program that needs common controls v6 / GDI+ must start
 $p = Start-Process taskmgr.exe -PassThru; Start-Sleep 5; Check 'Task Manager opens (common controls v6)' (-not $p.HasExited); Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
 $p = Start-Process mmc.exe -ArgumentList 'devmgmt.msc' -PassThru; Start-Sleep 8; Check 'Device Manager opens (MMC)' (-not $p.HasExited); Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+try { Start-Process 'ms-settings:' ; Start-Sleep -Seconds 60; $sp = Get-Process SystemSettings -ErrorAction SilentlyContinue; Check 'Settings opens' ([bool]$sp); $sp | Stop-Process -Force -ErrorAction SilentlyContinue } catch { Check 'Settings opens' $false $_.Exception.Message }
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing
 try { $b = New-Object System.Drawing.Bitmap 10, 10; $b.Dispose(); Check '.NET + GDI+ work' $true } catch { Check '.NET + GDI+ work' $false $_.Exception.Message }
 
@@ -121,8 +136,8 @@ if (Get-AppxPackage -Name Microsoft.WindowsStore) {
   Get-Process WinStore.App -ErrorAction SilentlyContinue | Stop-Process -Force
 }
 # 19 then 18: the Store ends up installed, as the image ships it
-try { Remove-Store *> $null; Check 'tool 19: Store removed' (-not (Get-AppxPackage -Name Microsoft.WindowsStore)) } catch { Check 'tool 19' $false $_.Exception.Message }
-try { Install-Store *> $null; $s = [bool](Get-AppxPackage -Name Microsoft.WindowsStore); Check 'tool 18: Store comes back from C:\JDO\Store' $s } catch { Check 'tool 18' $false $_.Exception.Message }
+try { Remove-Store *> $null; Check 'tool 19: Store removed (Windows 11: switched off)' $(if ($win11) { (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\InstallService').Start -eq 4 } else { -not (Get-AppxPackage -Name Microsoft.WindowsStore) }) } catch { Check 'tool 19' $false $_.Exception.Message }
+try { Install-Store *> 'C:\JDO-TEST\tool18.txt'; $s = [bool](Get-AppxPackage -Name Microsoft.WindowsStore); Check 'tool 18: Store comes back from C:\JDO\Store' $s } catch { Check 'tool 18' $false $_.Exception.Message }
 
 # ---------- 6. errors logged since setup ----------
 Say '== 6. errors in the event logs'
@@ -146,3 +161,8 @@ Say "RESULT: $passes passed, $fails failed"
 Copy-Item $rep (Join-Path $here 'report.txt') -Force -ErrorAction SilentlyContinue
 # the VM stays on: the report is read from its disk while it runs, so more checks / fixes can follow
 Set-Content -LiteralPath (Join-Path $out 'done.txt') -Value (Get-Date -Format s)
+# then one restart for the idle numbers (second pass above)
+Set-Content "$out\idle-pass" '1'
+Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' 'JDO VM idle' "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $out\vm-check.ps1"
+Copy-Item $MyInvocation.MyCommand.Path "$out\vm-check.ps1" -Force -ErrorAction SilentlyContinue
+& shutdown.exe /r /t 20

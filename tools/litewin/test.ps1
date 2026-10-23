@@ -36,7 +36,9 @@ foreach ($h in 'T_LSYS', 'T_LSW', 'T_LUSR', 'T_SSYS', 'T_SSW') {
 }
 if (-not $NoApply) {
 foreach ($d in $lite, $stock) {
-  if (Test-Path $d) { & cmd.exe /c rd /s /q "`"$d`"" }
+  # Windows 11 app folders go past 260 characters (Widgets node_modules): the \\?\ form and an empty robocopy mirror reach them
+  if (Test-Path -LiteralPath $d) { & cmd.exe /c rd /s /q "`"\\?\$d`"" 2>$null }
+  if (Test-Path -LiteralPath $d) { $e = Join-Path $Work 'test\empty'; New-Item -ItemType Directory -Force $e | Out-Null; & robocopy.exe $e $d /MIR /NFL /NDL /NJH /NJS /R:0 /W:0 | Out-Null; & cmd.exe /c rd /s /q "`"\\?\$d`"" 2>$null; & cmd.exe /c rd /s /q "`"$e`"" }
   if (Test-Path $d) { throw "could not clear $d (a file in it is still open)" }
   New-Item -ItemType Directory -Force $d | Out-Null
 }
@@ -99,7 +101,7 @@ try {
     Check "service $s" ($d.Count -eq 0) ($d -join '; ')
   }
   foreach ($k in 'Control\Network', 'Control\NetworkSetup2', 'Control\Nsi') {
-    $d = Same "$LiteCS\$k" "$StockCS\$k"; Check $k ($d.Count -eq 0) ($d -join '; ')
+    $d = @(Same "$LiteCS\$k" "$StockCS\$k" | Where-Object { $_ -notmatch '^\\NewNetworkWindowOff\\' }); Check $k ($d.Count -eq 0) ($d -join '; ')   # NewNetworkWindowOff: hides the 'discoverable?' question only
   }
   foreach ($k in 'Policies\Microsoft\Windows\DeliveryOptimization', 'Policies\Microsoft\WindowsFirewall', 'Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator',
                  'Policies\Microsoft\Windows\WcmSvc', 'Policies\Microsoft\Windows NT\DNSClient', 'Microsoft\Windows\CurrentVersion\Internet Settings',
@@ -241,10 +243,10 @@ try {
   Check 'Time Broker on demand' ((Get-ItemProperty "$LiteCS\Services\TimeBrokerSvc").Start -eq 3)
   Check 'Appinfo on demand (Run as administrator)' ((Get-ItemProperty "$LiteCS\Services\Appinfo").Start -eq 3)
   foreach ($s in 'WinDefend', 'DiagTrack', 'SysMain', 'WSearch', 'WpnService', 'bthserv', 'Spooler') {
-    Check "$s disabled" ((Get-ItemProperty "$LiteCS\Services\$s" -ErrorAction SilentlyContinue).Start -eq 4)
+    $p = Get-ItemProperty "$LiteCS\Services\$s" -ErrorAction SilentlyContinue; Check "$s disabled or removed" ($null -eq $p -or $p.Start -eq 4)
   }
   foreach ($s in 'AppXSvc', 'ClipSVC', 'StateRepository', 'TokenBroker', 'LicenseManager', 'BITS', 'CryptSvc', 'Winmgmt',
-                 'EventLog', 'Audiosrv', 'AudioEndpointBuilder', 'TabletInputService', 'FrameServer') {
+                 'EventLog', 'Audiosrv', 'AudioEndpointBuilder', $(if ($Win11) { 'TextInputManagementService' } else { 'TabletInputService' }), 'FrameServer') {
     $st = (Get-ItemProperty "$LiteCS\Services\$s" -ErrorAction SilentlyContinue).Start
     Check "$s can start (Start=$st)" ($st -in 2, 3)
   }

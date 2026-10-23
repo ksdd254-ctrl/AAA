@@ -103,7 +103,10 @@ if (Test-Path $braveExe) {
   Ok 'Brave is light'
   $startLnk = Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\Brave.lnk'
   if (-not (Test-Path $startLnk)) { Copy-Item $lnk $startLnk -Force }
-  if (Pin-Taskbar $startLnk) { Ok 'Brave on the taskbar' } else { Bad 'Brave not pinned' 'right-click Brave on the desktop > Pin to taskbar' }
+  [void](Pin-Taskbar $startLnk)
+  # checked, not assumed: Windows 11 does not let scripts pin (the VM test caught a false OK there) - a note, not a failure
+  if (Get-ChildItem "$env:APPDATA\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar" -Filter 'Brave*.lnk' -ErrorAction SilentlyContinue) { Ok 'Brave on the taskbar' }
+  else { Say '  [i]    Brave on the taskbar: right-click Brave on the desktop > Show more options > Pin to taskbar (Windows does not let scripts do it)' 'Yellow' }
 }
 
 # ---- AnyDesk ----

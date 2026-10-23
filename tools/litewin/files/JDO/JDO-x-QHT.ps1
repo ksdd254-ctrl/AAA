@@ -167,6 +167,13 @@ Reg-Set "$cu\Themes\Personalize" 'AppsUseLightTheme' 0 DWord 'apps: dark'
 Reg-Set "$cu\Themes\Personalize" 'SystemUsesLightTheme' 0 DWord 'taskbar / Start / system: dark'
 Reg-Set "$cu\Themes\Personalize" 'EnableTransparency' 0 DWord 'transparency off'
 Reg-Set "$cu\Themes\Personalize" 'ColorPrevalence' 0 DWord 'no accent colour on the taskbar (stays black)'
+if ([Environment]::OSVersion.Version.Build -ge 22000) {
+  # Windows 11 (the XdzlOS base hides the taskbar until the mouse reaches the bottom): always visible
+  $sr = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3'
+  $b = (Get-ItemProperty $sr -Name Settings -ErrorAction SilentlyContinue).Settings
+  if ($b -and $b.Length -gt 8 -and ($b[8] -band 1)) { $b[8] = $b[8] -band 0xFE; Set-ItemProperty $sr -Name Settings -Value ([byte[]]$b); Done-Line 'taskbar always visible (auto-hide off)' } else { Same-Line 'taskbar always visible' }
+  Reg-Set "$cu\Search" 'SearchboxTaskbarMode' 0 DWord 'no search box on the taskbar (no SearchHost at idle)'
+}
 
 # ---- mouse, keyboard (Control Panel) ----
 Section 'Mouse and keyboard' 'Pointer speed 10, double-click 500, no acceleration, fast double-click, fastest key repeat, shortest repeat delay.'

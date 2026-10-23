@@ -8,6 +8,7 @@ param(
   [int]$DiskGB = 24,
   [int]$TimeoutMin = 240,
   [int]$MonPort = 4445,       # QEMU monitor port (several VMs at once need different ports)
+  [string]$DiskName = 'disk.qcow2',   # another name when disk.qcow2 is in use (e.g. as the base of another test VM)
   [switch]$Resume,           # boot the existing VM disk again (QEMU stopped midway) instead of a fresh install
   [string]$Display = 'none', # 'sdl' = a window on the desktop you can use with mouse and keyboard (Ctrl+Alt+G frees the mouse)
   [string]$Qemu              # QEMU folder (default: -Work\qemu, else the copy in the Windows 10 work folder)
@@ -20,7 +21,7 @@ $vm = Join-Path $Work 'vm'
 $src = Join-Path $Work 'iso'
 $testSrc = Join-Path $vm 'iso-src'
 $testIso = Join-Path $vm 'JDO_Lite_VMTEST.iso'
-$disk = Join-Path $vm 'disk.qcow2'
+$disk = Join-Path $vm $DiskName
 $log = Join-Path $vm 'progress.txt'
 New-Item -ItemType Directory -Force $vm | Out-Null
 # the live view reads progress.txt too: a write that meets its read is retried, never fatal
@@ -48,13 +49,16 @@ $frag = [xml](@"
   </Disk></DiskConfiguration>
   <ImageInstall><OSImage><InstallTo><DiskID>0</DiskID><PartitionID>1</PartitionID></InstallTo>
     <InstallFrom><MetaData wcm:action="add"><Key>/IMAGE/INDEX</Key><Value>1</Value></MetaData></InstallFrom></OSImage></ImageInstall>
-  <SynchronousCommand wcm:action="add"><Order>2</Order>
+  <SynchronousCommand wcm:action="add"><Order>1</Order>
     <CommandLine>powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-PSDrive -PSProvider FileSystem | ForEach-Object { `$p = Join-Path `$_.Root 'vm-check.ps1'; if (Test-Path `$p) { &amp; `$p; break } }"</CommandLine>
     <Description>JDO VM test checks</Description></SynchronousCommand>
 </x>
 "@)
 foreach ($n in 'DiskConfiguration', 'ImageInstall') { [void]$setup.PrependChild($ua.ImportNode($frag.x[$n], $true)) }
 $shell = $ua.unattend.settings | Where-Object pass -eq 'oobeSystem' | ForEach-Object { $_.component } | Where-Object name -eq 'Microsoft-Windows-Shell-Setup'
+# the check goes first (it only registers itself for the sign-in after the JDO x QHT restart, a few seconds): as the
+# second command the restart cut it off. The real first-boot command moves to order 2.
+foreach ($c in $shell.FirstLogonCommands.SynchronousCommand) { if ($c.CommandLine -match 'firstboot\.ps1') { $c.Order = '2' } }
 [void]$shell.FirstLogonCommands.AppendChild($ua.ImportNode($frag.x.SynchronousCommand, $true))
 $ua.Save("$testSrc\autounattend.xml")
 Copy-Item "$here\vm-check.ps1" "$testSrc\vm-check.ps1" -Force

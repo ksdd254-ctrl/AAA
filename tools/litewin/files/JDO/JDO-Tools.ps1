@@ -434,6 +434,12 @@ function Install-Store {
   $dir = Join-Path $root 'Store'
   $pk = @(Get-ChildItem $dir -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'AppxManifest.xml') })
   if (-not $pk) { Write-Host '  no saved copy in C:\JDO\Store' -ForegroundColor Yellow }
+  # removing with -AllUsers (tool 19) marks the Store packages "deprovisioned" / "end of life": Windows 11 then refuses to
+  # register them again (the VM test caught it) - the marks for these packages go first
+  $ax = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore'
+  foreach ($k in @(Get-ChildItem "$ax\Deprovisioned" -ErrorAction SilentlyContinue) + @(Get-ChildItem "$ax\EndOfLife" -Recurse -ErrorAction SilentlyContinue)) {
+    if ($k.PSChildName -match $storeApps) { Remove-Item -LiteralPath $k.PSPath -Recurse -Force -ErrorAction SilentlyContinue }
+  }
   # frameworks, then the apps, then their language / scale resource parts
   $order = { if ($_.Name -match 'VCLibs|NET\.Native|UI\.Xaml') { 0 } elseif ($_.Name -match '_split\.|_neutral_split') { 2 } else { 1 } }
   foreach ($p in $pk | Sort-Object $order, Name) {
@@ -460,6 +466,13 @@ function Install-Store {
 
 function Remove-Store {
   Write-Host 'Microsoft Store + Xbox: removing (other apps you installed from it stay)' -ForegroundColor Cyan
+  if ([Environment]::OSVersion.Version.Build -ge 22000) {
+    # Windows 11 refuses to register a saved Store copy again (signature / access checks - the VM test caught it), so here
+    # the Store is switched off, not deleted: no process, no RAM at idle, and 18 brings it back in a second, offline
+    Set-Services @{ InstallService=4; PushToInstall=4; wlidsvc=4; XblAuthManager=4; XblGameSave=4 }
+    Write-Host '  Store switched off (Windows 11: kept on disk so 18 can switch it back on).'
+    Done $true; return
+  }
   Get-AppxPackage -AllUsers -ErrorAction SilentlyContinue | Where-Object { $_.Name -match $storeApps } |
     ForEach-Object { try { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction Stop; Write-Host "  removed $($_.Name)" } catch { Write-Host "  kept $($_.Name): $($_.Exception.Message)" -ForegroundColor DarkGray } }
   Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match $storeApps } |

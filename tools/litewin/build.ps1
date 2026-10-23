@@ -104,7 +104,7 @@ $services = [ordered]@{
   # desktop does not have or features JDO x QHT removed. Not here on purpose: anything network (QWAVE, Xbox Live net,
   # SMB Direct, mobile broadband, DFS, telephony), CD/DVD (ISO mounting), Themes / FontCache / EventSystem / Vault
   # (Store, sign-in), BAM / mitigations (anti-cheats), TRIM (defragsvc), MTP phones, file encryption, shadow copies.
-  GpuEnergyDrv=4; hyperkbd=4; HyperVideo=4; Vid=4; hvservice=4; vmgid=4                                  # Hyper-V (hypervisor is off)
+  GpuEnergyDrv=4; hyperkbd=4; HyperVideo=4; hvservice=4; vmgid=4                                  # Hyper-V (hypervisor is off)
   BthEnum=4; BthHFEnum=4; BthLEEnum=4; BthMini=4; BTHMODEM=4; BTHPORT=4; HidBth=4; RFCOMM=4; BthA4dp=4; bttflt=4   # Bluetooth (off already)
   Microsoft_Bluetooth_AvrcpTransport=4
   ErrDev=4; fdc=4; flpydisk=4; sfloppy=4; Serenum=4; Serial=4; sermouse=4; Parport=4; pcmcia=4             # floppy, serial / parallel ports, PC cards
@@ -572,6 +572,10 @@ try {
   Set-Reg "$pol\Windows Search" 'EnableDynamicContentInWSB' 0                  # search highlights
   Set-Reg "$pol\Explorer" 'NoUseStoreOpenWith' 1                               # no Store lookup for unknown files
   Set-Reg 'NTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'ShowSyncProviderNotifications' 0   # OneDrive ads in Explorer
+  Set-Reg 'NTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'TaskbarGlomLevel' 0     # taskbar: icons only, always combined (no wide buttons with names)
+  Set-Reg 'NTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'MMTaskbarGlomLevel' 0
+  Set-Reg 'NTUSER\Software\Microsoft\Windows\CurrentVersion\Search' 'SearchboxTaskbarMode' 0             # no search box on the taskbar (Open-Shell has its own; on Windows 11 no SearchHost at idle)
+  if ($Win11) { Set-Reg "$pol\Windows Search" 'DisableSearch' 1 }   # Windows 11: no SearchHost process at idle (Open-Shell has its own search, indexing is off)
   Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'DisableAutomaticRestartSignOn' 1           # no sign-in after update restarts
   Set-Reg 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'EnableFirstLogonAnimation' 0
   Set-Reg 'SOFTWARE\Microsoft\WindowsUpdate\UX\Settings' 'RestartNotificationsAllowed2' 0
@@ -641,6 +645,7 @@ try {
   Set-Reg "$pol\WindowsUpdate" 'TargetReleaseVersion' 1; Set-Reg "$pol\WindowsUpdate" 'ProductVersion' 'Windows 10'; Set-Reg "$pol\WindowsUpdate" 'TargetReleaseVersionInfo' '22H2'   # stays on 22H2
   Set-Reg 'SYSTEM\ControlSet001\Control\CrashControl' 'CrashDumpEnabled' 0                     # no crash dump files
   Set-Reg 'SYSTEM\ControlSet001\Control\Power' 'SleepStudyDisabled' 1                          # sleep study
+  Set-Reg 'SYSTEM\ControlSet001\Control\Network\NewNetworkWindowOff' '' ''   # no "allow your PC to be discoverable" pop-up (the question only, no network setting)
   # Start menu search and the text input host stay, at the lowest priority Windows has (CPU idle, I/O very low,
   # memory lowest): they sleep until you open Start or type, and never compete with the game
   $ifeo = 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options'
@@ -837,6 +842,12 @@ try {
     $slim += Get-ChildItem "$w\System32", "$w\SysWOW64" -Recurse -Depth 1 -Filter 'SnippingTool.exe*' -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
     # upgrade migration wizard (clean installs only), the rest of Windows Hello
     $slim += "$w\System32\migwiz", "$w\System32\WinBioPlugIns"
+    # Windows 11 only (size 2.03 -> about 1.85 GB): the inbox WebView2 copy - its users here (Widgets, Copilot, the taskbar
+    # search box) are removed or off; apps that need WebView2 install their own - and the Windows Hello face driver (Hello is off)
+    if ($Win11) {
+      $slim += "$w\System32\Microsoft-Edge-WebView"
+      $slim += Get-ChildItem "$w\System32\DriverStore\FileRepository" -Directory -Filter 'helloface.inf_*' -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+    }
     # .NET native images: .NET apps run from IL instead (a second slower start, nothing else); NGEN tasks are off at first boot
     $slim += Get-ChildItem "$w\assembly" -Directory -Filter 'NativeImages_*' -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
     # system apps nothing here uses (Start menu search stays - it runs at idle priority, see the registry step)
