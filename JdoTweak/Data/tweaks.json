@@ -3,6 +3,8 @@
   "categories": [
     { "id": "mouse",    "ar": "الماوس",            "en": "Mouse",            "icon": "" },
     { "id": "keyboard", "ar": "الكيبورد",          "en": "Keyboard",         "icon": "" },
+    { "id": "intel",    "ar": "معالجات Intel",     "en": "Intel",            "icon": "" },
+    { "id": "amd",      "ar": "معالجات AMD",       "en": "AMD",              "icon": "" },
     { "id": "network",  "ar": "الإنترنت والبنق",   "en": "Network & Ping",   "icon": "" },
     { "id": "windows",  "ar": "تخفيف الويندوز",    "en": "Windows Boost",  "icon": "" },
     { "id": "privacy",  "ar": "الخصوصية",          "en": "Privacy",          "icon": "" },
@@ -276,7 +278,7 @@
       "reboot": true
     },
     {
-      "id": "gpu.amdulps", "cat": "gpu", "tier": 2, "risk": 0, "vendor": "amd",
+      "id": "gpu.amdulps", "cat": "amd", "tier": 2, "risk": 0, "vendor": "amd",
       "ar": "AMD: إيقاف وضع توفير الطاقة ULPS", "en": "AMD: Disable ULPS Power Saving",
       "dar": "لكروت AMD فقط: يمنع الكرت من الدخول في وضع توفير الطاقة العميق اللي يسبب تأخير.",
       "den": "AMD only: stops the card entering deep power-saving states that add delay.",

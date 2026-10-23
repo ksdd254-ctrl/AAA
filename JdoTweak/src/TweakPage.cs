@@ -27,9 +27,22 @@ namespace JdoTweak
 
         static int UserTier { get { return License.Current == null ? 0 : License.Current.Tier; } }
 
+        // Intel / AMD pages: does this PC have that vendor's processor or graphics?
+        public static bool HasVendor(string vendor)
+        {
+            var hw = App.Hardware;
+            if (hw == null) return true;
+            string v = vendor == "intel" ? "intel" : "amd";
+            if (hw.GpuVendor == v) return true;
+            return hw.Devices.Any(d => (d.Kind == "cpu" || d.Kind == "gpu") && d.Name.IndexOf(v == "intel" ? "Intel" : "AMD", StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
+        bool VendorMissing { get { return (category.Id == "intel" || category.Id == "amd") && !HasVendor(category.Id); } }
+
         public TweakPage(MainWindow w, Category c, bool embedded = false)
         {
             win = w; category = c; this.embedded = embedded;
+            showAll = c.Id == "intel" || c.Id == "amd";   // vendor pages have few hand-picked items: list everything
             var all = App.Catalog.Tweaks.Where(t => t.Cat == c.Id).ToList();
             best = all.Where(t => t.Curated).ToList();
             options = all.Where(t => !t.Curated && t.HasOptions).OrderByDescending(t => t.Packs).ToList();
@@ -37,12 +50,30 @@ namespace JdoTweak
 
             var page = new StackPanel();
             if (!embedded) page.Children.Add(MainWindow.Header(c.Icon, c.Title, L.T("pageSub")));
+            if (c.Id == "intel" || c.Id == "amd")
+            {
+                bool has = HasVendor(c.Id);
+                string cpu = App.Hardware == null ? "" : App.Hardware.Devices.Where(d => d.Kind == "cpu").Select(d => d.Name).FirstOrDefault() ?? "";
+                var row = new DockPanel();
+                var ic = UI.Icon(has ? "" : "", 18, has ? "Good" : "Warn"); ic.Margin = new Thickness(0, 0, 12, 0);
+                row.Children.Add(ic);
+                var txt = new StackPanel();
+                txt.Children.Add(UI.Text(L.T(has ? "vendorYes" : "vendorNo").Replace("{0}", c.En), 14, "Text", true));
+                var cpuLine = UI.Text(L.T("cpu") + ": " + cpu, 12, "Muted"); cpuLine.FlowDirection = FlowDirection.LeftToRight; cpuLine.TextAlignment = L.Ar ? TextAlignment.Right : TextAlignment.Left;
+                txt.Children.Add(cpuLine);
+                txt.Children.Add(UI.Text(L.T("vendorD"), 12, "Muted"));
+                row.Children.Add(txt);
+                var vc = UI.Card(row, 16); vc.Margin = new Thickness(0, 0, 0, 16);
+                vc.BorderBrush = UI.B(has ? "Good" : "Warn");
+                page.Children.Add(vc);
+            }
 
             // toolbar
             var bar = new DockPanel { Margin = new Thickness(0, 0, 0, 18) };
             var btns = new StackPanel { Orientation = Orientation.Horizontal };
             var rec = UI.IconBtn("", L.T("applyRec"), "Primary", async (o, e) => await ApplyRecommended((Button)o));
             var rev = UI.IconBtn("", L.T("revertAll"), "Ghost", async (o, e) => await RevertAll((Button)o)); rev.Margin = new Thickness(10, 0, 0, 0);
+            rec.IsEnabled = !VendorMissing;
             if (!embedded) btns.Children.Add(rec);
             btns.Children.Add(rev);
             DockPanel.SetDock(btns, Dock.Right);
@@ -125,7 +156,7 @@ namespace JdoTweak
         // ------------------------------------------------------------------ card
         FrameworkElement Card(Tweak t)
         {
-            bool locked = t.Tier > UserTier;
+            bool locked = t.Tier > UserTier || VendorMissing;
             var g = new Grid();
             g.ColumnDefinitions.Add(new ColumnDefinition());
             g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });

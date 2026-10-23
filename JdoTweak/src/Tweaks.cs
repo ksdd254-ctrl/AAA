@@ -105,6 +105,23 @@ namespace JdoTweak
         static readonly HashSet<string> Merged = new HashSet<string> { "cpu", "ram", "gpu", "power", "gaming", "latency", "windows" };
         public static string MapCat(string c) { return c != null && Merged.Contains(c) ? "windows" : c; }
 
+        // Tweaks that only make sense on one hardware vendor get their own page, outside the plan boxes,
+        // so Intel driver settings never land on an AMD PC (and the other way round).
+        static readonly System.Text.RegularExpressions.Regex IntelRx = new System.Text.RegularExpressions.Regex(
+            @"\\services\\(intelppm|iastor|intel|igfx|ipf|dptf|heci|mei\w*|intelpmt)|\\software\\intel\\|igfxcui|\bintelppm\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+        static readonly System.Text.RegularExpressions.Regex AmdRx = new System.Text.RegularExpressions.Regex(
+            @"\\services\\(amd|ati\w*\\)|\\software\\(amd|ati technologies)\\|radeon|\bamdppm\b|\{4d36e968-e325-11ce-bfc1-08002be10318\}\|(enableulps|pp_\w+|kmd_\w+|dal\w+)$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        public static string VendorCat(string cat, string keyOrText, string name)
+        {
+            string s = (keyOrText ?? "") + "|" + (name ?? "");
+            if (IntelRx.IsMatch(s)) return "intel";
+            if (AmdRx.IsMatch(s)) return "amd";
+            return cat;
+        }
+
         readonly HashSet<string> curatedSettings = new HashSet<string>();
         readonly HashSet<string> curatedCommands = new HashSet<string>();
 
@@ -205,6 +222,8 @@ namespace JdoTweak
                     {
                         bool each = f[5] == "1";
                         string key = f[6], name = f[7], src = f[8];
+                        if (key.IndexOf('!') >= 0 || key.IndexOf('%') >= 0) continue;   // unexpanded script variable, not a real path
+                        t.Cat = VendorCat(t.Cat, key, name);
                         if (curatedSettings.Contains(NormPath(key, name))) { DuplicatesRemoved++; continue; }   // already a hand-picked tweak
                         t.Id = "s." + StableHash((each ? "*" : "") + key + "|" + name);
                         t.Path = key + "\\" + name;
@@ -236,6 +255,7 @@ namespace JdoTweak
                     {
                         string text = f[6];
                         if (curatedCommands.Contains(NormCmd(text))) { DuplicatesRemoved++; continue; }
+                        t.Cat = VendorCat(t.Cat, text, null);
                         t.Id = "c." + StableHash(text.ToLowerInvariant());
                         t.Ar = t.En = text.Length > 110 ? text.Substring(0, 107) + "..." : text;
                         t.Path = text.Length > 110 ? text : null;

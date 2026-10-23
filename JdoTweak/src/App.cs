@@ -124,7 +124,7 @@ namespace JdoTweak
             Catalog = LoadCatalog();
             License.Login(null, null, null, Hardware.Hwid());
             Directory.CreateDirectory(dir);
-            var pages = new[] { "login", "dashboard", "cat:windows", "cat:mouse", "cat:network", "cat:advanced", "repair", "polling", "account", "settings", "owner" };
+            var pages = new[] { "login", "dashboard", "cat:windows", "cat:intel", "cat:amd", "cat:mouse", "cat:network", "cat:advanced", "repair", "polling", "account", "settings", "owner" };
             int i = 0;
             Window w = null;
             var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
