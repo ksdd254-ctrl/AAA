@@ -125,6 +125,38 @@ namespace JdoTweak
             return Post(path, body);
         }
 
+        // Owner: upload a new EXE as the next version. The server stores it, works out its SHA-256 and
+        // every installed copy picks it up. Returns null on success, otherwise the server's error word.
+        public static string OwnerUploadRelease(string exePath, string version, string notes)
+        {
+            if (Current == null || string.IsNullOrEmpty(ApiBase)) return "network";
+            try
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | (SecurityProtocolType)12288;
+                using (var wc = new WebClient())
+                {
+                    wc.Headers[HttpRequestHeader.Authorization] = "Bearer " + Current.Token;
+                    wc.Headers[HttpRequestHeader.ContentType] = "application/octet-stream";
+                    wc.Headers[HttpRequestHeader.UserAgent] = "JdoTweak/" + App.Version;
+                    string url = ApiBase.TrimEnd('/') + "/api/owner/release/upload?version=" + Uri.EscapeDataString(version) + "&notes=" + Uri.EscapeDataString(notes ?? "");
+                    var resp = Encoding.UTF8.GetString(wc.UploadData(url, System.IO.File.ReadAllBytes(exePath)));
+                    return ErrorOf(new JavaScriptSerializer().DeserializeObject(resp) as Dictionary<string, object>);
+                }
+            }
+            catch (WebException ex)
+            {
+                try
+                {
+                    if (ex.Response != null)
+                        using (var s = new StreamReader(ex.Response.GetResponseStream()))
+                            return ErrorOf(new JavaScriptSerializer().DeserializeObject(s.ReadToEnd()) as Dictionary<string, object>) ?? "network";
+                }
+                catch { }
+                return "network";
+            }
+            catch { return "file"; }
+        }
+
         // ---------------- sign-up from the app
         // Returns null on success, otherwise the server's error word (exists, email, password, code, mail) or "network".
         public static string Register(string email, string password)

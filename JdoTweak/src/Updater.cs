@@ -20,6 +20,7 @@ namespace JdoTweak
             if (string.IsNullOrEmpty(License.ApiBase)) return null;
             try
             {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | (SecurityProtocolType)12288;   // TLS 1.2 / 1.3
                 using (var wc = new TimeoutClient())
                 {
                     wc.Headers[HttpRequestHeader.UserAgent] = "JdoTweak/" + App.Version;
@@ -35,7 +36,24 @@ namespace JdoTweak
             catch { return null; }
         }
 
-        public static void Install()
+        public static string Pending { get { return latest == null ? null : Convert.ToString(latest["version"]); } }
+
+        // On launch: if the server has a newer version, install it right away and reopen.
+        // Never blocks the app for long: any failure (offline, server down) just starts the current version.
+        public static void AutoUpdateAtStart()
+        {
+#if DEV
+            return;
+#else
+            try { if (Check() != null) Install(true); } catch { }
+#endif
+        }
+
+        public static void Install() { Install(true); }
+
+        // Downloads, checks the SHA-256 and swaps the EXE once this process has exited.
+        // reopen = false is used when the app is closing anyway: the new version is there next time.
+        public static void Install(bool reopen)
         {
             if (latest == null) return;
             string tmp = Path.Combine(Path.GetTempPath(), "JdoTweak_update.exe");
@@ -59,10 +77,10 @@ namespace JdoTweak
                 ":retry\r\n" +
                 "copy /y \"" + tmp + "\" \"" + self + "\" >nul || (timeout /t 1 >nul & goto retry)\r\n" +
                 "del \"" + tmp + "\"\r\n" +
-                "start \"\" \"" + self + "\"\r\n" +
+                (reopen ? "start \"\" \"" + self + "\"\r\n" : "") +
                 "del \"%~f0\"\r\n");
             Process.Start(new ProcessStartInfo("cmd.exe", "/c \"" + cmd + "\"") { CreateNoWindow = true, UseShellExecute = false });
-            Environment.Exit(0);
+            if (reopen) Environment.Exit(0);
         }
     }
 }

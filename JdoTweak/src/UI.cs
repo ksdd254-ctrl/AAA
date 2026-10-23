@@ -140,10 +140,18 @@ namespace JdoTweak
                 Background = Fx.Shimmer(),
                 Effect = new System.Windows.Media.Effects.DropShadowEffect { Color = Themes.AccentColor, BlurRadius = size * 0.45, ShadowDepth = 0, Opacity = 0.5 }
             });
+            // "JX" monogram with a speed slash: Jdo X Abu Qht
+            g.Children.Add(new System.Windows.Shapes.Path
+            {
+                Data = Geometry.Parse("M 30,78 L 46,22 L 52,22 L 36,78 Z"), Fill = new SolidColorBrush(Color.FromArgb(70, 255, 255, 255)),
+                Stretch = Stretch.Fill, Width = size * 0.16, Height = size * 0.6,
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
+            });
             g.Children.Add(new TextBlock
             {
-                Text = "ج", FontSize = size * 0.6, FontWeight = FontWeights.Bold, Foreground = B("OnAccent"),
-                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, -size * 0.08, 0, 0)
+                Text = "JX", FontSize = size * 0.44, FontWeight = FontWeights.Black, FontFamily = new FontFamily("Segoe UI"), Foreground = B("OnAccent"),
+                FlowDirection = FlowDirection.LeftToRight,
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, -size * 0.04, 0, 0)
             });
             return g;
         }

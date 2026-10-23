@@ -1,0 +1,2 @@
+# server scripts run on Linux: keep LF line endings
+*.sh text eol=lf

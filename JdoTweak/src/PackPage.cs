@@ -10,14 +10,14 @@ using System.Windows.Media;
 namespace JdoTweak
 {
     // "Windows Boost": every performance tweak (CPU, RAM, GPU, power, games, delay, debloat)
-    // condensed into four boxes. Boxes 1-3 are levels: switching one on applies it and every
-    // level below it. Box 4 is the Lite Windows download. A box is locked unless the plan allows it.
+    // condensed into three boxes, one per plan. Switching one on applies it and every
+    // level below it. A box is locked unless the plan allows it.
     public class PackPage : Grid
     {
         readonly MainWindow win;
         readonly List<Tweak> pack;
-        readonly ToggleButton[] sw = new ToggleButton[4];
-        readonly TextBlock[] st = new TextBlock[4];
+        readonly ToggleButton[] sw = new ToggleButton[3];
+        readonly TextBlock[] st = new TextBlock[3];
         bool busy;
 
         static Session User { get { return License.Current; } }
@@ -35,13 +35,21 @@ namespace JdoTweak
             rev.VerticalAlignment = VerticalAlignment.Top;
             DockPanel.SetDock(rev, Dock.Right);
             head.Children.Add(rev);
+            // everything in the Windows section, not just the boxes (settings and commands)
+            var all = UI.IconBtn("", L.T("applyAll"), "Ghost", async (o, e) => { if (await TweakPage.ApplyAll(win, c.Id, (Button)o)) Refresh(); });
+            all.VerticalAlignment = VerticalAlignment.Top; all.Margin = new Thickness(0, 0, 10, 0); all.ToolTip = L.T("applyAllD");
+            all.IsEnabled = UserTier > 0;
+            DockPanel.SetDock(all, Dock.Right);
+            head.Children.Add(all);
             head.Children.Add(MainWindow.Header(c.Icon, c.Title, L.T("packSub")));
             page.Children.Add(head);
 
-            var grid = new UniformGrid { Columns = 2 };
+            var grid = new UniformGrid { Columns = 3 };
             for (int k = 1; k <= 3; k++) grid.Children.Add(LevelBox(k));
-            grid.Children.Add(LiteBox());
             page.Children.Add(grid);
+            // every Windows tweak, one by one, under the boxes
+            var each = new TweakPage(w, c, true) { Margin = new Thickness(0, 10, 0, 0) };
+            page.Children.Add(each);
 
             Children.Add(MainWindow.Page(page));
             Refresh();
@@ -127,35 +135,6 @@ namespace JdoTweak
             return sp;
         }
 
-        FrameworkElement LiteBox()
-        {
-            bool has = User != null && User.WithLiteWindows;
-            var sp = new StackPanel();
-            var top = new WrapPanel();
-            top.Children.Add(UI.Text(L.T("tier3") + " + " + L.T("liteWin"), 20, "Text", true));
-            if (!has) top.Children.Add(UI.Badge(L.T("locked"), "#FFD36B", "#2AF5B841"));
-            sp.Children.Add(top);
-            var d = UI.Text(L.T("pack4D"), 13, "Muted"); d.Margin = new Thickness(0, 6, 0, 0); d.LineHeight = 20;
-            sp.Children.Add(d);
-            sp.Children.Add(Bullets("pack4B"));
-            var who = UI.Text(L.T("pack4W"), 12, "Accent"); who.Margin = new Thickness(0, 10, 0, 0);
-            sp.Children.Add(who);
-            var b = has ? UI.IconBtn("", L.T("downloadLite"), "Primary", (o, e) =>
-                {
-                    string url = User.LiteUrl;
-                    if (string.IsNullOrEmpty(url)) { UI.Ask(win, L.T("liteWin"), L.T("liteSoon"), false); return; }
-                    try { System.Diagnostics.Process.Start(url); } catch { }
-                })
-                : UI.IconBtn("", L.T("upgrade"), "Ghost", (o, e) => UI.Ask(Window.GetWindow((DependencyObject)o), L.T("upgrade"), L.T("upgradeHow"), false));
-            b.HorizontalAlignment = HorizontalAlignment.Left; b.Margin = new Thickness(0, 18, 0, 0);
-            sp.Children.Add(b);
-            var box = UI.Card(sp, 22);
-            box.Margin = new Thickness(0, 0, 14, 14);
-            if (!has) box.Opacity = 0.6;
-            Fx.Enter(box, 210, 14);
-            return box;
-        }
-
         // ------------------------------------------------------------------ state
         static bool IsOn(Tweak t)
         {
@@ -193,11 +172,7 @@ namespace JdoTweak
         {
             if (busy) { sw[k - 1].IsChecked = !want; return; }
             var hw = App.Hardware;
-            if (want)
-            {
-                win.EnsureRestorePoint();
-                if (Level(k).Any(t => t.Risk == 1) && !UI.Ask(win, L.T("riskTitle"), L.T("tier" + k) + "\n\n" + L.T("packRisk"), true, true)) { sw[k - 1].IsChecked = false; return; }
-            }
+            if (want) win.EnsureRestorePoint();
             busy = true;
             foreach (var s in sw) s.IsEnabled = false;
             st[k - 1].Text = L.T("working"); st[k - 1].Foreground = UI.B("Accent");
@@ -214,18 +189,18 @@ namespace JdoTweak
                     {
                         if (want)
                         {
-                            if (t.HasOptions) { int i = t.RecommendedOption(hw); if (i >= 0 && !t.Options[i].IsDefault && Engine.CurrentOption(t) != i) Engine.ApplyOption(t, i); }
+                            if (t.HasOptions) { int i = t.RecommendedOption(hw, k); if (i >= 0 && !t.Options[i].IsDefault && Engine.CurrentOption(t) != i) Engine.ApplyOption(t, i); }
                             else if (!Engine.IsApplied(t)) Engine.ApplyTweak(t);
                         }
-                        else if (IsOn(t))
-                        {
-                            if (t.HasOptions) Engine.ApplyOption(t, t.Options.FindIndex(o => o.IsDefault));
-                            else Engine.RevertTweak(t);
-                        }
+                        else if (IsOn(t)) Engine.RevertById(App.Catalog, t.Id);   // back to the PC's own original value
                         reboot |= t.Reboot;
                     }
                     catch { }
                 }
+                // switching a higher box off: the boxes below stay on, with their own (milder) values
+                if (!want && k > 1)
+                    foreach (var t in Level(k - 1).Where(t => t.HasOptions))
+                        try { int i = t.RecommendedOption(hw, k - 1); if (i >= 0 && !t.Options[i].IsDefault && Engine.CurrentOption(t) != i) Engine.ApplyOption(t, i); } catch { }
                 }
                 finally { Engine.EndBatch(); }
             });
@@ -239,11 +214,17 @@ namespace JdoTweak
         {
             var cat = App.Catalog;
             var todo = Engine.BackedUpIds().Select(id => cat.Find(id)).Where(t => t != null && (t.Cat == "windows" || t.Cat == "network")).ToList();
+            // tweaks an older version applied that are no longer in the app: put back from their backups too
+            var orphans = Engine.BackedUpIds().Where(id => cat.Find(id) == null).ToList();
             b.IsEnabled = false;
             await Task.Run(() =>
             {
                 Engine.BeginBatch();
-                try { foreach (var t in todo) try { Engine.RevertById(cat, t.Id); } catch { } }
+                try
+                {
+                    foreach (var t in todo) try { Engine.RevertById(cat, t.Id); } catch { }
+                    foreach (var id in orphans) try { Engine.RevertBackupOnly(id); } catch { }
+                }
                 finally { Engine.EndBatch(); }
             });
             b.IsEnabled = true;

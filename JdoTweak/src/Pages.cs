@@ -101,7 +101,7 @@ namespace JdoTweak
                     if (i.FixId.StartsWith("tweak:"))
                     {
                         var t = cat.Tweaks.FirstOrDefault(x => x.Id == i.FixId.Substring(6));
-                        if (t != null) await Task.Run(() => { if (t.HasOptions) Engine.ApplyOption(t, t.RecommendedOption(hw)); else Engine.ApplyTweak(t); });
+                        if (t != null) await Task.Run(() => { if (t.HasOptions) Engine.ApplyOption(t, t.RecommendedOption(hw, License.Current == null ? 3 : License.Current.Tier)); else Engine.ApplyTweak(t); });
                         Log("✓ " + (t != null ? t.Title : i.FixId));
                     }
                     else await RunFix(Repair.Get(i.FixId));
@@ -146,12 +146,29 @@ namespace JdoTweak
             running = true;
             Log("");
             Log("▶ " + f.Title);
-            if (f.Script == "@revert")
+            if (f.Script == "@revert" || f.Script == "@factory")
             {
-                var ids = new HashSet<string>(Engine.BackedUpIds());
-                var list = cat.Tweaks.Where(t => ids.Contains(t.Id)).ToList();
-                await Task.Run(() => { foreach (var t in list) { try { Engine.RevertTweak(t); Log("  ↺ " + t.En); } catch (Exception ex) { Log("  ✗ " + t.En + ": " + ex.Message); } } });
-                Log("✓ " + list.Count + " " + L.T("reverted"));
+                // every backup this app ever made, including tweaks an older version applied that are gone from the app now
+                var ids = Engine.BackedUpIds().ToList();
+                int n = 0;
+                await Task.Run(() =>
+                {
+                    Engine.BeginBatch();
+                    try
+                    {
+                        foreach (var id in ids)
+                            try { var t = cat.Find(id); if (Engine.RevertById(cat, id)) { n++; if (n % 200 == 0 || ids.Count < 60) Log("  ↺ " + (t != null ? t.En : id)); } }
+                            catch (Exception ex) { Log("  ✗ " + id + ": " + ex.Message); }
+                    }
+                    finally { Engine.EndBatch(); }
+                });
+                Log("✓ " + n + " " + L.T("reverted"));
+                if (f.Script == "@factory")
+                {
+                    // then put back what other tools or older versions broke, to Windows' own defaults
+                    int code = await Task.Run(() => Engine.StreamPS(Repair.FactoryScript, line => Log("  " + line)));
+                    Log(code == 0 ? "✓ " + L.T("done") : "✗ " + L.T("failed") + " (" + code + ")");
+                }
                 NeedReboot();
             }
             else
@@ -193,15 +210,27 @@ namespace JdoTweak
                 if (msg == 0x00FF) rawCount++;   // WM_INPUT
                 return IntPtr.Zero;
             });
-            var dev = new[] { new RAWINPUTDEVICE { UsagePage = 1, Usage = 2, Flags = 0x100, Target = src.Handle } };  // mouse, RIDEV_INPUTSINK
-            RegisterRawInputDevices(dev, 1, (uint)Marshal.SizeOf(typeof(RAWINPUTDEVICE)));
             pollTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
             pollTimer.Tick += (o, e) =>
             {
                 int hz = rawCount * 4; rawCount = 0;
                 if (onPoll != null) onPoll(hz);
             };
-            pollTimer.Start();
+        }
+
+        // Raw mouse input is only listened to while the polling page is open, so the app never
+        // receives every mouse movement in the background while you play.
+        bool polling;
+        void PollingActive(bool on)
+        {
+            if (on == polling || pollTimer == null) return;
+            polling = on;
+            var dev = new[] { on
+                ? new RAWINPUTDEVICE { UsagePage = 1, Usage = 2, Flags = 0x100, Target = new WindowInteropHelper(this).Handle }   // mouse, RIDEV_INPUTSINK
+                : new RAWINPUTDEVICE { UsagePage = 1, Usage = 2, Flags = 0x1, Target = IntPtr.Zero } };                          // RIDEV_REMOVE
+            RegisterRawInputDevices(dev, 1, (uint)Marshal.SizeOf(typeof(RAWINPUTDEVICE)));
+            rawCount = 0;
+            pollTimer.IsEnabled = on;
         }
 
         static string PollLabel(int hz)
@@ -272,7 +301,7 @@ namespace JdoTweak
             };
             var u = License.Current;
             row(L.T("email"), u != null ? u.Email : "—", true);
-            row(L.T("plan"), u != null ? u.PlanName + (u.WithLiteWindows ? " + " + L.T("liteWin") : "") : "—", false);
+            row(L.T("plan"), u != null ? u.PlanName : "—", false);
             row(L.T("expires"), u == null ? "—" : u.Expires.HasValue ? u.Expires.Value.ToLocalTime().ToString("yyyy-MM-dd") : L.T("lifetime"), false);
             row(L.T("licenseKey"), u != null && !string.IsNullOrEmpty(u.Key) ? Mask(u.Key) : "—", true);
             row(L.T("hwid"), hw.Hwid(), true);

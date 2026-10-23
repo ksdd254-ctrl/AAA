@@ -20,7 +20,23 @@ namespace JdoTweak
         Session user { get { return License.Current; } }
 
         ContentControl content;
-        Border rebootBar;
+        Border rebootBar, updateBar;
+        DispatcherTimer updateTimer;
+
+        // While the app is open, look for a new version every 3 hours. When one is found a bar offers it now,
+        // and it installs by itself when the app is closed (so it's never pulled away mid-tweak).
+        void StartUpdateChecks()
+        {
+            updateTimer = new DispatcherTimer { Interval = TimeSpan.FromHours(3) };
+            updateTimer.Tick += async (o, e) =>
+            {
+                if (Updater.Pending != null) return;
+                var v = await Task.Run(() => Updater.Check());
+                if (v != null) Build();
+            };
+            updateTimer.Start();
+            Closed += (o, e) => { updateTimer.Stop(); if (Updater.Pending != null) try { Updater.Install(false); } catch { } };
+        }
         string page = "dashboard";
         UsageMonitor monitor;
         DispatcherTimer timer;
@@ -37,6 +53,7 @@ namespace JdoTweak
             Build();
             L.Changed += Build;
             StartMonitor();
+            StartUpdateChecks();
             SourceInitialized += (o, e) => PollingInit();
             Closed += (o, e) => { L.Changed -= Build; if (timer != null) timer.Stop(); if (monitor != null) monitor.Dispose(); };
         }
@@ -56,8 +73,8 @@ namespace JdoTweak
             var brand = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(22, 22, 22, 18) };
             brand.Children.Add(UI.Logo(38));
             var bt = new StackPanel { Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
-            bt.Children.Add(UI.Text(L.Ar ? "جدو الشايب" : "JDO Al-Shayeb", 16, "Text", true));
-            bt.Children.Add(UI.Text("TWEAK", 11, "Accent", true));
+            bt.Children.Add(UI.Text("Jdo X Abu Qht", 16, "Text", true));
+            bt.Children.Add(UI.Text("PERFORMANCE", 10.5, "Accent", true));
             brand.Children.Add(bt);
             DockPanel.SetDock(brand, Dock.Top);
             side.Children.Add(brand);
@@ -105,8 +122,22 @@ namespace JdoTweak
             rt.Children.Add(rtt);
             rb.Children.Add(rt);
             rebootBar.Child = rb;
-            Grid.SetRow(rebootBar, 1);
-            main.Children.Add(rebootBar);
+
+            // a newer version was found while the app is open
+            updateBar = new Border { Background = UI.Hex("#122A1E"), Padding = new Thickness(24, 10, 24, 10), Visibility = Updater.Pending == null ? Visibility.Collapsed : Visibility.Visible };
+            var ub = new DockPanel();
+            var ubtn = UI.Btn(L.T("updateNow"), "Primary", async (o, e) => { ((Button)o).IsEnabled = false; try { await Task.Run(() => Updater.Install(true)); } catch { ((Button)o).IsEnabled = true; } });
+            ubtn.Padding = new Thickness(14, 6, 14, 6);
+            DockPanel.SetDock(ubtn, Dock.Right);
+            ub.Children.Add(ubtn);
+            ub.Children.Add(UI.Text(L.T("updateReady") + " " + Updater.Pending, 13, "Good"));
+            updateBar.Child = ub;
+
+            var bars = new StackPanel();
+            bars.Children.Add(rebootBar);
+            bars.Children.Add(updateBar);
+            Grid.SetRow(bars, 1);
+            main.Children.Add(bars);
 
             var glow = new Border
             {
@@ -116,7 +147,6 @@ namespace JdoTweak
             };
             Grid.SetRowSpan(glow, 3);
             main.Children.Insert(0, glow);
-            Fx.Pulse(glow);
 
             content = new ContentControl();
             Grid.SetRow(content, 2);
@@ -152,6 +182,7 @@ namespace JdoTweak
             page = id;
             onSample = null;
             onPoll = null;
+            PollingActive(id == "polling");
             FrameworkElement el;
             if (id == "dashboard") el = Dashboard();
             else if (id == "cat:windows") el = new PackPage(this, cat.Categories.First(c => c.Id == "windows"));
@@ -188,18 +219,18 @@ namespace JdoTweak
         }
 
         // ------------------------------------------------------------------ restore point (first use)
+        // Before the very first tweak on this PC a restore point is made, without asking (it is required),
+        // and never again after that. If Windows refuses (System Protection off and can't be turned on) the user is told once.
         public bool EnsureRestorePoint()
         {
-            const string k = @"HKEY_CURRENT_USER\Software\JdoTweak";
-            if (Registry.GetValue(k, "RestoreAsked", null) != null) return true;
-            Registry.SetValue(k, "RestoreAsked", 1);
-            if (UI.Ask(this, L.T("restorePoint"), L.T("rpAsk"), true))
-            {
-                Cursor = Cursors.Wait;
-                bool ok = Engine.CreateRestorePoint();
-                Cursor = null;
-                if (ok) UI.Ask(this, L.T("restorePoint"), L.T("rpDone"), false);
-            }
+            const string k = @"HKEY_LOCAL_MACHINE\SOFTWARE\JdoTweak";
+            if (Registry.GetValue(k, "RestorePointMade", null) != null) return true;
+            Cursor = Cursors.Wait;
+            bool ok = false;
+            try { ok = Engine.CreateRestorePoint(); } catch { }
+            Cursor = null;
+            try { Registry.SetValue(k, "RestorePointMade", ok ? DateTime.Now.ToString("s") : "failed"); } catch { }
+            if (!ok) UI.Ask(this, L.T("restorePoint"), L.T("rpFailed"), false);
             return true;
         }
 
@@ -381,7 +412,8 @@ var stat = UI.Text(active + " " + L.T("tweaksActive"), 13.5, "Muted");
             timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             timer.Tick += async (o, e) =>
             {
-                if (monitor == null) return;
+                // nothing on screen shows the readings: don't sample (minimized, or another page open)
+                if (monitor == null || onSample == null || WindowState == WindowState.Minimized || !IsVisible) return;
                 var m = monitor;
                 await Task.Run(() => m.Sample());
                 if (onSample != null) onSample(m);
@@ -405,7 +437,7 @@ var stat = UI.Text(active + " " + L.T("tweaksActive"), 13.5, "Muted");
                 {
                     try
                     {
-                        if (t.HasOptions) { int i = t.RecommendedOption(hw); if (i >= 0 && !t.Options[i].IsDefault) Engine.ApplyOption(t, i); }
+                        if (t.HasOptions) { int i = t.RecommendedOption(hw, user.Tier); if (i >= 0 && !t.Options[i].IsDefault) Engine.ApplyOption(t, i); }
                         else if (!Engine.IsApplied(t)) Engine.ApplyTweak(t);
                         if (t.Reboot) reboot = true;
                     }

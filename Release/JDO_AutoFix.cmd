@@ -1,6 +1,6 @@
 @echo off
 :: ============================================================
-::  JDO Al-Shayeb Tweak - Auto Fix
+::  Jdo X Abu Qht - Auto Fix
 ::  Detects common Windows / app / tweak problems and fixes them.
 ::  Safe to run any time. Creates a restore point first.
 :: ============================================================
@@ -21,7 +21,7 @@ echo JDO Auto Fix - %date% %time% > "%LOG%"
 
 echo.
 echo   =============================================
-echo      JDO AL-SHAYEB TWEAK  -  AUTO FIX
+echo      JDO X ABU QHT  -  AUTO FIX
 echo   =============================================
 echo.
 echo   [1] Quick fix   (2-5 min)  - services, network, Store, temp, tweak problems

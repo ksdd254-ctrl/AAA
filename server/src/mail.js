@@ -18,7 +18,7 @@ async function send(to, subject, html) {
 
 const wrap = (body) => `<div style="font-family:Segoe UI,Tahoma,Arial;background:#0b0b14;color:#f1f0ff;padding:32px">
   <div style="max-width:520px;margin:auto;background:#151524;border-radius:16px;padding:28px;border:1px solid #26263c">
-    <div style="font-size:22px;font-weight:700;color:#a78bfa;margin-bottom:16px">جدو الشايب تويك · JDO Tweak</div>${body}</div></div>`;
+    <div style="font-size:22px;font-weight:700;color:#a78bfa;margin-bottom:16px">Jdo X Abu Qht</div>${body}</div></div>`;
 
 module.exports = {
   code: (to, code) => send(to, `رمز التحقق ${code} · Verification code`, wrap(`

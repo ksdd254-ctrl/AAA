@@ -15,7 +15,7 @@ module.exports = {
     host: env.SMTP_HOST, port: Number(env.SMTP_PORT || 465), secure: env.SMTP_SECURE !== 'false',
     auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
   } : null,
-  mailFrom: env.MAIL_FROM || 'JDO Tweak <no-reply@jdo-tweak.com>',
+  mailFrom: env.MAIL_FROM || 'Jdo X Abu Qht <no-reply@jdo-tweak.com>',
 
   // Payments. Apple Pay / Google Pay appear automatically in Stripe Checkout once the domain is verified in Stripe.
   stripeSecret: env.STRIPE_SECRET_KEY || '',
@@ -33,6 +33,5 @@ module.exports = {
     basic:         { tier: 1, lite: false, price: 1000, ar: 'بيسك',              en: 'Basic' },
     elite:         { tier: 2, lite: false, price: 2500, ar: 'إيليت',             en: 'Elite' },
     ultimate:      { tier: 3, lite: false, price: 3500, ar: 'ألتميت',            en: 'Ultimate' },
-    ultimate_lite: { tier: 3, lite: true,  price: 4500, ar: 'ألتميت + ويندوز مخفف', en: 'Ultimate + Lite Windows' },
   },
 };

@@ -48,27 +48,47 @@ namespace JdoTweak
             var rel = new StackPanel();
             rel.Children.Add(UI.Text(L.T("pubRelease"), 16, "Text", true));
             rel.Children.Add(UI.Text(L.T("pubReleaseD"), 12.5, "Muted"));
+            rel.Children.Add(UI.Text(L.T("currentVersion") + ": " + App.Version, 12.5, "Accent"));
             var ver = Field(rel, L.T("version"), false, true);
-            var url = Field(rel, L.T("downloadUrl"), false, true);
-            var sha = Field(rel, "SHA-256", false, true);
+            ver.Text = NextVersion(App.Version);
+            // the new EXE: pick it, the server does the rest (stores it, checksum, website download, auto-update)
+            string exePath = null;
+            var fileLine = UI.Text(L.T("noFile"), 12.5, "Muted"); fileLine.Margin = new Thickness(0, 8, 0, 0);
+            var pick = UI.Btn(L.T("pickExe"), "Ghost", (o, e) =>
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "EXE|*.exe", Title = L.T("pickExe") };
+                if (dlg.ShowDialog() == true) { exePath = dlg.FileName; fileLine.Text = exePath; fileLine.FlowDirection = FlowDirection.LeftToRight; }
+            });
+            pick.HorizontalAlignment = HorizontalAlignment.Left; pick.Margin = new Thickness(0, 12, 0, 0);
+            rel.Children.Add(pick);
+            rel.Children.Add(fileLine);
             var notes = Field(rel, L.T("notes"), true, false);
             var rstatus = UI.Text("", 12.5, "Muted"); rstatus.Margin = new Thickness(0, 10, 0, 0);
             var rbtn = UI.IconBtn("", L.T("publish"), "Primary", null);
             rbtn.HorizontalAlignment = HorizontalAlignment.Left; rbtn.Margin = new Thickness(0, 14, 0, 0);
             rbtn.Click += async (o, e) =>
             {
-                rbtn.IsEnabled = false;
-                var body = new Dictionary<string, object> { { "version", ver.Text.Trim() }, { "url", url.Text.Trim() }, { "sha256", sha.Text.Trim().ToLowerInvariant() }, { "notes", notes.Text } };
-                var r = await Task.Run(() => License.OwnerPost("/api/owner/release", body));
+                if (exePath == null) { rstatus.Text = "✗ " + L.T("noFile"); rstatus.Foreground = UI.B("Bad"); return; }
+                rbtn.IsEnabled = false; rstatus.Text = L.T("working"); rstatus.Foreground = UI.B("Accent");
+                string v = ver.Text.Trim(), n = notes.Text, f = exePath;
+                var err = await Task.Run(() => License.OwnerUploadRelease(f, v, n));
                 rbtn.IsEnabled = true;
-                bool ok = r != null && r.ContainsKey("ok") && r["ok"] is bool && (bool)r["ok"];
-                rstatus.Text = ok ? "✓ " + L.T("published") : "✗ " + (string.IsNullOrEmpty(License.ApiBase) ? L.T("noServer") : L.T("failed"));
-                rstatus.Foreground = ok ? UI.B("Good") : UI.B("Bad");
+                rstatus.Text = err == null ? "✓ " + L.T("published") + " " + v
+                    : "✗ " + (string.IsNullOrEmpty(License.ApiBase) ? L.T("noServer") : err == "older" ? L.T("versionOlder") : err == "version" ? L.T("versionBad") : err == "file" ? L.T("fileBad") : L.T("failed"));
+                rstatus.Foreground = err == null ? UI.B("Good") : UI.B("Bad");
             };
             rel.Children.Add(rbtn);
             rel.Children.Add(rstatus);
             sp.Children.Add(UI.Card(rel, 22));
             return Page(sp);
+        }
+
+        // 1.2.3 -> 1.2.4
+        static string NextVersion(string v)
+        {
+            var p = (v ?? "1.0.0").Split('.');
+            int last;
+            return p.Length == 3 && int.TryParse(p[2], out last) ? p[0] + "." + p[1] + "." + (last + 1) : "1.0.1";
         }
 
         // ------------------------------------------------------------------ accounts and their plans
@@ -118,7 +138,7 @@ namespace JdoTweak
             info.Children.Add(em);
             string plan = u.Role == "owner" ? L.T("adminRole")
                         : u.Tier == 0 ? (u.Ended ? L.T("planEnded") : L.T("noPlan"))
-                        : L.T("tier" + u.Tier) + (u.Lite ? " + " + L.T("liteWin") : "");
+                        : L.T("tier" + u.Tier);
             string until = u.Role != "owner" && u.Tier > 0 ? "  ·  " + (u.Expires == null ? L.T("lifetime") : L.T("until") + " " + u.Expires.Substring(0, 10)) : "";
             string status = !u.Verified ? "  ·  " + L.T("notVerified") : u.Banned ? "  ·  " + L.T("banned") : "";
             var pl = UI.Text(plan + until + status, 12, u.Tier > 0 || u.Role == "owner" ? "Good" : "Muted");
@@ -129,8 +149,8 @@ namespace JdoTweak
             {
                 var ctl = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
                 var planBox = new ComboBox { MinWidth = 170, Margin = new Thickness(0, 0, 8, 0) };
-                foreach (var k in new[] { "noPlan", "tier1", "tier2", "tier3", "tier3lite" }) planBox.Items.Add(k == "tier3lite" ? L.T("tier3") + " + " + L.T("liteWin") : L.T(k));
-                planBox.SelectedIndex = u.Tier == 3 && u.Lite ? 4 : u.Tier;
+                foreach (var k in new[] { "noPlan", "tier1", "tier2", "tier3" }) planBox.Items.Add(L.T(k));
+                planBox.SelectedIndex = Math.Min(u.Tier, 3);
                 var daysBox = new ComboBox { MinWidth = 120, Margin = new Thickness(0, 0, 8, 0) };
                 foreach (var k in new[] { "lifetime", "days30", "days90", "days365" }) daysBox.Items.Add(L.T(k));
                 daysBox.SelectedIndex = 0;
@@ -139,8 +159,8 @@ namespace JdoTweak
                 save.Click += async (o, e) =>
                 {
                     int sel = planBox.SelectedIndex;
-                    int tier = sel == 4 ? 3 : sel;
-                    bool lite = sel == 4;
+                    int tier = Math.Max(0, sel);
+                    bool lite = false;
                     int days = PlanDays[Math.Max(0, daysBox.SelectedIndex)];
                     save.IsEnabled = false;
                     string err = await Task.Run(() => License.OwnerSetPlan(u.Id, tier, lite, days));
@@ -148,7 +168,7 @@ namespace JdoTweak
                     if (err != null) { pl.Text = "✗ " + L.T("failed"); pl.Foreground = UI.B("Bad"); return; }
                     u.Tier = tier; u.Lite = lite;
                     u.Expires = tier > 0 && days > 0 ? DateTime.UtcNow.AddDays(days).ToString("yyyy-MM-dd") : null;
-                    pl.Text = "✓ " + (tier == 0 ? L.T("noPlan") : L.T("tier" + tier) + (lite ? " + " + L.T("liteWin") : "") + "  ·  " + (u.Expires == null ? L.T("lifetime") : L.T("until") + " " + u.Expires));
+                    pl.Text = "✓ " + (tier == 0 ? L.T("noPlan") : L.T("tier" + tier) + "  ·  " + (u.Expires == null ? L.T("lifetime") : L.T("until") + " " + u.Expires));
                     pl.Foreground = UI.B(tier > 0 ? "Good" : "Muted");
                 };
                 ctl.Children.Add(planBox); ctl.Children.Add(daysBox); ctl.Children.Add(save);

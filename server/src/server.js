@@ -1,4 +1,4 @@
-// JDO Al-Shayeb Tweak - website + API
+// Jdo X Abu Qht - website + API
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -60,7 +60,8 @@ function checkCode(email, purpose, code) {
 }
 
 async function human(req) {
-  if (!cfg.turnstileSecret) return cfg.dev;   // production must have Turnstile configured
+  // Without Turnstile keys sign-ups rely on the e-mailed code and the rate limits (a warning is printed at start).
+  if (!cfg.turnstileSecret) return true;
   const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ secret: cfg.turnstileSecret, response: String(req.body.captcha || ''), remoteip: req.ip }),
@@ -140,6 +141,40 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
 
 app.use(express.json({ limit: '64kb' }));
 app.use(cookieParser());
+
+// ---------------------------------------------------------------- app updates
+// The owner uploads the new EXE from inside the app (Bearer token, not a cookie, so no CSRF). The server keeps
+// every version, makes it the website download, and every installed copy picks it up on its next check.
+const releasesDir = process.env.RELEASES_DIR || path.join(__dirname, '..', 'files', 'releases');
+const newerVersion = (a, b) => {
+  const x = a.split('.').map(Number), y = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] > y[i];
+  return false;
+};
+app.post('/api/owner/release/upload', express.raw({ type: () => true, limit: '80mb' }), clientOwner, (req, res) => {
+  const version = String(req.query.version || '');
+  if (!/^\d+\.\d+\.\d+$/.test(version)) return res.status(400).json({ ok: false, error: 'version' });
+  const buf = req.body;
+  if (!Buffer.isBuffer(buf) || buf.length < 100000 || buf[0] !== 0x4d || buf[1] !== 0x5a) return res.status(400).json({ ok: false, error: 'file' });   // not a Windows EXE
+  const last = db.prepare('SELECT version FROM releases ORDER BY id DESC LIMIT 1').get();
+  if (last && /^\d+\.\d+\.\d+$/.test(last.version) && !newerVersion(version, last.version)) return res.status(400).json({ ok: false, error: 'older', latest: last.version });
+  fs.mkdirSync(releasesDir, { recursive: true });
+  const file = path.join(releasesDir, `JdoXAbuQht-${version}.exe`);
+  fs.writeFileSync(file, buf);
+  fs.mkdirSync(path.dirname(cfg.downloadFile), { recursive: true });
+  fs.copyFileSync(file, cfg.downloadFile);   // the website download is always the latest version
+  const sha256 = crypto.createHash('sha256').update(buf).digest('hex');
+  db.prepare('INSERT INTO releases (version, url, sha256, notes) VALUES (?, ?, ?, ?)')
+    .run(version, `${cfg.baseUrl.replace(/\/$/, '')}/api/app/file/${version}`, sha256, clean(String(req.query.notes || '')));
+  res.json({ ok: true, version, sha256 });
+});
+
+app.get('/api/app/file/:version', (req, res) => {
+  const v = String(req.params.version);
+  const file = path.join(releasesDir, `JdoXAbuQht-${v}.exe`);
+  if (!/^\d+\.\d+\.\d+$/.test(v) || !fs.existsSync(file)) return res.status(404).send('Not found');
+  res.download(file, 'JdoXAbuQht.exe');
+});
 
 // Only JSON POSTs reach the API: cross-site HTML forms can't send them, which blocks CSRF.
 app.use('/api', (req, res, next) => {
@@ -228,7 +263,7 @@ app.post('/api/checkout', auth, async (req, res) => {
   const s = await stripe.checkout.sessions.create({
     mode: 'payment',
     customer_email: req.user.email,
-    line_items: [{ quantity: 1, price_data: { currency: 'usd', unit_amount: plan.price, product_data: { name: `JDO Tweak - ${plan.en}` } } }],
+    line_items: [{ quantity: 1, price_data: { currency: 'usd', unit_amount: plan.price, product_data: { name: `Jdo X Abu Qht - ${plan.en}` } } }],
     metadata: { order_id: String(orderId) },
     success_url: `${cfg.baseUrl}/account.html?paid=1`,
     cancel_url: `${cfg.baseUrl}/#plans`,
@@ -250,7 +285,9 @@ if (cfg.dev && !stripe && process.env.DEV_PAY === '1') {
 async function fulfill(order) {
   const done = db.prepare("UPDATE orders SET status = 'paid' WHERE id = ? AND status = 'pending'").run(order.id);
   if (!done.changes) return;   // already fulfilled (webhooks can repeat)
-  const plan = cfg.plans[order.plan];
+  // orders placed before the Lite Windows plan was dropped are fulfilled as Ultimate
+  const plan = cfg.plans[order.plan] || (order.plan === 'ultimate_lite' ? cfg.plans.ultimate : null);
+  if (!plan) return;
   const key = newKey();
   const lic = db.prepare('INSERT INTO licenses (key, user_id, tier, lite, order_id) VALUES (?, ?, ?, ?, ?)').run(key, order.user_id, plan.tier, plan.lite ? 1 : 0, order.id);
   const u = db.prepare('SELECT * FROM users WHERE id = ?').get(order.user_id);
@@ -260,7 +297,7 @@ async function fulfill(order) {
 // ---------------------------------------------------------------- downloads
 function sendInstaller(res) {
   if (!fs.existsSync(cfg.downloadFile)) return res.status(503).send('Download not available yet');
-  res.download(cfg.downloadFile, 'JdoTweak.exe');
+  res.download(cfg.downloadFile, 'JdoXAbuQht.exe');
 }
 
 app.get('/api/download', (req, res) => {
@@ -330,7 +367,8 @@ app.post('/api/client/login', authLimit, async (req, res) => {
 });
 
 function clientSession(req) {
-  const t = String(req.body.token || '');
+  const bearer = String(req.get('authorization') || '').replace(/^Bearer\s+/i, '');
+  const t = String((req.body && !Buffer.isBuffer(req.body) && req.body.token) || bearer || '');
   const s = t && db.prepare("SELECT * FROM sessions WHERE token = ? AND kind = 'client' AND expires_at > ?").get(sha(t), now());
   if (!s) return null;
   const u = db.prepare('SELECT * FROM users WHERE id = ?').get(s.user_id);
@@ -553,9 +591,8 @@ async function backupNow() {
 function productionProblems() {
   const p = [];
   if (!/^https:\/\//.test(cfg.baseUrl)) p.push('BASE_URL must be your https:// domain');
-  if (!stripe || !cfg.stripeWebhookSecret) p.push('STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are required');
+  if (stripe && !cfg.stripeWebhookSecret) p.push('STRIPE_WEBHOOK_SECRET is required when STRIPE_SECRET_KEY is set');
   if (!cfg.smtp) p.push('SMTP_HOST / SMTP_USER / SMTP_PASS are required to send codes and keys');
-  if (!cfg.turnstileSecret || !cfg.turnstileSite) p.push('TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY are required');
   if (!cfg.ownerEmail) p.push('OWNER_EMAIL is required');
   if (!fs.existsSync(cfg.downloadFile)) p.push(`the installer is missing: ${cfg.downloadFile}`);
   return p;
@@ -566,6 +603,8 @@ if (require.main === module) {
     const p = productionProblems();
     if (p.length) { console.error('Cannot start in production:\n - ' + p.join('\n - ')); process.exit(1); }
   }
+  if (!stripe) console.warn('warning: no STRIPE_SECRET_KEY - online payment is off; give plans from the owner panel');
+  if (!cfg.turnstileSecret) console.warn('warning: no TURNSTILE keys - sign-ups are protected by the e-mail code and rate limits only');
   app.listen(cfg.port, () => console.log(`JDO server on ${cfg.baseUrl} (${cfg.dev ? 'dev' : 'production'})`));
   backupNow().then((f) => console.log('backup: ' + f)).catch((e) => console.error('backup failed', e));
   setInterval(() => backupNow().catch((e) => console.error('backup failed', e)), 24 * 3600e3);

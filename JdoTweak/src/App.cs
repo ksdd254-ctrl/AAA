@@ -11,7 +11,7 @@ namespace JdoTweak
 {
     public static class App
     {
-        public const string Version = "1.0.0";
+        public static readonly string Version = BuildInfo.Version;   // set by build.ps1 -Version
         // The site and the license server share one domain, so links follow the build's -Api address.
         public static string Website { get { return string.IsNullOrEmpty(License.ApiBase) ? "https://jdo-tweak.com" : License.ApiBase.TrimEnd('/'); } }
 
@@ -25,6 +25,7 @@ namespace JdoTweak
         {
 #if DEV
             if (args.Length >= 2 && args[0] == "--snap") { Snapshot(args[1], args.Length > 2 && args[2] == "en"); return; }
+            if (args.Length >= 3 && args[0] == "--boxtest") { Environment.Exit(BoxTest.Run(args)); }
             if (args.Length >= 2 && args[0] == "--audit")
             {
                 Catalog = LoadCatalog();
@@ -40,7 +41,7 @@ namespace JdoTweak
 #endif
             if (!new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
             {
-                MessageBox.Show("Please run JDO Tweak as administrator.\nشغّل البرنامج كمسؤول.", "JDO Tweak", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please run Jdo X Abu Qht as administrator.\nشغّل البرنامج كمسؤول.", "Jdo X Abu Qht", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -48,7 +49,7 @@ namespace JdoTweak
             using (var s = Res("Theme.xaml")) Wpf.Resources = (ResourceDictionary)XamlReader.Load(s);
             Wpf.DispatcherUnhandledException += (o, e) =>
             {
-                MessageBox.Show(e.Exception.Message, "JDO Tweak", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(e.Exception.Message, "Jdo X Abu Qht", MessageBoxButton.OK, MessageBoxImage.Error);
                 e.Handled = true;
             };
             L.Load();
@@ -61,6 +62,7 @@ namespace JdoTweak
             // Resume a saved session, otherwise ask the user to sign in.
             Hardware = HardwareTask.Result;
             var r = License.Resume(Hardware.Hwid());
+            if (r == License.Result.Ok) Updater.AutoUpdateAtStart();   // a newer version replaces this one and reopens
             Window first = r == License.Result.Ok ? (Window)new MainWindow() : new LoginWindow();
             Wpf.Run(first);
         }
@@ -73,7 +75,7 @@ namespace JdoTweak
             try
             {
                 if (string.Equals(Microsoft.Win32.Registry.GetValue(k, "ShortcutTarget", null) as string, exe, StringComparison.OrdinalIgnoreCase)) return;
-                string name = "JDO Tweak.lnk";   // WScript.Shell cannot save non-ANSI (Arabic) file names
+                string name = "Jdo X Abu Qht.lnk";   // WScript.Shell cannot save non-ANSI (Arabic) file names
                 var shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
                 foreach (var dir in new[] { Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), Environment.GetFolderPath(Environment.SpecialFolder.Programs) })
                 {
@@ -81,7 +83,7 @@ namespace JdoTweak
                     lnk.TargetPath = exe;
                     lnk.WorkingDirectory = Path.GetDirectoryName(exe);
                     lnk.IconLocation = exe + ",0";
-                    lnk.Description = "JDO Al-Shayeb Tweak";
+                    lnk.Description = "Jdo X Abu Qht";
                     lnk.Save();
                 }
                 Microsoft.Win32.Registry.SetValue(k, "ShortcutTarget", exe);
@@ -106,6 +108,8 @@ namespace JdoTweak
                 return r.ReadToEnd();
         }
 
+        public static Catalog LoadCatalogForTests() { return LoadCatalog(); }
+
         static Catalog LoadCatalog()
         {
             var c = Catalog.Parse(ReadRes("tweaks.json", false));
@@ -129,7 +133,7 @@ namespace JdoTweak
             Catalog = LoadCatalog();
             License.Login(null, null, null, Hardware.Hwid());
             Directory.CreateDirectory(dir);
-            var pages = new[] { "login", "register", "dashboard", "cat:windows", "grp:cpu", "grp:gpu", "cat:mouse", "cat:network", "cat:advanced", "repair", "polling", "account", "settings", "owner" };
+            var pages = new[] { "login", "register", "dashboard", "cat:windows", "grp:cpu", "grp:gpu", "cat:mouse", "cat:network", "cat:controller", "repair", "polling", "account", "settings", "owner" };
             int i = 0;
             Window w = null;
             var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };

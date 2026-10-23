@@ -22,7 +22,6 @@ namespace JdoTweak
         readonly TextBox search = new TextBox();
         readonly DispatcherTimer debounce = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
         int shownOptions = PageSize, shownLibrary = PageSize;
-        bool showAll;
         readonly bool embedded;
 
         static int UserTier { get { return License.Current == null ? 0 : License.Current.Tier; } }
@@ -52,7 +51,7 @@ namespace JdoTweak
         public TweakPage(MainWindow w, Category c, bool embedded = false)
         {
             win = w; category = c; this.embedded = embedded;
-            showAll = IsVendorSection(c.Id);   // vendor sections have few hand-picked items: list everything
+            // every tweak of the section is listed here: hand-picked first, then multi-value settings, then the rest
             var all = App.Catalog.Tweaks.Where(t => t.Cat == c.Id).ToList();
             best = all.Where(t => t.Curated).ToList();
             options = all.Where(t => !t.Curated && t.HasOptions).OrderByDescending(t => t.Packs).ToList();
@@ -86,7 +85,7 @@ namespace JdoTweak
             var rev = UI.IconBtn("", L.T("revertAll"), "Ghost", async (o, e) => await RevertAll((Button)o)); rev.Margin = new Thickness(10, 0, 0, 0);
             rec.IsEnabled = !VendorMissing;
             if (!embedded) btns.Children.Add(rec);
-            if (!embedded && c.Id != "mouse" && c.Id != "keyboard" && c.Id != "advanced")
+            if (!embedded && c.Id != "mouse" && c.Id != "keyboard")
             {
                 var allBtn = UI.IconBtn("", L.T("applyAll"), "Ghost", async (o, e) => await ApplyAll((Button)o));
                 allBtn.Margin = new Thickness(10, 0, 0, 0);
@@ -128,8 +127,8 @@ namespace JdoTweak
             list.Children.Clear();
             bool searching = search.Text.Trim().Length > 0;
             var b = Filter(best).ToList();
-            var o = (showAll || searching) ? Filter(options).ToList() : new List<Tweak>();
-            var l = (showAll || searching) ? Filter(library).ToList() : new List<Tweak>();
+            var o = Filter(options).ToList();
+            var l = Filter(library).ToList();
             if (b.Count > 0) { if (!embedded) list.Children.Add(Group("", L.T("secBest"), L.T("secBestD"), b.Count)); foreach (var t in b) list.Children.Add(Card(t)); }
             if (o.Count > 0)
             {
@@ -144,13 +143,6 @@ namespace JdoTweak
                 if (l.Count > shownLibrary) list.Children.Add(More(l.Count - shownLibrary, () => { shownLibrary += PageSize * 2; Render(); }));
             }
             if (b.Count + o.Count + l.Count == 0) { var n = UI.Text(L.T("noResults"), 14, "Muted"); n.Margin = new Thickness(4, 20, 0, 0); list.Children.Add(n); }
-            int hidden = options.Count + library.Count;
-            if (!searching && hidden > 0)
-            {
-                var more = UI.Btn((showAll ? L.T("hideAdvanced") : L.T("showAdvanced")) + "  (" + hidden.ToString("N0") + ")", "Ghost", (x, y) => { showAll = !showAll; shownOptions = shownLibrary = PageSize; Render(); });
-                more.HorizontalAlignment = HorizontalAlignment.Center; more.Margin = new Thickness(0, 14, 0, 24);
-                list.Children.Add(more);
-            }
         }
 
         static FrameworkElement Group(string icon, string title, string sub, int count)
@@ -355,7 +347,7 @@ namespace JdoTweak
                 foreach (var t in todo)
                     try
                     {
-                        if (t.HasOptions) { int i = t.RecommendedOption(hw); if (i >= 0 && !t.Options[i].IsDefault) Engine.ApplyOption(t, i); }
+                        if (t.HasOptions) { int i = t.RecommendedOption(hw, UserTier); if (i >= 0 && !t.Options[i].IsDefault) Engine.ApplyOption(t, i); }
                         else if (!Engine.IsApplied(t)) Engine.ApplyTweak(t);
                         reboot |= t.Reboot;
                     }
@@ -366,48 +358,59 @@ namespace JdoTweak
             Render();
         }
 
-        // Every tweak on this page that can be undone exactly (registry only), within the user's plan.
-        // Commands (no automatic undo) and anything marked risky are left for the user to switch on by hand.
-        List<Tweak> AllApplicable()
+        // Everything in a section, within the user's plan: hand-picked tweaks, every pack setting and every CMD /
+        // PowerShell command. What could crash Windows or works against another tweak was already removed from the app.
+        // Only these stay for the user to switch on by hand: anything that turns off Windows protection, Update or the
+        // Store, network commands (they can cut the connection), DNS / IP addresses, and hand-picked risky tweaks.
+        public static List<Tweak> AllApplicable(string catId)
         {
             var hw = App.Hardware;
-            return App.Catalog.Tweaks.Where(t => t.Cat == category.Id && t.Tier <= UserTier && t.Risk <= 1 && !t.NoUndo
+            return App.Catalog.Tweaks.Where(t => t.Cat == catId && t.Tier <= UserTier && !t.NoBulk && !Catalog.AddressSetting(t)
+                    && t.Risk <= 1
                     && (t.MinRam == 0 || hw == null || hw.RamGb >= t.MinRam) && (t.Vendor == null || hw == null || t.Vendor == hw.GpuVendor)
-                    && (t.HasOptions ? t.Options.All(o => o.Apply.All(a => a.IsRegistry)) : t.Apply.Count > 0 && t.Apply.All(a => a.IsRegistry)))
+                    && (t.HasOptions || t.Apply.Count > 0))
                 .ToList();
         }
 
-        async Task ApplyAll(Button b)
+        public static async Task<bool> ApplyAll(MainWindow win, string catId, Button b)
         {
-            var todo = AllApplicable();
-            if (todo.Count == 0) return;
-            int risky = todo.Count(t => t.Risk == 1);
-            string msg = string.Format(L.T("applyAllAsk"), todo.Count.ToString("N0"), risky.ToString("N0"));
-            if (!UI.Ask(win, L.T("applyAll"), msg, true, risky > 0)) return;
+            var todo = AllApplicable(catId);
+            if (todo.Count == 0) return false;
+            var cmds = todo.Where(t => t.NoUndo && !t.Curated).ToList();
+            string msg = string.Format(L.T("applyAllAsk"), todo.Count.ToString("N0"), cmds.Count.ToString("N0"));
+            if (!UI.Ask(win, L.T("applyAll"), msg, true, cmds.Count > 0)) return false;
             win.EnsureRestorePoint();
             b.IsEnabled = false;
-            var hw = App.Hardware;
-            bool reboot = false;
-            await Task.Run(() =>
-            {
-                Engine.BeginBatch();
-                try
-                {
-                    foreach (var t in todo)
-                        try
-                        {
-                            if (t.HasOptions) { int i = t.RecommendedOption(hw); if (i >= 0 && !t.Options[i].IsDefault && Engine.CurrentOption(t) != i) Engine.ApplyOption(t, i); }
-                            else if (!Engine.IsApplied(t)) Engine.ApplyTweak(t);
-                            reboot |= t.Reboot;
-                        }
-                        catch { }
-                }
-                finally { Engine.EndBatch(); }
-            });
+            bool reboot = await Task.Run(() => RunAll(todo));
             b.IsEnabled = true;
             if (reboot) win.NeedReboot();
-            Render();
+            return true;
         }
+
+        // Registry first (exact undo), then the commands in one batch. Returns whether a restart is needed.
+        public static bool RunAll(List<Tweak> todo)
+        {
+            var hw = App.Hardware;
+            var cmds = todo.Where(t => t.NoUndo && !t.Curated).ToList();
+            bool reboot = cmds.Count > 0;
+            Engine.BeginBatch();
+            try
+            {
+                foreach (var t in todo.Except(cmds))
+                    try
+                    {
+                        if (t.HasOptions) { int i = t.RecommendedOption(hw, UserTier); if (i >= 0 && !t.Options[i].IsDefault && Engine.CurrentOption(t) != i) Engine.ApplyOption(t, i); }
+                        else if (!Engine.IsApplied(t)) Engine.ApplyTweak(t);
+                        reboot |= t.Reboot;
+                    }
+                    catch { }
+                try { Engine.RunCommands(cmds); } catch { }
+            }
+            finally { Engine.EndBatch(); }
+            return reboot;
+        }
+
+        async Task ApplyAll(Button b) { if (await ApplyAll(win, category.Id, b)) Render(); }
 
         async Task RevertAll(Button b)
         {

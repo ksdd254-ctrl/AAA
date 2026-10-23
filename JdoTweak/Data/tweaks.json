@@ -14,6 +14,12 @@
       "icon": ""
     },
     {
+      "id": "controller",
+      "ar": "اليد (الكنترولر)",
+      "en": "Controller",
+      "icon": ""
+    },
+    {
       "id": "cpu_intel",
       "group": "cpu",
       "ar": "Intel",
@@ -71,12 +77,6 @@
       "ar": "التخزين",
       "en": "Storage",
       "icon": ""
-    },
-    {
-      "id": "advanced",
-      "ar": "متقدم (حمايات)",
-      "en": "Advanced (Security)",
-      "icon": ""
     }
   ],
   "tweaks": [
@@ -2424,7 +2424,7 @@
     },
     {
       "id": "adv.mitigations",
-      "cat": "advanced",
+      "cat": "windows",
       "tier": 3,
       "risk": 2,
       "ar": "إيقاف حمايات Spectre و Meltdown",
@@ -2455,11 +2455,12 @@
           "del": true
         }
       ],
-      "reboot": true
+      "reboot": true,
+      "nopack": true
     },
     {
       "id": "adv.uac",
-      "cat": "advanced",
+      "cat": "windows",
       "tier": 3,
       "risk": 2,
       "ar": "إيقاف التحكم في حساب المستخدم (UAC)",
@@ -2480,11 +2481,12 @@
           "dw": 1
         }
       ],
-      "reboot": true
+      "reboot": true,
+      "nopack": true
     },
     {
       "id": "adv.wupdate",
-      "cat": "advanced",
+      "cat": "windows",
       "tier": 3,
       "risk": 2,
       "ar": "تحديثات الويندوز",
@@ -2574,17 +2576,18 @@
             }
           ]
         }
-      ]
+      ],
+      "nopack": true
     },
     {
       "id": "adv.xbox",
-      "cat": "advanced",
+      "cat": "windows",
       "tier": 3,
       "risk": 1,
       "ar": "إيقاف خدمات Xbox",
       "en": "Disable Xbox Services",
-      "dar": "يوقف خدمات Xbox بالخلفية. تنبيه: ألعاب Game Pass وتسجيل دخول Xbox ويد Xbox ممكن ما تشتغل لين ترجعها.",
-      "den": "Turns off Xbox background services. Warning: Game Pass games, Xbox sign-in and Xbox controllers may not work until you revert it.",
+      "dar": "يوقف خدمات Xbox بالخلفية. تنبيه: ألعاب Game Pass وتسجيل دخول Xbox ويد Xbox ممكن ما تشتغل لين ترجعها. (خدمة أيادي Xbox ما تنلمس، عشان اليد تشتغل.)",
+      "den": "Turns off Xbox background services. Warning: Game Pass games, Xbox sign-in and Xbox controllers may not work until you revert it. (The Xbox controller service is left alone so controllers keep working.)",
       "apply": [
         {
           "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XblAuthManager",
@@ -2598,11 +2601,6 @@
         },
         {
           "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxNetApiSvc",
-          "n": "Start",
-          "dw": 4
-        },
-        {
-          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxGipSvc",
           "n": "Start",
           "dw": 4
         }
@@ -2622,18 +2620,14 @@
           "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxNetApiSvc",
           "n": "Start",
           "dw": 3
-        },
-        {
-          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxGipSvc",
-          "n": "Start",
-          "dw": 3
         }
       ],
-      "reboot": true
+      "reboot": true,
+      "nopack": true
     },
     {
       "id": "adv.defender",
-      "cat": "advanced",
+      "cat": "windows",
       "tier": 3,
       "risk": 2,
       "ar": "إيقاف الحماية الفورية لـ Windows Defender",
@@ -2659,7 +2653,8 @@
         {
           "ps": "Set-MpPreference -DisableRealtimeMonitoring $false"
         }
-      ]
+      ],
+      "nopack": true
     },
     {
       "id": "cpu.boost",
@@ -2872,6 +2867,70 @@
           "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
           "n": "EnableAspmL1",
           "del": true
+        }
+      ]
+    },
+    {
+      "id": "ctl.gip",
+      "cat": "controller",
+      "tier": 1,
+      "risk": 0,
+      "ar": "تجهيز يد Xbox فوراً مع تشغيل الويندوز",
+      "en": "Xbox Controller Ready at Startup",
+      "dar": "خدمة إكسسوارات Xbox تشتغل مع الويندوز بدل ما تنتظر، فاليد (سلك أو لاسلكي) تتعرف على طول بدون تأخير أول ما توصلها.",
+      "den": "The Xbox Accessory service starts with Windows instead of waiting, so a wired or wireless controller is recognised the moment you connect it.",
+      "apply": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxGipSvc",
+          "n": "Start",
+          "dw": 2
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxGipSvc",
+          "n": "Start",
+          "dw": 3
+        }
+      ]
+    },
+    {
+      "id": "ctl.btpower",
+      "cat": "controller",
+      "tier": 2,
+      "risk": 0,
+      "ar": "إيقاف توفير الطاقة للبلوتوث (يد لاسلكية بدون انقطاع)",
+      "en": "Bluetooth Power Saving Off (No Wireless Dropouts)",
+      "dar": "يمنع الويندوز يطفي البلوتوث أو أجهزته لتوفير الطاقة. يصلح انقطاع يد PlayStation و Xbox اللاسلكية وتأخر الاستجابة.",
+      "den": "Stops Windows switching Bluetooth and its devices off to save power. Fixes wireless PlayStation and Xbox controller dropouts and lag.",
+      "apply": [
+        {
+          "ps": "Get-CimInstance -Namespace root\\wmi -ClassName MSPower_DeviceEnable | Where-Object { $_.InstanceName -match 'BTH|BLUETOOTH' } | Set-CimInstance -Property @{ Enable = $false }"
+        }
+      ],
+      "revert": [
+        {
+          "ps": "Get-CimInstance -Namespace root\\wmi -ClassName MSPower_DeviceEnable | Where-Object { $_.InstanceName -match 'BTH|BLUETOOTH' } | Set-CimInstance -Property @{ Enable = $true }"
+        }
+      ]
+    },
+    {
+      "id": "ctl.gameinput",
+      "cat": "controller",
+      "tier": 3,
+      "risk": 0,
+      "ar": "خدمة GameInput تشتغل تلقائياً",
+      "en": "GameInput Service Always Ready",
+      "dar": "الألعاب الحديثة تقرأ اليد عن طريق GameInput. تشغيلها مع الويندوز يخلي أول ضغطة تنقرأ بدون تأخير. (إذا ما كانت موجودة في جهازك ما يتغير شي.)",
+      "den": "Modern games read controllers through GameInput. Starting it with Windows means the first press is read with no delay. (Nothing changes if your PC does not have it.)",
+      "apply": [
+        {
+          "ps": "if (Get-Service GameInputSvc -ErrorAction SilentlyContinue) { Set-Service GameInputSvc -StartupType Automatic; Start-Service GameInputSvc -ErrorAction SilentlyContinue }"
+        }
+      ],
+      "revert": [
+        {
+          "ps": "if (Get-Service GameInputSvc -ErrorAction SilentlyContinue) { Set-Service GameInputSvc -StartupType Manual }"
         }
       ]
     }

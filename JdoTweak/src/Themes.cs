@@ -98,15 +98,14 @@ namespace JdoTweak
             };
         }
 
-        // Slowly rotating gradient, used on the logo.
+        // Logo gradient. Static on purpose: an endless animation keeps WPF redrawing the window
+        // (CPU/GPU work) for as long as the app is open.
         public static Brush Shimmer()
         {
             var b = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(1, 1), MappingMode = BrushMappingMode.RelativeToBoundingBox };
             b.GradientStops.Add(new GradientStop(Themes.AccentColor, 0));
             b.GradientStops.Add(new GradientStop(Themes.Accent2Color, 1));
-            var rot = new RotateTransform(0, 0.5, 0.5);
-            b.RelativeTransform = rot;
-            rot.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, TimeSpan.FromSeconds(8)) { RepeatBehavior = RepeatBehavior.Forever });
+            b.Freeze();
             return b;
         }
 

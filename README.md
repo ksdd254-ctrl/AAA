@@ -1,4 +1,4 @@
-# جدو الشايب تويك — JDO Al-Shayeb Tweak
+# Jdo X Abu Qht
 
 Windows tweaking and repair app (Arabic / English) with plan tiers and license keys.
 
