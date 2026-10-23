@@ -283,6 +283,9 @@ Say '== 8. ISO'
 if (Test-Path $liteIso) {
   $list = & "$env:ProgramFiles\7-Zip\7z.exe" l $liteIso
   Check 'BIOS boot file' ([bool]($list | Select-String 'boot\\etfsboot.com'))
+  foreach ($inf in 'rt640x64', 'e2f', 'e1d', 'e1r68x64', 'aqnic650') {
+    Check "network driver in the image: $inf (Realtek / Intel / Marvell, wired)" ([bool](Get-ChildItem "$lite\Windows\System32\DriverStore\FileRepository" -Directory -Filter "$inf.inf_*" -ErrorAction SilentlyContinue))
+  }
   Check 'UEFI boot file' ([bool]($list | Select-String 'efi\\microsoft\\boot\\efisys.bin'))
   Check 'autounattend.xml' ([bool]($list | Select-String 'autounattend.xml'))
   $ua = [xml](Get-Content "$Work\iso\autounattend.xml" -Raw)

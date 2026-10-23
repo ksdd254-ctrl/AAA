@@ -33,7 +33,7 @@ $deskDir = Join-Path $env:PUBLIC 'Desktop\JDO x QHT'
 New-Item -ItemType Directory -Force $deskDir | Out-Null
 $sh = New-Object -ComObject WScript.Shell
 $icons = Join-Path $env:SystemDrive 'JDO\Icons'
-foreach ($i in @(@('1 - Toolbox (fixes, priorities, Store)', 'JDO-Tools.cmd', 'tools'), @('2 - Tweaks (JDO x QHT)', 'JDO-x-QHT.cmd', 'tweaks'),
+foreach ($i in @(@('1 - Toolbox (fixes, priorities, Store)', 'JDO-Tools.cmd', 'tools'), @('2 - Tweaks (applied by themselves at first sign-in - run to check again)', 'JDO-x-QHT.cmd', 'tweaks'),
                  @('3 - Apps (Brave, Chrome, Epic, Discord, AnyDesk, NVIDIA, Voicemeeter)', 'JDO-Apps.cmd', 'apps'))) {
   $l = $sh.CreateShortcut((Join-Path $deskDir ($i[0] + '.lnk')))
   $l.TargetPath = Join-Path $env:SystemDrive ('JDO\' + $i[1]); $l.WorkingDirectory = Join-Path $env:SystemDrive 'JDO'

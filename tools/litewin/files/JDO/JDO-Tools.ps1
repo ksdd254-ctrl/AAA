@@ -7,7 +7,7 @@
 #   JDO-Tools.ps1 -Devices   disable unneeded devices + USB power saving off, no questions (first boot runs this)
 #   JDO-Tools.ps1 -Power     create and switch to the JDO Ultimate power plan, no questions (first boot runs this)
 #   JDO-Tools.ps1 -Services  Windows Update / Store / account services off once setup is done (first boot runs this)
-param([switch]$Devices, [switch]$Power, [switch]$Services, [string]$Slim)   # -Slim Brave,Chrome,Discord: lighten those apps, no questions
+param([switch]$Devices, [switch]$Power, [switch]$Services, [string]$Slim, [string]$Run, [string]$Set)   # -Slim Brave,Chrome,Discord: lighten those apps, no questions
 $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -19,6 +19,8 @@ if (-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
   if ($Power) { $a += ' -Power' }
   if ($Services) { $a += ' -Services' }
   if ($Slim) { $a += " -Slim $Slim" }
+  if ($Run) { $a += " -Run $Run" }
+  if ($Set) { $a += " -Set $Set" }
   Start-Process powershell.exe -Verb RunAs -ArgumentList $a
   return
 }
@@ -138,24 +140,16 @@ function Set-Policy([string]$Key, [string]$Name, $Value) { Set-Dword $Key $Name 
 function Done([bool]$Reboot) { if ($Reboot) { Write-Host 'Restart the PC to finish.' -ForegroundColor Yellow } else { Write-Host 'Done.' -ForegroundColor Green } }
 
 # ---------------- devices ----------------
-# Same list that was already disabled on the owner's PC (minus anything network), plus Bluetooth and the unused Ryzen
-# iGPU. Matched by hardware ID prefix, so on other hardware only the generic entries apply.
-# Never touched: network adapters (wired, Wi-Fi, virtual), cameras, controllers, keyboards, mice, audio.
+# Only devices that are safe to switch off on ANY PC. Removed for good (a real PC froze and came back to a black screen):
+# system timer, HPET, DMA controller, motherboard resources, system board, ACPI WMI, processor aggregator, composite /
+# UMBus enumerators, the Ryzen iGPU and the Basic Display adapter (a screen on the motherboard goes black), every
+# Bluetooth device (Bluetooth mice, headsets and controllers stop). Network adapters, cameras, controllers, keyboards,
+# mice and audio are never touched.
 $deviceIds = @(
-  'ROOT\CompositeBus', 'ROOT\RDPBUS', 'ROOT\UMBUS', 'ROOT\vdrvroot',
-  'ACPI\VEN_ACPI&DEV_000C',   # ACPI Processor Aggregator
-  'ACPI\VEN_PNP&DEV_0100',    # System timer
-  'ACPI\VEN_PNP&DEV_0103',    # High precision event timer
-  'ACPI\VEN_PNP&DEV_0200',    # Direct memory access controller
-  'ACPI\VEN_PNP&DEV_0501',    # COM1
-  'ACPI\VEN_PNP&DEV_0800',    # System speaker
-  'ACPI\VEN_PNP&DEV_0C01',    # System board
-  'ACPI\VEN_PNP&DEV_0C02',    # Motherboard resources
-  'ACPI\VEN_PNP&DEV_0C14',    # WMI for ACPI
-  'PCI\VEN_1022&DEV_790B',    # AMD SM Bus (no driver)
-  'PCI\VEN_1002&DEV_164E',    # Ryzen 7000 iGPU (the NVIDIA card is used)
-  'USB\VID_0E8D&PID_0616',    # MediaTek Bluetooth
-  # keyboard / headset / mouse extra HID collections (media keys, vendor software) - not game controllers
+  'ROOT\RDPBUS',             # Remote Desktop bus (no remote desktop here)
+  'ACPI\VEN_PNP&DEV_0800',   # PC speaker (beeps)
+  'ACPI\VEN_PNP&DEV_0501',   # COM1 serial port
+  # the owner's keyboard / headset extra HID collections (media keys, vendor software) - only on that hardware
   'HID\VID_03F0&PID_089D&REV_4100&MI_03&Col01', 'HID\VID_03F0&PID_089D&REV_4100&MI_03&Col04',
   'HID\VID_0C45&PID_80B1&REV_0111&MI_01&Col01', 'HID\VID_0C45&PID_80B1&REV_0111&MI_02', 'HID\VID_0C45&PID_80B1&REV_0111&MI_03',
   'HID\VID_373E&PID_0047&REV_0200&MI_01&Col01', 'HID\VID_373E&PID_0047&REV_0200&MI_01&Col04',
@@ -167,11 +161,7 @@ function Get-JdoDevices {
     if ($d.Class -eq 'Net') { continue }   # network adapters: never
     $ids = @($d.HardwareID)
     if ($ids | Where-Object { $i = $_; $deviceIds | Where-Object { $i -like "$_*" } }) { $d; continue }
-    if ($d.Class -eq 'Bluetooth') { $d; continue }
   }
-  # a second "Microsoft Basic Display Adapter" only once a real GPU driver is installed
-  $real = $all | Where-Object { $_.Class -eq 'Display' -and $_.FriendlyName -notmatch 'Basic Display' -and $_.Status -eq 'OK' }
-  if ($real) { $hit += $all | Where-Object { $_.Class -eq 'Display' -and $_.FriendlyName -match 'Basic Display' } }
   $hit | Where-Object { $_ } | Sort-Object InstanceId -Unique
 }
 
@@ -207,6 +197,15 @@ function Disable-Devices {
 }
 
 function Enable-Devices {
+  # also everything the older JDO versions switched off (timers, motherboard resources, iGPU, Bluetooth...)
+  $old = 'ROOT\CompositeBus', 'ROOT\UMBUS', 'ROOT\vdrvroot', 'ACPI\VEN_ACPI&DEV_000C', 'ACPI\VEN_PNP&DEV_0100', 'ACPI\VEN_PNP&DEV_0103',
+         'ACPI\VEN_PNP&DEV_0200', 'ACPI\VEN_PNP&DEV_0C01', 'ACPI\VEN_PNP&DEV_0C02', 'ACPI\VEN_PNP&DEV_0C14', 'PCI\VEN_1022&DEV_790B', 'PCI\VEN_1002&DEV_164E'
+  foreach ($d in Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue | Where-Object { $_.ConfigManagerErrorCode -eq 22 }) {
+    $ids = @($d.HardwareID)
+    if ($d.Class -in 'Bluetooth', 'Display' -or ($ids | Where-Object { $i = $_; $old | Where-Object { $i -like "$_*" } })) {
+      try { Enable-PnpDevice -InstanceId $d.InstanceId -Confirm:$false -ErrorAction Stop; Write-Host "  on   $($d.FriendlyName)" } catch { }
+    }
+  }
   foreach ($d in Get-JdoDevices) {
     try { Enable-PnpDevice -InstanceId $d.InstanceId -Confirm:$false -ErrorAction Stop; Write-Host "  on   $($d.FriendlyName)" } catch { }
   }
@@ -828,7 +827,7 @@ $switches = [ordered]@{
     On  = { Set-Services @{ TabletInputService=3 } }
     Off = { Set-Services @{ TabletInputService=4 } } }
   'Bluetooth' = @{
-    On  = { Set-Services @{ bthserv=3; BTAGService=3; BthAvctpSvc=3; BluetoothUserService=3; BTHUSB=3 }; Get-JdoDevices | Where-Object { $_.Class -eq 'Bluetooth' -or $_.HardwareID -like 'USB\VID_0E8D*' } | ForEach-Object { Enable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false -ErrorAction SilentlyContinue } }
+    On  = { Set-Services @{ bthserv=3; BTAGService=3; BthAvctpSvc=3; BluetoothUserService=3; BTHUSB=3 }; Get-PnpDevice -Class Bluetooth -PresentOnly -ErrorAction SilentlyContinue | ForEach-Object { Enable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false -ErrorAction SilentlyContinue } }
     Off = { Set-Services @{ bthserv=4; BTAGService=4; BthAvctpSvc=4; BluetoothUserService=4; BTHUSB=4 } } }
   'Windows Update' = @{
     On  = { Set-Services @{ wuauserv=3; UsoSvc=2; WaaSMedicSvc=3; BITS=3 }; Set-Policy 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' 'NoAutoUpdate' $null }
@@ -852,10 +851,15 @@ $switches = [ordered]@{
   'Integrated GPU (AMD Ryzen) - off by default: unused it only adds a driver and shared RAM; turn on for a 2nd screen on the motherboard' = @{
     On  = { Get-PnpDevice -Class Display -ErrorAction SilentlyContinue | Where-Object { $_.InstanceId -like 'PCI\VEN_1002*' -or $_.InstanceId -like 'PCI\VEN_8086*' } | ForEach-Object { Enable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false -ErrorAction SilentlyContinue; Write-Host "  on   $($_.FriendlyName)" }
             Write-Host '  For it to work fully install the AMD chipset / graphics driver from amd.com/support.' -ForegroundColor Yellow }
-    Off = { Get-PnpDevice -Class Display -ErrorAction SilentlyContinue | Where-Object { $_.InstanceId -like 'PCI\VEN_1002*' -or $_.InstanceId -like 'PCI\VEN_8086*' } | ForEach-Object { Disable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false -ErrorAction SilentlyContinue; Write-Host "  off  $($_.FriendlyName)" } } }
-  'svchost merge (audio + UI message services share hosts: 2 processes less; off = Windows default)' = @{
-    On  = { Set-SvchostMerge $true }
-    Off = { Set-SvchostMerge $false } }
+    # only known INTEGRATED chips (Ryzen 7000/9000 / 8000G, Intel UHD / Iris), and only when another graphics card works:
+    # the old version switched off every AMD / Intel display device, a Radeon or Arc card included = black screen
+    Off = { $igpu = 'PCI\\VEN_1002&DEV_(164E|13C0|1681|1638|15BF|15C8|1900|150E)|PCI\\VEN_8086&DEV_(4680|4682|4688|468A|4690|4692|4693|A780|A782|A788|A78A|A7A0|A7A8|3E92|3E98|3E91|9BC5|9BC8|9BC4|7D55|7D67)'
+            $all = @(Get-PnpDevice -Class Display -PresentOnly -ErrorAction SilentlyContinue)
+            $tgt = @($all | Where-Object { $_.InstanceId -match $igpu })
+            $other = @($all | Where-Object { $_.Status -eq 'OK' -and $_.InstanceId -notmatch $igpu -and $_.FriendlyName -notmatch 'Basic Display' })
+            if (-not $tgt) { Write-Host '  no integrated GPU found - nothing changed' -ForegroundColor DarkGray; return }
+            if (-not $other) { Write-Host '  kept ON: no other working graphics card (the screen would go black)' -ForegroundColor Yellow; return }
+            foreach ($d in $tgt) { Disable-PnpDevice -InstanceId $d.InstanceId -Confirm:$false -ErrorAction SilentlyContinue; Write-Host "  off  $($d.FriendlyName)" } } }
   'Clipboard history' = @{
     On  = { Set-Services @{ cbdhsvc=3 }; Set-Policy 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'AllowClipboardHistory' $null }
     Off = { Set-Services @{ cbdhsvc=4 }; Set-Policy 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'AllowClipboardHistory' 0 } }
@@ -887,6 +891,19 @@ $actions = [ordered]@{
 }
 $first = 23
 
+# -Run <number> [-Set 1|0]: one menu option without the menu (used by the VM test of every option)
+if ($Run) {
+  if ($actions.Contains($Run)) { & $actions[$Run].a }
+  else {
+    $i = 0; $keys = @($switches.Keys)
+    if ([int]::TryParse($Run, [ref]$i) -and $i -ge $first -and $i -lt $first + $keys.Count) {
+      $k = $keys[$i - $first]
+      if ($Set -eq '1') { & $switches[$k].On; Done $true } elseif ($Set -eq '0') { & $switches[$k].Off; Done $true } else { Write-Host "  $k needs -Set 1 or -Set 0" }
+    } else { Write-Host "  no option $Run" }
+  }
+  Stop-Transcript | Out-Null
+  return
+}
 if ($Slim) {
   foreach ($n in $Slim -split '[,; ]+' | Where-Object { $_ }) {
     switch ($n) { 'Chrome' { Slim-Chrome } 'Brave' { Slim-Brave } 'Discord' { Slim-Discord } default { Write-Host "  unknown app: $n" -ForegroundColor Yellow } }

@@ -102,6 +102,12 @@ Say "Backup of every value it changes: $bk" 'DarkGray'
 # ---- first automatic run: black cover screen with this log on it, restart at the end ----
 $firstMark = Join-Path $root 'qht.done'
 $first = $Auto -and (-not $DryRun) -and (-not (Test-Path $firstMark))
+if (-not $Auto -and (Test-Path $firstMark)) {
+  # a run by hand after the automatic first run: say so, or a screen of [=] lines looks like "it did nothing"
+  Say ''
+  Say ("  These tweaks were applied by themselves at the first sign-in ({0:yyyy-MM-dd HH:mm}, the purple screen)." -f (Get-Item $firstMark).LastWriteTime) 'Cyan'
+  Say '  This run checks every setting again: [=] = still applied, [OK] = was changed back and is now set again.' 'Cyan'
+}
 $stopFile = Join-Path $root 'screen.stop'
 if (-not $DryRun) { Remove-Item $stopFile -Force -ErrorAction SilentlyContinue }
 if ($first) { Start-Process powershell.exe -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -STA -File `"$(Join-Path $root 'JDO-Screen.ps1')`"" }
@@ -521,6 +527,7 @@ if ($first) { Reg-Set 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' 'JDO
 if (-not $DryRun) { $undo | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $bk 'before.json') -Encoding UTF8 }
 Say ''
 Say ("== Result: {0} changed, {1} already right, {2} failed" -f $script:ok, $script:same, $script:bad.Count) $(if ($script:bad.Count) { 'Yellow' } else { 'Green' })
+if (-not $Auto -and -not $DryRun) { Say ("   {0} settings are active now ({1} were already applied, {2} set again now)." -f ($script:ok + $script:same), $script:same, $script:ok) 'Green' }
 foreach ($b in $script:bad) { Say "   $b" 'Yellow' }
 Say "   Full log: $logs\JDO-x-QHT.log    Undo everything: JDO-Tools option 22" 'DarkGray'
 if ($first) {

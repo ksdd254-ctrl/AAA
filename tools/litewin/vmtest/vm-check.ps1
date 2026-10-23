@@ -28,6 +28,8 @@ if (Test-Path "$out\idle-pass") {
              ('RAM in use: {0:N0} MB' -f (($os2.TotalVisibleMemorySize - $os2.FreePhysicalMemory) / 1KB)),
              ('  ' + (($p | Sort-Object Name | ForEach-Object { $_.Name }) -join ', ')), '--- svchost groups ---')
   $lines += & tasklist.exe /svc /fi 'imagename eq svchost.exe'
+  # after every JDO-Tools option ran: the PC must come back to a normal desktop
+  $lines += "boot after the tools: explorer $([bool](Get-Process explorer -ErrorAction SilentlyContinue)), CoreMessaging $((Get-Service CoreMessagingRegistrar).Status), disabled system devices: $(@(Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue | Where-Object { $_.ConfigManagerErrorCode -eq 22 -and $_.Class -in 'System','Display','Computer' }).Count)"
   Set-Content "$out\idle.txt" $lines
   return
 }
@@ -136,7 +138,7 @@ if (Get-AppxPackage -Name Microsoft.WindowsStore) {
   Get-Process WinStore.App -ErrorAction SilentlyContinue | Stop-Process -Force
 }
 # 19 then 18: the Store ends up installed, as the image ships it
-try { Remove-Store *> $null; Check 'tool 19: Store removed (Windows 11: switched off)' $(if ($win11) { (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\InstallService').Start -eq 4 } else { -not (Get-AppxPackage -Name Microsoft.WindowsStore) }) } catch { Check 'tool 19' $false $_.Exception.Message }
+try { Remove-Store *> $null; Check 'tool 19: Store removed (Windows 11: switched off)' $(if ($win11) { (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\InstallService').Start -eq 4 } else { -not (Get-AppxPackage -AllUsers -Name Microsoft.WindowsStore -ErrorAction SilentlyContinue) }) } catch { Check 'tool 19' $false $_.Exception.Message }
 try { Install-Store *> 'C:\JDO-TEST\tool18.txt'; $s = [bool](Get-AppxPackage -Name Microsoft.WindowsStore); Check 'tool 18: Store comes back from C:\JDO\Store' $s } catch { Check 'tool 18' $false $_.Exception.Message }
 
 # ---------- 6. errors logged since setup ----------
@@ -161,6 +163,43 @@ Say "RESULT: $passes passed, $fails failed"
 Copy-Item $rep (Join-Path $here 'report.txt') -Force -ErrorAction SilentlyContinue
 # the VM stays on: the report is read from its disk while it runs, so more checks / fixes can follow
 Set-Content -LiteralPath (Join-Path $out 'done.txt') -Value (Get-Date -Format s)
+# ---------- 7. every JDO-Tools option, one by one (a real PC froze after one of them) ----------
+Say '== 7. every JDO-Tools option'
+$tools = 'C:\JDO\JDO-Tools.ps1'
+function Health {
+  $bad = @()
+  if (-not (Get-Process explorer -ErrorAction SilentlyContinue)) { $bad += 'explorer not running' }
+  $cm = Get-Service CoreMessagingRegistrar -ErrorAction SilentlyContinue; if ($cm.Status -ne 'Running') { $bad += 'CoreMessaging not running (black screen)' }
+  $im = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\CoreMessagingRegistrar').ImagePath; if ($im -notmatch 'LocalServiceNoNetwork') { $bad += "CoreMessaging moved: $im" }
+  foreach ($d in Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue | Where-Object { $_.ConfigManagerErrorCode -eq 22 }) {
+    if ($d.InstanceId -match '^ROOT\\RDPBUS|^ACPI\\PNP0800|^ACPI\\PNP0501') { continue }   # the safe ones option 2 switches off on purpose
+    if ($d.Class -in 'System', 'Display', 'Computer', 'Processor', 'HDC', 'SCSIAdapter', 'DiskDrive', 'Keyboard', 'Mouse', 'HIDClass', 'USB', 'Net') { $bad += "device disabled: $($d.FriendlyName) ($($d.Class))" }
+  }
+  $bad
+}
+$plan = @(); foreach ($k in 1..20) { $plan += ,@("$k", '') }
+for ($k = 23; $k -le 31; $k++) { $plan += ,@("$k", '0'); $plan += ,@("$k", '1') }
+$plan += ,@('22', ''); $plan += ,@('21', '')
+foreach ($p in $plan) {
+  if ($p[0] -eq '23' -and $p[1] -eq '1') { $p[1] = '0' }   # notifications: off is the default, end on off
+  $label = "option $($p[0])$(if ($p[1]) { " set $($p[1])" })"
+  $log = Join-Path $out ("tool-{0}{1}.txt" -f $p[0], $p[1])
+  $cmd = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$tools`" -Run $($p[0])$(if ($p[1]) { " -Set $($p[1])" }) < nul > `"$log`" 2>&1"
+  $t0 = Get-Date; $pr = Start-Process cmd.exe -ArgumentList "/c $cmd" -WindowStyle Hidden -PassThru
+  $done = $pr.WaitForExit(600000)
+  if (-not $done) { & taskkill.exe /T /F /PID $pr.Id | Out-Null }
+  $h = @(Health)
+  $err = @(Select-String -LiteralPath $log -Pattern 'Exception|is not recognized|Cannot find|ParserError' -ErrorAction SilentlyContinue | Select-Object -First 2 | ForEach-Object { $_.Line.Trim() })
+  Check ("tool $label  ({0:N0} s)" -f ((Get-Date) - $t0).TotalSeconds) ($done -and -not $h -and -not $err) ((@($(if (-not $done) { 'did not finish in 10 min' })) + $h + $err) -join '; ')
+}
+# the switches back to how the image ships them
+# every switch back to how the image ships it (23 notifications off, 24 touch keyboard on, 25 Bluetooth off, 26 Windows Update off,
+# 27 Defender off, 28 UAC prompts off (no prompts), 29 printing off, 30 iGPU on, 31 clipboard history off)
+foreach ($pair in @(@('23', '0'), @('24', '1'), @('25', '0'), @('26', '0'), @('27', '0'), @('28', '0'), @('29', '0'), @('30', '1'), @('31', '0'))) {
+  & cmd.exe /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$tools`" -Run $($pair[0]) -Set $($pair[1]) < nul > nul 2>&1"
+}
+$fails = (Select-String -LiteralPath $rep -Pattern '^FAIL').Count; $passes = (Select-String -LiteralPath $rep -Pattern '^PASS').Count
+Say "RESULT after the tools: $passes passed, $fails failed"
 # then one restart for the idle numbers (second pass above)
 Set-Content "$out\idle-pass" '1'
 Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' 'JDO VM idle' "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $out\vm-check.ps1"
