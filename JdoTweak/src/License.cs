@@ -28,7 +28,8 @@ namespace JdoTweak
         public int Tier;            // 1 Basic, 2 Elite, 3 Ultimate
         public DateTime? Expires;   // null = lifetime
         public bool WithLiteWindows;
-        public string PlanName { get { return L.T("tier" + Math.Max(1, Math.Min(3, Tier))); } }
+        public string PlanName { get { return Tier <= 0 ? L.T("noPlan") : L.T("tier" + Math.Min(3, Tier)); } }
+        public bool HasPlan { get { return Tier > 0; } }
     }
 
     // Talks to the JDO license server. The server owns every decision
@@ -122,6 +123,67 @@ namespace JdoTweak
             if (Current == null) return null;
             body["token"] = Current.Token;
             return Post(path, body);
+        }
+
+        // ---------------- sign-up from the app
+        // Returns null on success, otherwise the server's error word (exists, email, password, code, mail) or "network".
+        public static string Register(string email, string password)
+        {
+            if (string.IsNullOrEmpty(ApiBase)) return DevBuild ? null : "network";
+            return ErrorOf(Post("/api/client/register", new Dictionary<string, object> { { "email", email }, { "password", password } }));
+        }
+
+        public static string Confirm(string email, string code)
+        {
+            if (string.IsNullOrEmpty(ApiBase)) return DevBuild ? null : "network";
+            return ErrorOf(Post("/api/client/confirm", new Dictionary<string, object> { { "email", email }, { "code", code } }));
+        }
+
+        public static void Resend(string email)
+        {
+            Post("/api/client/resend", new Dictionary<string, object> { { "email", email } });
+        }
+
+        static string ErrorOf(Dictionary<string, object> r)
+        {
+            if (r == null) return "network";
+            object ok;
+            if (r.TryGetValue("ok", out ok) && ok is bool && (bool)ok) return null;
+            return r.ContainsKey("error") ? Convert.ToString(r["error"]) : "server";
+        }
+
+        // ---------------- admin: accounts and their plans
+        public class Account
+        {
+            public int Id, Tier;
+            public string Email, Role, Expires;
+            public bool Lite, Verified, Banned, Ended;
+        }
+
+        public static List<Account> OwnerUsers(string q)
+        {
+            var list = new List<Account>();
+            var r = OwnerPost("/api/owner/users", new Dictionary<string, object> { { "q", q ?? "" } });
+            if (r == null || !r.ContainsKey("users")) return null;
+            foreach (var o in (object[])r["users"])
+            {
+                var d = o as Dictionary<string, object>;
+                if (d == null) continue;
+                list.Add(new Account
+                {
+                    Id = Convert.ToInt32(d["id"]), Email = Convert.ToString(d["email"]), Role = Convert.ToString(d["role"]),
+                    Tier = Convert.ToInt32(d["tier"]), Lite = d["lite"] is bool && (bool)d["lite"],
+                    Expires = d["expires"] == null ? null : Convert.ToString(d["expires"]),
+                    Verified = d["verified"] is bool && (bool)d["verified"], Banned = d["banned"] is bool && (bool)d["banned"],
+                    Ended = d["ended"] is bool && (bool)d["ended"],
+                });
+            }
+            return list;
+        }
+
+        public static string OwnerSetPlan(int userId, int tier, bool lite, int days)
+        {
+            return ErrorOf(OwnerPost("/api/owner/plan", new Dictionary<string, object> { { "userId", userId }, { "tier", tier }, { "lite", lite }, { "days", days } }));
         }
 
         public static List<Dictionary<string, object>> News()

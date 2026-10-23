@@ -89,7 +89,7 @@ const owner = (req, res, next) => { const u = webUser(req); if (!u || u.role !==
 
 function userView(u) {
   const lics = db.prepare('SELECT * FROM licenses WHERE user_id = ? ORDER BY id DESC').all(u.id);
-  const canDownload = u.role === 'owner' || u.free_tier > 0 || lics.some((l) => l.status === 'active' && !expired(l));
+  const canDownload = grantedPlan(u).tier > 0 || lics.some((l) => l.status === 'active' && !expired(l));
   return {
     email: u.email, role: u.role, freeTier: u.free_tier,
     licenses: lics.map((l) => ({ key: l.key, tier: l.tier, lite: !!l.lite, status: l.status, expires: l.expires_at, bound: !!l.hwid, expired: !!expired(l) })),
@@ -280,20 +280,33 @@ app.get('/dl/:t', (req, res) => {
 });
 
 // ---------------------------------------------------------------- desktop app
+// The plan the admin gave this account by hand (0 = none). The owner always has everything.
+function grantedPlan(u) {
+  if (u.role === 'owner') return { tier: 3, lite: true, expires: null };
+  if (!u.free_tier) return { tier: 0, lite: false, expires: null };
+  if (u.plan_expires && new Date(u.plan_expires + 'Z').getTime() < now()) return { tier: 0, lite: false, expires: null, ended: true };
+  return { tier: u.free_tier, lite: !!u.plan_lite, expires: u.plan_expires ? u.plan_expires + 'Z' : null };
+}
+
 function clientResult(u, lic, sess) {
-  const tier = u.role === 'owner' ? 3 : lic ? lic.tier : u.free_tier;
+  const g = grantedPlan(u);
+  const keyTier = lic ? lic.tier : 0;
+  const tier = Math.max(g.tier, keyTier);
+  const lite = g.lite || !!(lic && lic.lite);
+  const expires = keyTier >= g.tier && lic ? (lic.expires_at ? lic.expires_at + 'Z' : null) : g.expires;
   return {
-    ok: true, token: sess, email: u.email, role: u.role, tier,
-    lite: u.role === 'owner' || !!(lic && lic.lite), liteUrl: (u.role === 'owner' || (lic && lic.lite)) && cfg.liteWindowsUrl ? cfg.liteWindowsUrl : null, expires: lic && lic.expires_at ? lic.expires_at + 'Z' : null,
+    ok: true, token: sess, email: u.email, role: u.role, tier, lite,
+    liteUrl: lite && cfg.liteWindowsUrl ? cfg.liteWindowsUrl : null, expires,
   };
 }
 
-// Owner and free-access accounts can sign in without a key; everyone else needs an active key bound to their PC.
+// Everyone with a verified account can sign in; without a key or an admin-granted plan they get tier 0
+// (the app opens with everything locked until the admin gives them a plan). A key, when given, must be valid.
 function checkLicense(u, key, hwid) {
   if (u.banned) return { error: 'locked' };
-  if (!key) return u.role === 'owner' || u.free_tier > 0 ? { lic: null } : { error: 'credentials' };
+  if (!key) return { lic: null };
   const lic = db.prepare('SELECT * FROM licenses WHERE key = ?').get(String(key).trim().toUpperCase());
-  if (!lic) return u.role === 'owner' || u.free_tier > 0 ? { lic: null } : { error: 'credentials' };
+  if (!lic) return { error: 'credentials' };
   if (lic.user_id && lic.user_id !== u.id) return { error: 'credentials' };
   if (lic.status !== 'active') return { error: 'locked' };
   if (expired(lic)) return { error: 'expired' };
@@ -336,8 +349,37 @@ app.post('/api/client/verify', (req, res) => {
     if (!lic || lic.status !== 'active') return res.status(403).json({ ok: false, error: 'locked' });
     if (expired(lic)) return res.status(403).json({ ok: false, error: 'expired' });
     if (lic.hwid && lic.hwid !== c.s.hwid) return res.status(403).json({ ok: false, error: 'hwid' });
-  } else if (c.u.role !== 'owner' && !c.u.free_tier) return res.status(403).json({ ok: false, error: 'locked' });
+  }
   res.json(clientResult(c.u, lic, c.t));
+});
+
+// ---------------- sign-up from inside the app (the emailed code is the bot check here)
+app.post('/api/client/register', authLimit, codeLimit, async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const pass = req.body.password;
+  if (!emailOk(email)) return res.status(400).json({ ok: false, error: 'email' });
+  if (!passOk(pass)) return res.status(400).json({ ok: false, error: 'password' });
+  const u = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  if (u && u.verified) return res.status(409).json({ ok: false, error: 'exists' });
+  const hash = await bcrypt.hash(pass, 12);
+  if (u) db.prepare('UPDATE users SET pass_hash = ? WHERE id = ?').run(hash, u.id);
+  else db.prepare('INSERT INTO users (email, pass_hash, role) VALUES (?, ?, ?)').run(email, hash, email === cfg.ownerEmail ? 'owner' : 'user');
+  await sendCode(email, 'verify');
+  res.json({ ok: true });
+});
+
+app.post('/api/client/confirm', authLimit, (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  if (!checkCode(email, 'verify', req.body.code)) return res.status(400).json({ ok: false, error: 'code' });
+  db.prepare('UPDATE users SET verified = 1 WHERE email = ?').run(email);
+  res.json({ ok: true });
+});
+
+app.post('/api/client/resend', authLimit, codeLimit, async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const u = db.prepare('SELECT verified FROM users WHERE email = ?').get(email);
+  if (u && !u.verified) await sendCode(email, 'verify');
+  res.json({ ok: true });
 });
 
 app.post('/api/news', (req, res) => {
@@ -367,6 +409,26 @@ const postRelease = (b) => {
 };
 app.post('/api/owner/news', clientOwner, (req, res) => { postNews(req.body); res.json({ ok: true }); });
 app.post('/api/owner/release', clientOwner, (req, res) => res.json({ ok: postRelease(req.body) }));
+
+// Admin from inside the app: list accounts and give / change / remove their plan.
+app.post('/api/owner/users', clientOwner, (req, res) => {
+  const q = '%' + clean(req.body.q, 100) + '%';
+  const rows = db.prepare(`SELECT id, email, role, verified, free_tier, plan_lite, plan_expires, banned, created_at, last_login
+    FROM users WHERE email LIKE ? ORDER BY id DESC LIMIT 300`).all(q);
+  res.json({ ok: true, users: rows.map((u) => { const g = grantedPlan(u); return { id: u.id, email: u.email, role: u.role, verified: !!u.verified, banned: !!u.banned, tier: g.tier, lite: g.lite, expires: g.expires, ended: !!g.ended, created: u.created_at, lastLogin: u.last_login }; }) });
+});
+
+app.post('/api/owner/plan', clientOwner, (req, res) => {
+  const u = db.prepare('SELECT * FROM users WHERE id = ?').get(Number(req.body.userId));
+  if (!u) return res.status(404).json({ ok: false, error: 'user' });
+  if (u.role === 'owner') return res.status(400).json({ ok: false, error: 'owner' });
+  const tier = Number(req.body.tier);
+  if (![0, 1, 2, 3].includes(tier)) return res.status(400).json({ ok: false, error: 'tier' });
+  const days = Number(req.body.days) || 0;
+  const exp = tier > 0 && days > 0 ? new Date(now() + days * 864e5).toISOString().slice(0, 19).replace('T', ' ') : null;
+  db.prepare('UPDATE users SET free_tier = ?, plan_lite = ?, plan_expires = ? WHERE id = ?').run(tier, tier === 3 && req.body.lite ? 1 : 0, exp, u.id);
+  res.json({ ok: true });
+});
 
 // ---------------------------------------------------------------- website admin (owner only)
 app.get('/api/admin/stats', owner, (req, res) => res.json({

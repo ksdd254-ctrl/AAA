@@ -10,7 +10,8 @@ module.exports = {
   ownerEmail: (env.OWNER_EMAIL || '').toLowerCase(),
 
   // Email: SMTP (e.g. a Gmail app password). With no SMTP the codes are printed to the console.
-  smtp: env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS ? {
+  // MAIL_CONSOLE=1 prints mail to the log instead of sending it (tests).
+  smtp: env.MAIL_CONSOLE !== '1' && env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS ? {
     host: env.SMTP_HOST, port: Number(env.SMTP_PORT || 465), secure: env.SMTP_SECURE !== 'false',
     auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
   } : null,

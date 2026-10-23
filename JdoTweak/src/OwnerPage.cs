@@ -14,6 +14,8 @@ namespace JdoTweak
         {
             var sp = new StackPanel();
             sp.Children.Add(Header("", L.T("owner"), L.T("ownerSub")));
+            sp.Children.Add(UsersCard());
+            sp.Children.Add(UI.Gap(14));
 
             // announcement composer
             var news = new StackPanel();
@@ -78,6 +80,93 @@ namespace JdoTweak
             web.Children.Add(wt);
             sp.Children.Add(UI.Card(web));
             return Page(sp);
+        }
+
+        // ------------------------------------------------------------------ accounts and their plans
+        static readonly int[] PlanDays = { 0, 30, 90, 365 };
+
+        FrameworkElement UsersCard()
+        {
+            var box = new StackPanel();
+            box.Children.Add(UI.Text(L.T("usersT"), 16, "Text", true));
+            box.Children.Add(UI.Text(L.T("usersD"), 12.5, "Muted"));
+
+            var bar = new DockPanel { Margin = new Thickness(0, 14, 0, 10) };
+            var reload = UI.IconBtn("", L.T("refresh"), "Ghost", null);
+            DockPanel.SetDock(reload, Dock.Right);
+            bar.Children.Add(reload);
+            var search = new TextBox { FlowDirection = FlowDirection.LeftToRight, Margin = new Thickness(0, 0, 10, 0) };
+            bar.Children.Add(search);
+            box.Children.Add(bar);
+
+            var list = new StackPanel();
+            box.Children.Add(list);
+            Func<Task> load = async () =>
+            {
+                list.Children.Clear();
+                list.Children.Add(UI.Text(L.T("loading"), 12.5, "Muted"));
+                string q = search.Text.Trim();
+                var users = await Task.Run(() => License.OwnerUsers(q));
+                list.Children.Clear();
+                if (users == null) { list.Children.Add(UI.Text(string.IsNullOrEmpty(License.ApiBase) ? L.T("noServer") : L.T("netErr"), 12.5, "Bad")); return; }
+                if (users.Count == 0) { list.Children.Add(UI.Text(L.T("noResults"), 12.5, "Muted")); return; }
+                foreach (var u in users) list.Children.Add(UserRow(u));
+            };
+            reload.Click += async (o, e) => await load();
+            search.KeyDown += async (o, e) => { if (e.Key == System.Windows.Input.Key.Enter) await load(); };
+            var _ = load();
+            return UI.Card(box, 22);
+        }
+
+        FrameworkElement UserRow(License.Account u)
+        {
+            var g = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+            g.ColumnDefinitions.Add(new ColumnDefinition());
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            var em = UI.Text(u.Email, 13.5, "Text", true); em.FlowDirection = FlowDirection.LeftToRight; em.TextAlignment = L.Ar ? TextAlignment.Right : TextAlignment.Left;
+            info.Children.Add(em);
+            string plan = u.Role == "owner" ? L.T("adminRole")
+                        : u.Tier == 0 ? (u.Ended ? L.T("planEnded") : L.T("noPlan"))
+                        : L.T("tier" + u.Tier) + (u.Lite ? " + " + L.T("liteWin") : "");
+            string until = u.Role != "owner" && u.Tier > 0 ? "  ·  " + (u.Expires == null ? L.T("lifetime") : L.T("until") + " " + u.Expires.Substring(0, 10)) : "";
+            string status = !u.Verified ? "  ·  " + L.T("notVerified") : u.Banned ? "  ·  " + L.T("banned") : "";
+            var pl = UI.Text(plan + until + status, 12, u.Tier > 0 || u.Role == "owner" ? "Good" : "Muted");
+            info.Children.Add(pl);
+            g.Children.Add(info);
+
+            if (u.Role != "owner")
+            {
+                var ctl = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+                var planBox = new ComboBox { MinWidth = 170, Margin = new Thickness(0, 0, 8, 0) };
+                foreach (var k in new[] { "noPlan", "tier1", "tier2", "tier3", "tier3lite" }) planBox.Items.Add(k == "tier3lite" ? L.T("tier3") + " + " + L.T("liteWin") : L.T(k));
+                planBox.SelectedIndex = u.Tier == 3 && u.Lite ? 4 : u.Tier;
+                var daysBox = new ComboBox { MinWidth = 120, Margin = new Thickness(0, 0, 8, 0) };
+                foreach (var k in new[] { "lifetime", "days30", "days90", "days365" }) daysBox.Items.Add(L.T(k));
+                daysBox.SelectedIndex = 0;
+                var save = UI.Btn(L.T("save"), "Primary", null);
+                save.Padding = new Thickness(14, 6, 14, 6);
+                save.Click += async (o, e) =>
+                {
+                    int sel = planBox.SelectedIndex;
+                    int tier = sel == 4 ? 3 : sel;
+                    bool lite = sel == 4;
+                    int days = PlanDays[Math.Max(0, daysBox.SelectedIndex)];
+                    save.IsEnabled = false;
+                    string err = await Task.Run(() => License.OwnerSetPlan(u.Id, tier, lite, days));
+                    save.IsEnabled = true;
+                    if (err != null) { pl.Text = "✗ " + L.T("failed"); pl.Foreground = UI.B("Bad"); return; }
+                    u.Tier = tier; u.Lite = lite;
+                    u.Expires = tier > 0 && days > 0 ? DateTime.UtcNow.AddDays(days).ToString("yyyy-MM-dd") : null;
+                    pl.Text = "✓ " + (tier == 0 ? L.T("noPlan") : L.T("tier" + tier) + (lite ? " + " + L.T("liteWin") : "") + "  ·  " + (u.Expires == null ? L.T("lifetime") : L.T("until") + " " + u.Expires));
+                    pl.Foreground = UI.B(tier > 0 ? "Good" : "Muted");
+                };
+                ctl.Children.Add(planBox); ctl.Children.Add(daysBox); ctl.Children.Add(save);
+                Grid.SetColumn(ctl, 1);
+                g.Children.Add(ctl);
+            }
+            return new Border { Background = UI.B("Bg"), CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 10, 14, 10), Margin = new Thickness(0, 0, 0, 8), Child = g };
         }
 
         static TextBox Field(Panel parent, string label, bool multi, bool ltr)

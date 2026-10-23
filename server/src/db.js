@@ -71,4 +71,9 @@ CREATE TABLE IF NOT EXISTS releases (
 );
 `);
 
+// Plans the admin grants by hand (no key): lite Windows flag and an optional end date.
+for (const col of ['plan_lite INTEGER NOT NULL DEFAULT 0', 'plan_expires TEXT']) {
+  try { db.exec(`ALTER TABLE users ADD COLUMN ${col}`); } catch { /* column already there */ }
+}
+
 module.exports = db;

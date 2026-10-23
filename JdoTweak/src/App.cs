@@ -124,7 +124,7 @@ namespace JdoTweak
             Catalog = LoadCatalog();
             License.Login(null, null, null, Hardware.Hwid());
             Directory.CreateDirectory(dir);
-            var pages = new[] { "login", "dashboard", "cat:windows", "cat:intel", "cat:amd", "cat:mouse", "cat:network", "cat:advanced", "repair", "polling", "account", "settings", "owner" };
+            var pages = new[] { "login", "register", "dashboard", "cat:windows", "cat:intel", "cat:amd", "cat:mouse", "cat:network", "cat:advanced", "repair", "polling", "account", "settings", "owner" };
             int i = 0;
             Window w = null;
             var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
@@ -149,7 +149,7 @@ namespace JdoTweak
                     using (var f = File.Create(Path.Combine(dir, (i - 1).ToString("00") + "_" + pages[i - 1].Replace(":", "_") + ".png"))) enc.Save(f);
                 }
                 if (i >= pages.Length) { t.Stop(); Wpf.Shutdown(); return; }
-                if (pages[i] == "login") { w = new LoginWindow(); w.Left = -20000; w.Show(); }
+                if (pages[i] == "login" || pages[i] == "register") { if (w != null) w.Close(); w = pages[i] == "login" ? (Window)new LoginWindow() : new RegisterWindow(); w.Left = -20000; w.Show(); }
                 else
                 {
                     if (!(w is MainWindow)) { if (w != null) w.Close(); w = new MainWindow { Left = -20000, WindowStartupLocation = WindowStartupLocation.Manual }; w.Show(); }

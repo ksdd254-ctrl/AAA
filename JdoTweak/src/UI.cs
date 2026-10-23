@@ -195,23 +195,23 @@ namespace JdoTweak
             key = new TextBox { FlowDirection = FlowDirection.LeftToRight, CharacterCasing = CharacterCasing.Upper, FontFamily = new FontFamily("Consolas") };
             sp.Children.Add(field(L.T("email"), email));
             sp.Children.Add(field(L.T("password"), pass));
-            sp.Children.Add(field(L.T("licenseKey"), key));
+            sp.Children.Add(field(L.T("licenseKey") + "  " + L.T("optional"), key));
             var kh = UI.Text(L.T("keyHint"), 11.5, "Muted"); kh.Margin = new Thickness(2, -8, 0, 12);
             sp.Children.Add(kh);
 
             error = UI.Text("", 12.5, "Bad"); error.Margin = new Thickness(2, 0, 0, 10); error.Visibility = Visibility.Collapsed;
             sp.Children.Add(error);
 
-            go = UI.Btn(L.T("activate"), "Primary", async (o, e) => await Submit());
+            go = UI.Btn(L.T("login"), "Primary", async (o, e) => await Submit());
             go.Padding = new Thickness(0, 12, 0, 12);
             sp.Children.Add(go);
             pass.KeyDown += async (o, e) => { if (e.Key == Key.Enter) await Submit(); };
             key.KeyDown += async (o, e) => { if (e.Key == Key.Enter) await Submit(); };
 
-            var link = UI.Text(L.T("noAccount"), 12.5, "Accent");
+            var link = UI.Text(L.T("createAccount"), 13, "Accent", true);
             link.HorizontalAlignment = HorizontalAlignment.Center; link.Margin = new Thickness(0, 18, 0, 0); link.Cursor = Cursors.Hand;
             link.TextDecorations = TextDecorations.Underline;
-            link.MouseLeftButtonUp += (o, e) => { try { System.Diagnostics.Process.Start(App.Website); } catch { } };
+            link.MouseLeftButtonUp += (o, e) => App.SwitchTo(new RegisterWindow(), this);
             sp.Children.Add(link);
             var forgot = UI.Text(L.T("forgotPass"), 12.5, "Muted");
             forgot.HorizontalAlignment = HorizontalAlignment.Center; forgot.Margin = new Thickness(0, 10, 0, 0); forgot.Cursor = Cursors.Hand;

@@ -223,6 +223,7 @@ var stat = UI.Text(active + " " + L.T("tweaksActive"), 13.5, "Muted");
             };
             sp.Children.Add(heroCard);
             sp.Children.Add(UI.Gap(18));
+            if (user != null && !user.HasPlan) { sp.Children.Add(NoPlanCard()); sp.Children.Add(UI.Gap(18)); }
             var newsHost = new StackPanel();
             sp.Children.Add(newsHost);
             LoadNews(newsHost);
@@ -279,6 +280,37 @@ var stat = UI.Text(active + " " + L.T("tweaksActive"), 13.5, "Muted");
                 grid.Children.Add(DeviceCard(d, icons.ContainsKey(d.Kind) ? icons[d.Kind] : ""));
             sp.Children.Add(grid);
             return Page(sp);
+        }
+
+        // Shown to accounts the admin hasn't given a plan yet.
+        FrameworkElement NoPlanCard()
+        {
+            var row = new DockPanel();
+            var refresh = UI.IconBtn("", L.T("refreshPlan"), "Primary", async (o, e) => await RefreshPlan((Button)o));
+            refresh.VerticalAlignment = VerticalAlignment.Center;
+            DockPanel.SetDock(refresh, Dock.Right);
+            row.Children.Add(refresh);
+            var ic = UI.Icon("", 22, "Warn"); ic.Margin = new Thickness(0, 0, 14, 0);
+            row.Children.Add(ic);
+            var t = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            t.Children.Add(UI.Text(L.T("noPlanT"), 16, "Text", true));
+            var d = UI.Text(L.T("noPlanD"), 13, "Muted"); d.Margin = new Thickness(0, 4, 0, 0);
+            t.Children.Add(d);
+            row.Children.Add(t);
+            var c = UI.Card(row, 20);
+            c.BorderBrush = UI.B("Warn");
+            return c;
+        }
+
+        // Asks the server again, so a plan the admin just granted shows up without signing out.
+        public async Task RefreshPlan(Button b)
+        {
+            if (b != null) b.IsEnabled = false;
+            string hwid = hw.Hwid();
+            var r = await Task.Run(() => License.Resume(hwid));
+            if (b != null) b.IsEnabled = true;
+            if (r == License.Result.Ok) { Build(); if (user != null && !user.HasPlan) UI.Ask(this, L.T("refreshPlan"), L.T("stillNoPlan"), false); }
+            else UI.Ask(this, L.T("refreshPlan"), L.T("netErr"), false, true);
         }
 
         static TextBlock SectionTitle(string s) { var t = UI.Text(s, 16, "Text", true); t.Margin = new Thickness(0, 0, 0, 12); return t; }
@@ -354,6 +386,7 @@ var stat = UI.Text(active + " " + L.T("tweaksActive"), 13.5, "Muted");
         async Task QuickBoost(Button b)
         {
             if (user == null) return;
+            if (!user.HasPlan) { UI.Ask(this, L.T("noPlanT"), L.T("noPlanD"), false); return; }
             EnsureRestorePoint();
             b.IsEnabled = false;
             var list = cat.Tweaks.Where(t => t.Curated && t.Tier <= user.Tier && t.Risk == 0 && (t.MinRam == 0 || hw.RamGb >= t.MinRam) && (t.Vendor == null || t.Vendor == hw.GpuVendor)).ToList();
