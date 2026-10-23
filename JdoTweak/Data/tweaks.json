@@ -1,870 +1,2893 @@
 {
   "version": "1.0.0",
   "categories": [
-    { "id": "mouse",    "ar": "الماوس",            "en": "Mouse",            "icon": "" },
-    { "id": "keyboard", "ar": "الكيبورد",          "en": "Keyboard",         "icon": "" },
-    { "id": "intel",    "ar": "معالجات Intel",     "en": "Intel",            "icon": "" },
-    { "id": "amd",      "ar": "معالجات AMD",       "en": "AMD",              "icon": "" },
-    { "id": "network",  "ar": "الإنترنت والبنق",   "en": "Network & Ping",   "icon": "" },
-    { "id": "windows",  "ar": "تخفيف الويندوز",    "en": "Windows Boost",  "icon": "" },
-    { "id": "privacy",  "ar": "الخصوصية",          "en": "Privacy",          "icon": "" },
-    { "id": "storage",  "ar": "التخزين",           "en": "Storage",          "icon": "" },
-    { "id": "advanced", "ar": "متقدم (حمايات)",    "en": "Advanced (Security)", "icon": "" }
+    {
+      "id": "mouse",
+      "ar": "الماوس",
+      "en": "Mouse",
+      "icon": ""
+    },
+    {
+      "id": "keyboard",
+      "ar": "الكيبورد",
+      "en": "Keyboard",
+      "icon": ""
+    },
+    {
+      "id": "cpu_intel",
+      "group": "cpu",
+      "ar": "Intel",
+      "en": "Intel",
+      "icon": ""
+    },
+    {
+      "id": "cpu_amd",
+      "group": "cpu",
+      "ar": "AMD Ryzen",
+      "en": "AMD Ryzen",
+      "icon": ""
+    },
+    {
+      "id": "gpu_nvidia",
+      "group": "gpu",
+      "ar": "NVIDIA",
+      "en": "NVIDIA",
+      "icon": ""
+    },
+    {
+      "id": "gpu_amd",
+      "group": "gpu",
+      "ar": "AMD Radeon",
+      "en": "AMD Radeon",
+      "icon": ""
+    },
+    {
+      "id": "gpu_intel",
+      "group": "gpu",
+      "ar": "Intel Graphics",
+      "en": "Intel Graphics",
+      "icon": ""
+    },
+    {
+      "id": "network",
+      "ar": "الإنترنت والبنق",
+      "en": "Network & Ping",
+      "icon": ""
+    },
+    {
+      "id": "windows",
+      "ar": "تخفيف الويندوز",
+      "en": "Windows Boost",
+      "icon": ""
+    },
+    {
+      "id": "privacy",
+      "ar": "الخصوصية",
+      "en": "Privacy",
+      "icon": ""
+    },
+    {
+      "id": "storage",
+      "ar": "التخزين",
+      "en": "Storage",
+      "icon": ""
+    },
+    {
+      "id": "advanced",
+      "ar": "متقدم (حمايات)",
+      "en": "Advanced (Security)",
+      "icon": ""
+    }
   ],
   "tweaks": [
     {
-      "id": "mouse.queue", "cat": "mouse", "tier": 1, "risk": 0,
-      "ar": "حجم بيانات الماوس (Data Queue)", "en": "Mouse Data Queue Size",
+      "id": "mouse.queue",
+      "cat": "mouse",
+      "tier": 1,
+      "risk": 0,
+      "ar": "حجم بيانات الماوس (Data Queue)",
+      "en": "Mouse Data Queue Size",
       "dar": "كل ما قل الرقم قلت ذاكرة الماوس المؤقتة وصارت الاستجابة أسرع. 100 هو الافتراضي.",
       "den": "Lower values shrink the mouse input buffer for snappier response. 100 is the Windows default.",
       "options": [
-        { "ar": "100 (افتراضي)", "en": "100 (Default)", "def": true, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\mouclass\\Parameters", "n": "MouseDataQueueSize", "dw": 100 } ] },
-        { "ar": "50", "en": "50", "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\mouclass\\Parameters", "n": "MouseDataQueueSize", "dw": 50 } ] },
-        { "ar": "25", "en": "25", "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\mouclass\\Parameters", "n": "MouseDataQueueSize", "dw": 25 } ] },
-        { "ar": "20 (الأسرع)", "en": "20 (Fastest)", "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\mouclass\\Parameters", "n": "MouseDataQueueSize", "dw": 20 } ] }
+        {
+          "ar": "100 (افتراضي)",
+          "en": "100 (Default)",
+          "def": true,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\mouclass\\Parameters",
+              "n": "MouseDataQueueSize",
+              "dw": 100
+            }
+          ]
+        },
+        {
+          "ar": "50",
+          "en": "50",
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\mouclass\\Parameters",
+              "n": "MouseDataQueueSize",
+              "dw": 50
+            }
+          ]
+        },
+        {
+          "ar": "25",
+          "en": "25",
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\mouclass\\Parameters",
+              "n": "MouseDataQueueSize",
+              "dw": 25
+            }
+          ]
+        },
+        {
+          "ar": "20 (الأسرع)",
+          "en": "20 (Fastest)",
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\mouclass\\Parameters",
+              "n": "MouseDataQueueSize",
+              "dw": 20
+            }
+          ]
+        }
       ]
     },
     {
-      "id": "mouse.accel", "cat": "mouse", "tier": 1, "risk": 0,
-      "ar": "إلغاء تسارع الماوس (1:1)", "en": "Disable Mouse Acceleration (1:1)",
+      "id": "mouse.accel",
+      "cat": "mouse",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إلغاء تسارع الماوس (1:1)",
+      "en": "Disable Mouse Acceleration (1:1)",
       "dar": "يلغي خاصية تحسين دقة المؤشر عشان حركة الماوس تكون ثابتة ومطابقة ليدك.",
       "den": "Turns off Enhance Pointer Precision so cursor movement matches your hand 1:1.",
       "apply": [
-        { "reg": "HKCU\\Control Panel\\Mouse", "n": "MouseSpeed", "sz": "0" },
-        { "reg": "HKCU\\Control Panel\\Mouse", "n": "MouseThreshold1", "sz": "0" },
-        { "reg": "HKCU\\Control Panel\\Mouse", "n": "MouseThreshold2", "sz": "0" },
-        { "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse", "n": "MouseSpeed", "sz": "0" },
-        { "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse", "n": "MouseThreshold1", "sz": "0" },
-        { "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse", "n": "MouseThreshold2", "sz": "0" }
+        {
+          "reg": "HKCU\\Control Panel\\Mouse",
+          "n": "MouseSpeed",
+          "sz": "0"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Mouse",
+          "n": "MouseThreshold1",
+          "sz": "0"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Mouse",
+          "n": "MouseThreshold2",
+          "sz": "0"
+        },
+        {
+          "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse",
+          "n": "MouseSpeed",
+          "sz": "0"
+        },
+        {
+          "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse",
+          "n": "MouseThreshold1",
+          "sz": "0"
+        },
+        {
+          "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse",
+          "n": "MouseThreshold2",
+          "sz": "0"
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\Control Panel\\Mouse", "n": "MouseSpeed", "sz": "1" },
-        { "reg": "HKCU\\Control Panel\\Mouse", "n": "MouseThreshold1", "sz": "6" },
-        { "reg": "HKCU\\Control Panel\\Mouse", "n": "MouseThreshold2", "sz": "10" },
-        { "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse", "n": "MouseSpeed", "sz": "1" },
-        { "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse", "n": "MouseThreshold1", "sz": "6" },
-        { "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse", "n": "MouseThreshold2", "sz": "10" }
+        {
+          "reg": "HKCU\\Control Panel\\Mouse",
+          "n": "MouseSpeed",
+          "sz": "1"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Mouse",
+          "n": "MouseThreshold1",
+          "sz": "6"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Mouse",
+          "n": "MouseThreshold2",
+          "sz": "10"
+        },
+        {
+          "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse",
+          "n": "MouseSpeed",
+          "sz": "1"
+        },
+        {
+          "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse",
+          "n": "MouseThreshold1",
+          "sz": "6"
+        },
+        {
+          "reg": "HKEY_USERS\\.DEFAULT\\Control Panel\\Mouse",
+          "n": "MouseThreshold2",
+          "sz": "10"
+        }
       ]
     },
     {
-      "id": "mouse.sens", "cat": "mouse", "tier": 1, "risk": 0,
-      "ar": "حساسية ويندوز الأصلية (6/11)", "en": "Native Windows Sensitivity (6/11)",
+      "id": "mouse.sens",
+      "cat": "mouse",
+      "tier": 1,
+      "risk": 0,
+      "ar": "حساسية ويندوز الأصلية (6/11)",
+      "en": "Native Windows Sensitivity (6/11)",
       "dar": "يرجع حساسية ويندوز للقيمة 10 (6 من 11) اللي ما تتخطى ولا تضاعف البكسلات.",
       "den": "Sets Windows sensitivity to 10 (6/11), the only value with no pixel skipping or scaling.",
-      "apply": [ { "reg": "HKCU\\Control Panel\\Mouse", "n": "MouseSensitivity", "sz": "10" } ],
-      "revert": [ { "reg": "HKCU\\Control Panel\\Mouse", "n": "MouseSensitivity", "sz": "10" } ]
+      "apply": [
+        {
+          "reg": "HKCU\\Control Panel\\Mouse",
+          "n": "MouseSensitivity",
+          "sz": "10"
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKCU\\Control Panel\\Mouse",
+          "n": "MouseSensitivity",
+          "sz": "10"
+        }
+      ]
     },
     {
-      "id": "mouse.dblclick", "cat": "mouse", "tier": 1, "risk": 0,
-      "ar": "سرعة الدبل كليك", "en": "Double-Click Speed",
+      "id": "mouse.dblclick",
+      "cat": "mouse",
+      "tier": 1,
+      "risk": 0,
+      "ar": "سرعة الدبل كليك",
+      "en": "Double-Click Speed",
       "dar": "الوقت المسموح بين الضغطتين بالملي ثانية. 200 أسرع وأدق للألعاب.",
       "den": "Time allowed between two clicks in milliseconds. 200 is faster and tighter for games.",
       "options": [
-        { "ar": "500 (افتراضي)", "en": "500 (Default)", "def": true, "apply": [ { "reg": "HKCU\\Control Panel\\Mouse", "n": "DoubleClickSpeed", "sz": "500" } ] },
-        { "ar": "200", "en": "200", "apply": [ { "reg": "HKCU\\Control Panel\\Mouse", "n": "DoubleClickSpeed", "sz": "200" } ] }
+        {
+          "ar": "500 (افتراضي)",
+          "en": "500 (Default)",
+          "def": true,
+          "apply": [
+            {
+              "reg": "HKCU\\Control Panel\\Mouse",
+              "n": "DoubleClickSpeed",
+              "sz": "500"
+            }
+          ]
+        },
+        {
+          "ar": "200",
+          "en": "200",
+          "apply": [
+            {
+              "reg": "HKCU\\Control Panel\\Mouse",
+              "n": "DoubleClickSpeed",
+              "sz": "200"
+            }
+          ]
+        }
       ]
     },
     {
-      "id": "mouse.hover", "cat": "mouse", "tier": 1, "risk": 0,
-      "ar": "تسريع ظهور التلميحات", "en": "Faster Hover Response",
+      "id": "mouse.hover",
+      "cat": "mouse",
+      "tier": 1,
+      "risk": 0,
+      "ar": "تسريع ظهور التلميحات",
+      "en": "Faster Hover Response",
       "dar": "يقلل وقت انتظار الماوس فوق العناصر من 400 إلى 10 ملي ثانية.",
       "den": "Cuts mouse hover wait time from 400 ms to 10 ms.",
-      "apply": [ { "reg": "HKCU\\Control Panel\\Mouse", "n": "MouseHoverTime", "sz": "10" } ],
-      "revert": [ { "reg": "HKCU\\Control Panel\\Mouse", "n": "MouseHoverTime", "sz": "400" } ]
+      "apply": [
+        {
+          "reg": "HKCU\\Control Panel\\Mouse",
+          "n": "MouseHoverTime",
+          "sz": "10"
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKCU\\Control Panel\\Mouse",
+          "n": "MouseHoverTime",
+          "sz": "400"
+        }
+      ]
     },
     {
-      "id": "mouse.mousekeys", "cat": "mouse", "tier": 1, "risk": 0,
-      "ar": "إيقاف اختصار مفاتيح الماوس", "en": "Disable Mouse Keys Shortcut",
+      "id": "mouse.mousekeys",
+      "cat": "mouse",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف اختصار مفاتيح الماوس",
+      "en": "Disable Mouse Keys Shortcut",
       "dar": "يمنع تفعيل مفاتيح الماوس بالغلط وسط اللعب.",
       "den": "Prevents Mouse Keys from turning on by accident mid-game.",
-      "apply": [ { "reg": "HKCU\\Control Panel\\Accessibility\\MouseKeys", "n": "Flags", "sz": "0" } ],
-      "revert": [ { "reg": "HKCU\\Control Panel\\Accessibility\\MouseKeys", "n": "Flags", "sz": "62" } ]
+      "apply": [
+        {
+          "reg": "HKCU\\Control Panel\\Accessibility\\MouseKeys",
+          "n": "Flags",
+          "sz": "0"
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKCU\\Control Panel\\Accessibility\\MouseKeys",
+          "n": "Flags",
+          "sz": "62"
+        }
+      ]
     },
-
     {
-      "id": "kbd.queue", "cat": "keyboard", "tier": 1, "risk": 0,
-      "ar": "حجم بيانات الكيبورد (Data Queue)", "en": "Keyboard Data Queue Size",
+      "id": "kbd.queue",
+      "cat": "keyboard",
+      "tier": 1,
+      "risk": 0,
+      "ar": "حجم بيانات الكيبورد (Data Queue)",
+      "en": "Keyboard Data Queue Size",
       "dar": "كل ما قل الرقم صارت ضغطات الكيبورد تنقرأ أسرع. 100 هو الافتراضي.",
       "den": "Lower values make key presses get processed faster. 100 is the Windows default.",
       "options": [
-        { "ar": "100 (افتراضي)", "en": "100 (Default)", "def": true, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\kbdclass\\Parameters", "n": "KeyboardDataQueueSize", "dw": 100 } ] },
-        { "ar": "50", "en": "50", "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\kbdclass\\Parameters", "n": "KeyboardDataQueueSize", "dw": 50 } ] },
-        { "ar": "25", "en": "25", "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\kbdclass\\Parameters", "n": "KeyboardDataQueueSize", "dw": 25 } ] },
-        { "ar": "20 (الأسرع)", "en": "20 (Fastest)", "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\kbdclass\\Parameters", "n": "KeyboardDataQueueSize", "dw": 20 } ] }
+        {
+          "ar": "100 (افتراضي)",
+          "en": "100 (Default)",
+          "def": true,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\kbdclass\\Parameters",
+              "n": "KeyboardDataQueueSize",
+              "dw": 100
+            }
+          ]
+        },
+        {
+          "ar": "50",
+          "en": "50",
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\kbdclass\\Parameters",
+              "n": "KeyboardDataQueueSize",
+              "dw": 50
+            }
+          ]
+        },
+        {
+          "ar": "25",
+          "en": "25",
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\kbdclass\\Parameters",
+              "n": "KeyboardDataQueueSize",
+              "dw": 25
+            }
+          ]
+        },
+        {
+          "ar": "20 (الأسرع)",
+          "en": "20 (Fastest)",
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\kbdclass\\Parameters",
+              "n": "KeyboardDataQueueSize",
+              "dw": 20
+            }
+          ]
+        }
       ]
     },
     {
-      "id": "kbd.repeat", "cat": "keyboard", "tier": 1, "risk": 0,
-      "ar": "أسرع تكرار للأزرار", "en": "Fastest Key Repeat",
+      "id": "kbd.repeat",
+      "cat": "keyboard",
+      "tier": 1,
+      "risk": 0,
+      "ar": "أسرع تكرار للأزرار",
+      "en": "Fastest Key Repeat",
       "dar": "أقل تأخير قبل التكرار وأعلى سرعة تكرار عند الضغط المستمر.",
       "den": "Shortest delay before repeat and highest repeat rate when holding a key.",
       "apply": [
-        { "reg": "HKCU\\Control Panel\\Keyboard", "n": "KeyboardDelay", "sz": "0" },
-        { "reg": "HKCU\\Control Panel\\Keyboard", "n": "KeyboardSpeed", "sz": "31" }
+        {
+          "reg": "HKCU\\Control Panel\\Keyboard",
+          "n": "KeyboardDelay",
+          "sz": "0"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Keyboard",
+          "n": "KeyboardSpeed",
+          "sz": "31"
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\Control Panel\\Keyboard", "n": "KeyboardDelay", "sz": "1" },
-        { "reg": "HKCU\\Control Panel\\Keyboard", "n": "KeyboardSpeed", "sz": "31" }
+        {
+          "reg": "HKCU\\Control Panel\\Keyboard",
+          "n": "KeyboardDelay",
+          "sz": "1"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Keyboard",
+          "n": "KeyboardSpeed",
+          "sz": "31"
+        }
       ]
     },
     {
-      "id": "kbd.sticky", "cat": "keyboard", "tier": 1, "risk": 0,
-      "ar": "إيقاف المفاتيح الثابتة واختصاراتها", "en": "Disable Sticky / Filter / Toggle Keys",
+      "id": "kbd.sticky",
+      "cat": "keyboard",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف المفاتيح الثابتة واختصاراتها",
+      "en": "Disable Sticky / Filter / Toggle Keys",
       "dar": "يوقف نافذة المفاتيح الثابتة اللي تطلع لما تضغط شفت 5 مرات وسط اللعب.",
       "den": "Stops the Sticky Keys popup that appears after pressing Shift 5 times mid-game.",
       "apply": [
-        { "reg": "HKCU\\Control Panel\\Accessibility\\StickyKeys", "n": "Flags", "sz": "506" },
-        { "reg": "HKCU\\Control Panel\\Accessibility\\Keyboard Response", "n": "Flags", "sz": "122" },
-        { "reg": "HKCU\\Control Panel\\Accessibility\\ToggleKeys", "n": "Flags", "sz": "58" }
+        {
+          "reg": "HKCU\\Control Panel\\Accessibility\\StickyKeys",
+          "n": "Flags",
+          "sz": "506"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Accessibility\\Keyboard Response",
+          "n": "Flags",
+          "sz": "122"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Accessibility\\ToggleKeys",
+          "n": "Flags",
+          "sz": "58"
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\Control Panel\\Accessibility\\StickyKeys", "n": "Flags", "sz": "510" },
-        { "reg": "HKCU\\Control Panel\\Accessibility\\Keyboard Response", "n": "Flags", "sz": "126" },
-        { "reg": "HKCU\\Control Panel\\Accessibility\\ToggleKeys", "n": "Flags", "sz": "62" }
+        {
+          "reg": "HKCU\\Control Panel\\Accessibility\\StickyKeys",
+          "n": "Flags",
+          "sz": "510"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Accessibility\\Keyboard Response",
+          "n": "Flags",
+          "sz": "126"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Accessibility\\ToggleKeys",
+          "n": "Flags",
+          "sz": "62"
+        }
       ]
     },
-
     {
-      "id": "cpu.priosep", "cat": "cpu", "tier": 1, "risk": 0,
-      "ar": "أولوية المعالج للبرنامج الأمامي", "en": "Foreground CPU Priority",
+      "id": "cpu.priosep",
+      "cat": "cpu",
+      "tier": 1,
+      "risk": 0,
+      "ar": "أولوية المعالج للبرنامج الأمامي",
+      "en": "Foreground CPU Priority",
       "dar": "يحدد كيف يوزع المعالج الوقت بين اللعبة والبرامج الخلفية. 26 هو الأفضل لأغلب الأجهزة.",
       "den": "Controls how the CPU splits time between the game and background apps. 26 suits most PCs.",
       "options": [
-        { "ar": "2 (افتراضي)", "en": "2 (Default)", "def": true, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl", "n": "Win32PrioritySeparation", "dw": 2 } ] },
-        { "ar": "26 (موصى به)", "en": "26 (Recommended)", "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl", "n": "Win32PrioritySeparation", "dw": 26 } ] },
-        { "ar": "38 (أعلى استجابة)", "en": "38 (Max Responsiveness)", "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl", "n": "Win32PrioritySeparation", "dw": 38 } ] },
-        { "ar": "40 (فريمات ثابتة)", "en": "40 (Stable Frametime)", "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl", "n": "Win32PrioritySeparation", "dw": 40 } ] }
+        {
+          "ar": "2 (افتراضي)",
+          "en": "2 (Default)",
+          "def": true,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl",
+              "n": "Win32PrioritySeparation",
+              "dw": 2
+            }
+          ]
+        },
+        {
+          "ar": "26 (موصى به)",
+          "en": "26 (Recommended)",
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl",
+              "n": "Win32PrioritySeparation",
+              "dw": 26
+            }
+          ]
+        },
+        {
+          "ar": "38 (أعلى استجابة)",
+          "en": "38 (Max Responsiveness)",
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl",
+              "n": "Win32PrioritySeparation",
+              "dw": 38
+            }
+          ]
+        },
+        {
+          "ar": "40 (فريمات ثابتة)",
+          "en": "40 (Stable Frametime)",
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl",
+              "n": "Win32PrioritySeparation",
+              "dw": 40
+            }
+          ]
+        }
       ]
     },
     {
-      "id": "cpu.mmcss", "cat": "cpu", "tier": 1, "risk": 0,
-      "ar": "تخصيص المعالج للألعاب (MMCSS)", "en": "Game CPU Scheduling (MMCSS)",
+      "id": "cpu.mmcss",
+      "cat": "cpu",
+      "tier": 1,
+      "risk": 0,
+      "ar": "تخصيص المعالج للألعاب (MMCSS)",
+      "en": "Game CPU Scheduling (MMCSS)",
       "dar": "يعطي الألعاب أعلى أولوية في جدولة المعالج وكرت الشاشة ويقلل حجز المعالج للخلفية.",
       "den": "Gives games top CPU and GPU scheduling priority and lowers the CPU reserved for background tasks.",
       "apply": [
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile", "n": "SystemResponsiveness", "dw": 10 },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "GPU Priority", "dw": 8 },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "Priority", "dw": 6 },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "Scheduling Category", "sz": "High" },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "SFIO Priority", "sz": "High" },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "Background Only", "sz": "False" },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "Clock Rate", "dw": 10000 },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "Affinity", "dw": 0 }
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+          "n": "SystemResponsiveness",
+          "dw": 10
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "GPU Priority",
+          "dw": 8
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "Priority",
+          "dw": 6
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "Scheduling Category",
+          "sz": "High"
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "SFIO Priority",
+          "sz": "High"
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "Background Only",
+          "sz": "False"
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "Clock Rate",
+          "dw": 10000
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "Affinity",
+          "dw": 0
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile", "n": "SystemResponsiveness", "dw": 20 },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "GPU Priority", "dw": 8 },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "Priority", "dw": 2 },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "Scheduling Category", "sz": "Medium" },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "SFIO Priority", "sz": "Normal" },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "Background Only", "sz": "False" },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "Clock Rate", "dw": 10000 },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games", "n": "Affinity", "dw": 0 }
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+          "n": "SystemResponsiveness",
+          "dw": 20
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "GPU Priority",
+          "dw": 8
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "Priority",
+          "dw": 2
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "Scheduling Category",
+          "sz": "Medium"
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "SFIO Priority",
+          "sz": "Normal"
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "Background Only",
+          "sz": "False"
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "Clock Rate",
+          "dw": 10000
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+          "n": "Affinity",
+          "dw": 0
+        }
       ]
     },
     {
-      "id": "cpu.throttle", "cat": "cpu", "tier": 1, "risk": 0,
-      "ar": "إيقاف خنق المعالج (Power Throttling)", "en": "Disable Power Throttling",
+      "id": "cpu.throttle",
+      "cat": "cpu",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف خنق المعالج (Power Throttling)",
+      "en": "Disable Power Throttling",
       "dar": "يمنع ويندوز من إبطاء المعالج للبرامج اللي يعتبرها بالخلفية.",
       "den": "Stops Windows from slowing the CPU for apps it considers to be in the background.",
-      "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling", "n": "PowerThrottlingOff", "dw": 1 } ],
-      "revert": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling", "n": "PowerThrottlingOff", "del": true } ]
+      "apply": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+          "n": "PowerThrottlingOff",
+          "dw": 1
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+          "n": "PowerThrottlingOff",
+          "del": true
+        }
+      ]
     },
     {
-      "id": "cpu.csrss", "cat": "cpu", "tier": 2, "risk": 1,
-      "ar": "رفع أولوية معالجة الإدخال (csrss)", "en": "Raise Input Process Priority (csrss)",
+      "id": "cpu.csrss",
+      "cat": "cpu",
+      "tier": 2,
+      "risk": 1,
+      "ar": "رفع أولوية معالجة الإدخال (csrss)",
+      "en": "Raise Input Process Priority (csrss)",
       "dar": "يرفع أولوية عملية ويندوز اللي تعالج حركة الماوس والكيبورد.",
       "den": "Raises the priority of the Windows process that handles mouse and keyboard input.",
       "apply": [
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\csrss.exe\\PerfOptions", "n": "CpuPriorityClass", "dw": 4 },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\csrss.exe\\PerfOptions", "n": "IoPriority", "dw": 3 }
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\csrss.exe\\PerfOptions",
+          "n": "CpuPriorityClass",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\csrss.exe\\PerfOptions",
+          "n": "IoPriority",
+          "dw": 3
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\csrss.exe\\PerfOptions", "n": "CpuPriorityClass", "del": true },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\csrss.exe\\PerfOptions", "n": "IoPriority", "del": true }
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\csrss.exe\\PerfOptions",
+          "n": "CpuPriorityClass",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\csrss.exe\\PerfOptions",
+          "n": "IoPriority",
+          "del": true
+        }
       ]
     },
     {
-      "id": "cpu.parking", "cat": "cpu", "tier": 2, "risk": 0,
-      "ar": "إيقاف ركن الأنوية (Core Parking)", "en": "Disable Core Parking",
+      "id": "cpu.parking",
+      "cat": "cpu",
+      "tier": 2,
+      "risk": 0,
+      "ar": "إيقاف ركن الأنوية (Core Parking)",
+      "en": "Disable Core Parking",
       "dar": "يخلي كل أنوية المعالج شغالة دايماً بدل ما ينيمها، فتقل التقطيعات.",
       "den": "Keeps every CPU core awake instead of parking it, reducing stutters.",
-      "apply": [ { "cmd": "powercfg -setacvalueindex scheme_current sub_processor CPMINCORES 100 & powercfg -setactive scheme_current" } ],
-      "revert": [ { "cmd": "powercfg -setacvalueindex scheme_current sub_processor CPMINCORES 10 & powercfg -setactive scheme_current" } ]
+      "apply": [
+        {
+          "cmd": "powercfg -setacvalueindex scheme_current sub_processor CPMINCORES 100 & powercfg -setactive scheme_current"
+        }
+      ],
+      "revert": [
+        {
+          "cmd": "powercfg -setacvalueindex scheme_current sub_processor CPMINCORES 10 & powercfg -setactive scheme_current"
+        }
+      ]
     },
     {
-      "id": "cpu.minstate", "cat": "cpu", "tier": 2, "risk": 0,
-      "ar": "المعالج على أقصى سرعة دايماً", "en": "CPU Always at Full Speed",
+      "id": "cpu.minstate",
+      "cat": "cpu",
+      "tier": 2,
+      "risk": 0,
+      "ar": "المعالج على أقصى سرعة دايماً",
+      "en": "CPU Always at Full Speed",
       "dar": "يرفع الحد الأدنى لسرعة المعالج إلى 100% وقت الشحن، فما يحتاج وقت عشان يسرّع.",
       "den": "Raises the minimum CPU state to 100% on AC power so it never needs time to ramp up.",
-      "apply": [ { "cmd": "powercfg -setacvalueindex scheme_current sub_processor PROCTHROTTLEMIN 100 & powercfg -setactive scheme_current" } ],
-      "revert": [ { "cmd": "powercfg -setacvalueindex scheme_current sub_processor PROCTHROTTLEMIN 5 & powercfg -setactive scheme_current" } ]
+      "apply": [
+        {
+          "cmd": "powercfg -setacvalueindex scheme_current sub_processor PROCTHROTTLEMIN 100 & powercfg -setactive scheme_current"
+        }
+      ],
+      "revert": [
+        {
+          "cmd": "powercfg -setacvalueindex scheme_current sub_processor PROCTHROTTLEMIN 5 & powercfg -setactive scheme_current"
+        }
+      ]
     },
-
     {
-      "id": "ram.svchost", "cat": "ram", "tier": 1, "risk": 0, "auto": "ram",
-      "ar": "تجميع خدمات ويندوز حسب حجم الرام", "en": "Group Windows Services by RAM Size",
+      "id": "ram.svchost",
+      "cat": "ram",
+      "tier": 1,
+      "risk": 0,
+      "auto": "ram",
+      "ar": "تجميع خدمات ويندوز حسب حجم الرام",
+      "en": "Group Windows Services by RAM Size",
       "dar": "يجمع خدمات svchost في عمليات أقل حسب حجم الرام عندك، فيقل استهلاك المعالج والرام. البرنامج يختار حجم رامك تلقائياً.",
       "den": "Merges svchost services into fewer processes based on your RAM size, lowering CPU and RAM overhead. Your RAM size is picked automatically.",
       "options": [
-        { "ar": "افتراضي ويندوز", "en": "Windows Default", "def": true, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 3670016 } ] },
-        { "ar": "4 جيجا", "en": "4 GB", "gb": 4, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 4194304 } ] },
-        { "ar": "6 جيجا", "en": "6 GB", "gb": 6, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 6291456 } ] },
-        { "ar": "8 جيجا", "en": "8 GB", "gb": 8, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 8388608 } ] },
-        { "ar": "12 جيجا", "en": "12 GB", "gb": 12, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 12582912 } ] },
-        { "ar": "16 جيجا", "en": "16 GB", "gb": 16, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 16777216 } ] },
-        { "ar": "24 جيجا", "en": "24 GB", "gb": 24, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 25165824 } ] },
-        { "ar": "32 جيجا", "en": "32 GB", "gb": 32, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 33554432 } ] },
-        { "ar": "48 جيجا", "en": "48 GB", "gb": 48, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 50331648 } ] },
-        { "ar": "64 جيجا", "en": "64 GB", "gb": 64, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 67108864 } ] },
-        { "ar": "96 جيجا", "en": "96 GB", "gb": 96, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 100663296 } ] },
-        { "ar": "128 جيجا", "en": "128 GB", "gb": 128, "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "SvcHostSplitThresholdInKB", "dw": 134217728 } ] }
+        {
+          "ar": "افتراضي ويندوز",
+          "en": "Windows Default",
+          "def": true,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 3670016
+            }
+          ]
+        },
+        {
+          "ar": "4 جيجا",
+          "en": "4 GB",
+          "gb": 4,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 4194304
+            }
+          ]
+        },
+        {
+          "ar": "6 جيجا",
+          "en": "6 GB",
+          "gb": 6,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 6291456
+            }
+          ]
+        },
+        {
+          "ar": "8 جيجا",
+          "en": "8 GB",
+          "gb": 8,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 8388608
+            }
+          ]
+        },
+        {
+          "ar": "12 جيجا",
+          "en": "12 GB",
+          "gb": 12,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 12582912
+            }
+          ]
+        },
+        {
+          "ar": "16 جيجا",
+          "en": "16 GB",
+          "gb": 16,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 16777216
+            }
+          ]
+        },
+        {
+          "ar": "24 جيجا",
+          "en": "24 GB",
+          "gb": 24,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 25165824
+            }
+          ]
+        },
+        {
+          "ar": "32 جيجا",
+          "en": "32 GB",
+          "gb": 32,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 33554432
+            }
+          ]
+        },
+        {
+          "ar": "48 جيجا",
+          "en": "48 GB",
+          "gb": 48,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 50331648
+            }
+          ]
+        },
+        {
+          "ar": "64 جيجا",
+          "en": "64 GB",
+          "gb": 64,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 67108864
+            }
+          ]
+        },
+        {
+          "ar": "96 جيجا",
+          "en": "96 GB",
+          "gb": 96,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 100663296
+            }
+          ]
+        },
+        {
+          "ar": "128 جيجا",
+          "en": "128 GB",
+          "gb": 128,
+          "apply": [
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+              "n": "SvcHostSplitThresholdInKB",
+              "dw": 134217728
+            }
+          ]
+        }
       ]
     },
     {
-      "id": "ram.paging", "cat": "ram", "tier": 1, "risk": 0,
-      "ar": "إبقاء نواة النظام في الرام", "en": "Keep Kernel in RAM",
+      "id": "ram.paging",
+      "cat": "ram",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إبقاء نواة النظام في الرام",
+      "en": "Keep Kernel in RAM",
       "dar": "يمنع ويندوز من نقل ملفات النظام الأساسية إلى الهارد، فتكون أسرع بالوصول.",
       "den": "Stops Windows paging core kernel code to disk, keeping it fast to access.",
-      "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management", "n": "DisablePagingExecutive", "dw": 1 } ],
-      "revert": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management", "n": "DisablePagingExecutive", "dw": 0 } ]
+      "apply": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+          "n": "DisablePagingExecutive",
+          "dw": 1
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+          "n": "DisablePagingExecutive",
+          "dw": 0
+        }
+      ]
     },
     {
-      "id": "ram.compress", "cat": "ram", "tier": 2, "risk": 0, "minRam": 16,
-      "ar": "إيقاف ضغط الرام", "en": "Disable Memory Compression",
+      "id": "ram.compress",
+      "cat": "ram",
+      "tier": 2,
+      "risk": 0,
+      "minRam": 16,
+      "ar": "إيقاف ضغط الرام",
+      "en": "Disable Memory Compression",
       "dar": "يوقف ضغط الرام اللي يستهلك من المعالج. موصى به لأجهزة 16 جيجا وفوق.",
       "den": "Turns off RAM compression, which costs CPU time. Recommended for 16 GB and above.",
-      "apply": [ { "ps": "Disable-MMAgent -MemoryCompression" } ],
-      "revert": [ { "ps": "Enable-MMAgent -MemoryCompression" } ]
+      "apply": [
+        {
+          "ps": "Disable-MMAgent -MemoryCompression"
+        }
+      ],
+      "revert": [
+        {
+          "ps": "Enable-MMAgent -MemoryCompression"
+        }
+      ]
     },
     {
-      "id": "ram.sysmain", "cat": "ram", "tier": 2, "risk": 0,
-      "ar": "إيقاف خدمة SysMain (Superfetch)", "en": "Disable SysMain (Superfetch)",
+      "id": "ram.sysmain",
+      "cat": "ram",
+      "tier": 2,
+      "risk": 0,
+      "ar": "إيقاف خدمة SysMain (Superfetch)",
+      "en": "Disable SysMain (Superfetch)",
       "dar": "يوقف التحميل المسبق للبرامج في الرام. مفيد للأجهزة اللي فيها SSD.",
       "den": "Stops preloading apps into RAM. Useful on PCs with an SSD.",
-      "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\SysMain", "n": "Start", "dw": 4 }, { "ps": "Stop-Service SysMain -Force" } ],
-      "revert": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\SysMain", "n": "Start", "dw": 2 }, { "ps": "Start-Service SysMain" } ]
+      "apply": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\SysMain",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "ps": "Stop-Service SysMain -Force"
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\SysMain",
+          "n": "Start",
+          "dw": 2
+        },
+        {
+          "ps": "Start-Service SysMain"
+        }
+      ]
     },
-
     {
-      "id": "gpu.hags", "cat": "gpu", "tier": 1, "risk": 0,
-      "ar": "جدولة كرت الشاشة بالهاردوير (HAGS)", "en": "Hardware-Accelerated GPU Scheduling",
+      "id": "gpu.hags",
+      "cat": "gpu",
+      "tier": 1,
+      "risk": 0,
+      "ar": "جدولة كرت الشاشة بالهاردوير (HAGS)",
+      "en": "Hardware-Accelerated GPU Scheduling",
       "dar": "يخلي كرت الشاشة يدير ذاكرته بنفسه، فيقل الديلاي. يحتاج كرت حديث وإعادة تشغيل.",
       "den": "Lets the GPU manage its own memory scheduling for lower latency. Needs a modern GPU and a restart.",
-      "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers", "n": "HwSchMode", "dw": 2 } ],
-      "revert": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers", "n": "HwSchMode", "dw": 1 } ],
+      "apply": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers",
+          "n": "HwSchMode",
+          "dw": 2
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers",
+          "n": "HwSchMode",
+          "dw": 1
+        }
+      ],
       "reboot": true
     },
     {
-      "id": "gpu.preempt", "cat": "gpu", "tier": 3, "risk": 1,
-      "ar": "إيقاف مقاطعة كرت الشاشة (Preemption)", "en": "Disable GPU Preemption",
+      "id": "gpu.preempt",
+      "cat": "gpu",
+      "tier": 3,
+      "risk": 1,
+      "ar": "إيقاف مقاطعة كرت الشاشة (Preemption)",
+      "en": "Disable GPU Preemption",
       "dar": "يمنع ويندوز من مقاطعة شغل كرت الشاشة وسط الفريم. ممكن يرفع الفريمات بس قد يسبب تعليق نادر.",
       "den": "Stops Windows interrupting GPU work mid-frame. Can raise FPS but may cause rare hangs.",
       "apply": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers\\Scheduler", "n": "EnablePreemption", "dw": 0 }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers\\Scheduler",
+          "n": "EnablePreemption",
+          "dw": 0
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers\\Scheduler", "n": "EnablePreemption", "del": true }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers\\Scheduler",
+          "n": "EnablePreemption",
+          "del": true
+        }
       ],
       "reboot": true
     },
     {
-      "id": "gpu.mpo", "cat": "gpu", "tier": 2, "risk": 1,
-      "ar": "إيقاف MPO (يصلح الوميض والتقطيع)", "en": "Disable MPO (Fixes Flicker & Stutter)",
+      "id": "gpu.mpo",
+      "cat": "gpu",
+      "tier": 2,
+      "risk": 1,
+      "ar": "إيقاف MPO (يصلح الوميض والتقطيع)",
+      "en": "Disable MPO (Fixes Flicker & Stutter)",
       "dar": "يوقف Multiplane Overlay اللي يسبب وميض وتقطيع مع بعض كروت الشاشة والشاشات المتعددة.",
       "den": "Turns off Multiplane Overlay, a known cause of flicker and stutter on some GPUs and multi-monitor setups.",
-      "apply": [ { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\Dwm", "n": "OverlayTestMode", "dw": 5 } ],
-      "revert": [ { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\Dwm", "n": "OverlayTestMode", "del": true } ],
+      "apply": [
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\Dwm",
+          "n": "OverlayTestMode",
+          "dw": 5
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\Dwm",
+          "n": "OverlayTestMode",
+          "del": true
+        }
+      ],
       "reboot": true
     },
     {
-      "id": "gpu.amdulps", "cat": "amd", "tier": 2, "risk": 0, "vendor": "amd",
-      "ar": "AMD: إيقاف وضع توفير الطاقة ULPS", "en": "AMD: Disable ULPS Power Saving",
+      "id": "gpu.amdulps",
+      "cat": "gpu_amd",
+      "tier": 2,
+      "risk": 0,
+      "vendor": "amd",
+      "ar": "AMD: إيقاف وضع توفير الطاقة ULPS",
+      "en": "AMD: Disable ULPS Power Saving",
       "dar": "لكروت AMD فقط: يمنع الكرت من الدخول في وضع توفير الطاقة العميق اللي يسبب تأخير.",
       "den": "AMD only: stops the card entering deep power-saving states that add delay.",
-      "apply": [ { "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}", "n": "EnableUlps", "dw": 0 } ],
-      "revert": [ { "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}", "n": "EnableUlps", "dw": 1 } ],
+      "apply": [
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "EnableUlps",
+          "dw": 0
+        }
+      ],
+      "revert": [
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "EnableUlps",
+          "dw": 1
+        }
+      ],
       "reboot": true
     },
-
     {
-      "id": "game.dvr", "cat": "gaming", "tier": 1, "risk": 0,
-      "ar": "إيقاف تسجيل الألعاب بالخلفية (Game DVR)", "en": "Disable Background Game Recording (DVR)",
+      "id": "game.dvr",
+      "cat": "gaming",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف تسجيل الألعاب بالخلفية (Game DVR)",
+      "en": "Disable Background Game Recording (DVR)",
       "dar": "يوقف تسجيل اللعب في الخلفية اللي ياكل من الفريمات. تطبيقات Xbox تبقى شغالة عادي.",
       "den": "Stops background gameplay recording that eats FPS. Xbox apps keep working normally.",
       "apply": [
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_Enabled", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR", "n": "AppCaptureEnabled", "dw": 0 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR", "n": "AllowGameDVR", "dw": 0 }
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_Enabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+          "n": "AppCaptureEnabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR",
+          "n": "AllowGameDVR",
+          "dw": 0
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_Enabled", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR", "n": "AppCaptureEnabled", "dw": 1 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR", "n": "AllowGameDVR", "del": true }
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_Enabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+          "n": "AppCaptureEnabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR",
+          "n": "AllowGameDVR",
+          "del": true
+        }
       ]
     },
     {
-      "id": "game.fso", "cat": "gaming", "tier": 1, "risk": 0,
-      "ar": "إيقاف تحسينات ملء الشاشة (FSO)", "en": "Disable Fullscreen Optimizations",
+      "id": "game.fso",
+      "cat": "gaming",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف تحسينات ملء الشاشة (FSO)",
+      "en": "Disable Fullscreen Optimizations",
       "dar": "يخلي الألعاب تشتغل بوضع ملء الشاشة الحقيقي (Exclusive) لأقل ديلاي.",
       "den": "Makes games run in true exclusive fullscreen for the lowest delay.",
       "apply": [
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_FSEBehaviorMode", "dw": 2 },
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_FSEBehavior", "dw": 2 },
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_HonorUserFSEBehaviorMode", "dw": 1 },
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_DXGIHonorFSEWindowsCompatible", "dw": 1 },
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_EFSEFeatureFlags", "dw": 0 }
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_FSEBehaviorMode",
+          "dw": 2
+        },
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_FSEBehavior",
+          "dw": 2
+        },
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_HonorUserFSEBehaviorMode",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_DXGIHonorFSEWindowsCompatible",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_EFSEFeatureFlags",
+          "dw": 0
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_FSEBehaviorMode", "dw": 0 },
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_FSEBehavior", "del": true },
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_HonorUserFSEBehaviorMode", "dw": 0 },
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_DXGIHonorFSEWindowsCompatible", "dw": 0 },
-        { "reg": "HKCU\\System\\GameConfigStore", "n": "GameDVR_EFSEFeatureFlags", "dw": 0 }
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_FSEBehaviorMode",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_FSEBehavior",
+          "del": true
+        },
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_HonorUserFSEBehaviorMode",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_DXGIHonorFSEWindowsCompatible",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\System\\GameConfigStore",
+          "n": "GameDVR_EFSEFeatureFlags",
+          "dw": 0
+        }
       ]
     },
     {
-      "id": "game.mode", "cat": "gaming", "tier": 1, "risk": 0,
-      "ar": "تفعيل وضع الألعاب (Game Mode)", "en": "Enable Game Mode",
+      "id": "game.mode",
+      "cat": "gaming",
+      "tier": 1,
+      "risk": 0,
+      "ar": "تفعيل وضع الألعاب (Game Mode)",
+      "en": "Enable Game Mode",
       "dar": "يخلي ويندوز يركز موارده على اللعبة ويوقف التحديثات والإشعارات وقت اللعب.",
       "den": "Focuses Windows resources on the game and holds updates and notifications while you play.",
       "apply": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar", "n": "AutoGameModeEnabled", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar", "n": "AllowAutoGameMode", "dw": 1 }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar",
+          "n": "AutoGameModeEnabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar",
+          "n": "AllowAutoGameMode",
+          "dw": 1
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar", "n": "AutoGameModeEnabled", "del": true },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar", "n": "AllowAutoGameMode", "del": true }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar",
+          "n": "AutoGameModeEnabled",
+          "del": true
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar",
+          "n": "AllowAutoGameMode",
+          "del": true
+        }
       ]
     },
     {
-      "id": "game.bartips", "cat": "gaming", "tier": 1, "risk": 0,
-      "ar": "إيقاف نوافذ Game Bar المزعجة", "en": "Disable Game Bar Popups",
+      "id": "game.bartips",
+      "cat": "gaming",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف نوافذ Game Bar المزعجة",
+      "en": "Disable Game Bar Popups",
       "dar": "يوقف نافذة البداية واختصار زر Xbox اللي يفتح Game Bar بالغلط.",
       "den": "Stops the startup panel and the Xbox button shortcut that opens Game Bar by accident.",
       "apply": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar", "n": "ShowStartupPanel", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar", "n": "UseNexusForGameBarEnabled", "dw": 0 }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar",
+          "n": "ShowStartupPanel",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar",
+          "n": "UseNexusForGameBarEnabled",
+          "dw": 0
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar", "n": "ShowStartupPanel", "del": true },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar", "n": "UseNexusForGameBarEnabled", "del": true }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar",
+          "n": "ShowStartupPanel",
+          "del": true
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\GameBar",
+          "n": "UseNexusForGameBarEnabled",
+          "del": true
+        }
       ]
     },
-
     {
-      "id": "net.nagle", "cat": "network", "tier": 1, "risk": 0,
-      "ar": "إيقاف خوارزمية Nagle (تقليل البنق)", "en": "Disable Nagle's Algorithm (Lower Ping)",
+      "id": "net.nagle",
+      "cat": "network",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف خوارزمية Nagle (تقليل البنق)",
+      "en": "Disable Nagle's Algorithm (Lower Ping)",
       "dar": "يرسل بيانات اللعبة فوراً بدل ما يجمعها، فيقل البنق في الألعاب الأونلاين.",
       "den": "Sends game packets immediately instead of batching them, lowering ping in online games.",
       "apply": [
-        { "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", "n": "TcpAckFrequency", "dw": 1 },
-        { "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", "n": "TCPNoDelay", "dw": 1 },
-        { "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", "n": "TcpDelAckTicks", "dw": 0 }
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "n": "TcpAckFrequency",
+          "dw": 1
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "n": "TCPNoDelay",
+          "dw": 1
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "n": "TcpDelAckTicks",
+          "dw": 0
+        }
       ],
       "revert": [
-        { "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", "n": "TcpAckFrequency", "del": true },
-        { "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", "n": "TCPNoDelay", "del": true },
-        { "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces", "n": "TcpDelAckTicks", "del": true }
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "n": "TcpAckFrequency",
+          "del": true
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "n": "TCPNoDelay",
+          "del": true
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces",
+          "n": "TcpDelAckTicks",
+          "del": true
+        }
       ]
     },
     {
-      "id": "net.throttle", "cat": "network", "tier": 1, "risk": 0,
-      "ar": "إلغاء تقييد سرعة الشبكة", "en": "Remove Network Throttling",
+      "id": "net.throttle",
+      "cat": "network",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إلغاء تقييد سرعة الشبكة",
+      "en": "Remove Network Throttling",
       "dar": "يلغي الحد اللي يحطه ويندوز على الشبكة وقت تشغيل الصوت والفيديو.",
       "den": "Removes the cap Windows puts on network traffic while audio or video is playing.",
-      "apply": [ { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile", "n": "NetworkThrottlingIndex", "dw": 4294967295 } ],
-      "revert": [ { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile", "n": "NetworkThrottlingIndex", "dw": 10 } ]
+      "apply": [
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+          "n": "NetworkThrottlingIndex",
+          "dw": 4294967295
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+          "n": "NetworkThrottlingIndex",
+          "dw": 10
+        }
+      ]
     },
     {
-      "id": "net.qos", "cat": "network", "tier": 1, "risk": 0,
-      "ar": "تحرير الـ 20% المحجوزة من النت", "en": "Free the Reserved QoS Bandwidth",
+      "id": "net.qos",
+      "cat": "network",
+      "tier": 1,
+      "risk": 0,
+      "ar": "تحرير الـ 20% المحجوزة من النت",
+      "en": "Free the Reserved QoS Bandwidth",
       "dar": "يلغي النسبة اللي يحجزها ويندوز من سرعة النت لخدماته.",
       "den": "Removes the share of bandwidth Windows reserves for its own services.",
-      "apply": [ { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Psched", "n": "NonBestEffortLimit", "dw": 0 } ],
-      "revert": [ { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Psched", "n": "NonBestEffortLimit", "del": true } ]
+      "apply": [
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Psched",
+          "n": "NonBestEffortLimit",
+          "dw": 0
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Psched",
+          "n": "NonBestEffortLimit",
+          "del": true
+        }
+      ]
     },
     {
-      "id": "net.tcpstack", "cat": "network", "tier": 2, "risk": 0,
-      "ar": "تحسين إعدادات TCP للألعاب", "en": "Gaming TCP Stack Settings",
+      "id": "net.tcpstack",
+      "cat": "network",
+      "tier": 2,
+      "risk": 0,
+      "ar": "تحسين إعدادات TCP للألعاب",
+      "en": "Gaming TCP Stack Settings",
       "dar": "يضبط إعدادات TCP لأقل تأخير: يلغي التخمين التلقائي والطوابع الزمنية ويفعّل توزيع الحمل على الأنوية.",
       "den": "Tunes TCP for the lowest delay: disables heuristics and timestamps and enables RSS core spreading.",
       "apply": [
-        { "cmd": "netsh int tcp set heuristics disabled" },
-        { "cmd": "netsh int tcp set global timestamps=disabled" },
-        { "cmd": "netsh int tcp set global rss=enabled" },
-        { "cmd": "netsh int tcp set global autotuninglevel=normal" },
-        { "cmd": "netsh int tcp set global nonsackrttresiliency=disabled" },
-        { "cmd": "netsh int tcp set global initialRto=2000" },
-        { "cmd": "netsh int tcp set global maxsynretransmissions=2" },
-        { "cmd": "netsh int tcp set global fastopen=enabled" },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "DefaultTTL", "dw": 64 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "MaxUserPort", "dw": 65534 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "TcpTimedWaitDelay", "dw": 30 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "Tcp1323Opts", "dw": 1 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "SackOpts", "dw": 1 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "TcpMaxDupAcks", "dw": 2 }
+        {
+          "cmd": "netsh int tcp set heuristics disabled"
+        },
+        {
+          "cmd": "netsh int tcp set global timestamps=disabled"
+        },
+        {
+          "cmd": "netsh int tcp set global rss=enabled"
+        },
+        {
+          "cmd": "netsh int tcp set global autotuninglevel=normal"
+        },
+        {
+          "cmd": "netsh int tcp set global nonsackrttresiliency=disabled"
+        },
+        {
+          "cmd": "netsh int tcp set global initialRto=2000"
+        },
+        {
+          "cmd": "netsh int tcp set global maxsynretransmissions=2"
+        },
+        {
+          "cmd": "netsh int tcp set global fastopen=enabled"
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "DefaultTTL",
+          "dw": 64
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "MaxUserPort",
+          "dw": 65534
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "TcpTimedWaitDelay",
+          "dw": 30
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "Tcp1323Opts",
+          "dw": 1
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "SackOpts",
+          "dw": 1
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "TcpMaxDupAcks",
+          "dw": 2
+        }
       ],
       "revert": [
-        { "cmd": "netsh int tcp set heuristics enabled" },
-        { "cmd": "netsh int tcp set global timestamps=disabled" },
-        { "cmd": "netsh int tcp set global rss=enabled" },
-        { "cmd": "netsh int tcp set global autotuninglevel=normal" },
-        { "cmd": "netsh int tcp set global nonsackrttresiliency=disabled" },
-        { "cmd": "netsh int tcp set global initialRto=3000" },
-        { "cmd": "netsh int tcp set global maxsynretransmissions=4" },
-        { "cmd": "netsh int tcp set global fastopen=enabled" },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "DefaultTTL", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "MaxUserPort", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "TcpTimedWaitDelay", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "Tcp1323Opts", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "SackOpts", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters", "n": "TcpMaxDupAcks", "del": true }
+        {
+          "cmd": "netsh int tcp set heuristics enabled"
+        },
+        {
+          "cmd": "netsh int tcp set global timestamps=disabled"
+        },
+        {
+          "cmd": "netsh int tcp set global rss=enabled"
+        },
+        {
+          "cmd": "netsh int tcp set global autotuninglevel=normal"
+        },
+        {
+          "cmd": "netsh int tcp set global nonsackrttresiliency=disabled"
+        },
+        {
+          "cmd": "netsh int tcp set global initialRto=3000"
+        },
+        {
+          "cmd": "netsh int tcp set global maxsynretransmissions=4"
+        },
+        {
+          "cmd": "netsh int tcp set global fastopen=enabled"
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "DefaultTTL",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "MaxUserPort",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "TcpTimedWaitDelay",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "Tcp1323Opts",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "SackOpts",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+          "n": "TcpMaxDupAcks",
+          "del": true
+        }
       ]
     },
     {
-      "id": "net.dnsprio", "cat": "network", "tier": 2, "risk": 0,
-      "ar": "تسريع ترجمة أسماء المواقع (DNS)", "en": "Faster Name Resolution (DNS Priority)",
+      "id": "net.dnsprio",
+      "cat": "network",
+      "tier": 2,
+      "risk": 0,
+      "ar": "تسريع ترجمة أسماء المواقع (DNS)",
+      "en": "Faster Name Resolution (DNS Priority)",
       "dar": "يرتب أولويات ترجمة العناوين بحيث يطلع الرد أسرع.",
       "den": "Reorders name-resolution priorities so lookups answer faster.",
       "apply": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider", "n": "LocalPriority", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider", "n": "HostsPriority", "dw": 5 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider", "n": "DnsPriority", "dw": 6 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider", "n": "NetbtPriority", "dw": 7 }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider",
+          "n": "LocalPriority",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider",
+          "n": "HostsPriority",
+          "dw": 5
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider",
+          "n": "DnsPriority",
+          "dw": 6
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider",
+          "n": "NetbtPriority",
+          "dw": 7
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider", "n": "LocalPriority", "dw": 499 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider", "n": "HostsPriority", "dw": 500 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider", "n": "DnsPriority", "dw": 2000 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider", "n": "NetbtPriority", "dw": 2001 }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider",
+          "n": "LocalPriority",
+          "dw": 499
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider",
+          "n": "HostsPriority",
+          "dw": 500
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider",
+          "n": "DnsPriority",
+          "dw": 2000
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\ServiceProvider",
+          "n": "NetbtPriority",
+          "dw": 2001
+        }
       ]
     },
     {
-      "id": "net.adapterpower", "cat": "network", "tier": 2, "risk": 0,
-      "ar": "إيقاف توفير الطاقة لكرت الشبكة", "en": "Disable Network Adapter Power Saving",
+      "id": "net.adapterpower",
+      "cat": "network",
+      "tier": 2,
+      "risk": 0,
+      "ar": "إيقاف توفير الطاقة لكرت الشبكة",
+      "en": "Disable Network Adapter Power Saving",
       "dar": "يمنع كرت الشبكة من النوم أو تخفيف سرعته، فيثبت البنق.",
       "den": "Stops the network adapter from sleeping or slowing down, keeping ping stable.",
-      "apply": [ { "ps": "Get-NetAdapter -Physical | ForEach-Object { Disable-NetAdapterPowerManagement -Name $_.Name -NoRestart }" } ],
-      "revert": [ { "ps": "Get-NetAdapter -Physical | ForEach-Object { Enable-NetAdapterPowerManagement -Name $_.Name -NoRestart }" } ]
+      "apply": [
+        {
+          "ps": "Get-NetAdapter -Physical | ForEach-Object { Disable-NetAdapterPowerManagement -Name $_.Name -NoRestart }"
+        }
+      ],
+      "revert": [
+        {
+          "ps": "Get-NetAdapter -Physical | ForEach-Object { Enable-NetAdapterPowerManagement -Name $_.Name -NoRestart }"
+        }
+      ]
     },
     {
-      "id": "net.interrupt", "cat": "network", "tier": 3, "risk": 1,
-      "ar": "إيقاف تجميع مقاطعات الشبكة", "en": "Disable Network Interrupt Moderation",
+      "id": "net.interrupt",
+      "cat": "network",
+      "tier": 3,
+      "risk": 1,
+      "ar": "إيقاف تجميع مقاطعات الشبكة",
+      "en": "Disable Network Interrupt Moderation",
       "dar": "كل باكيت توصل تنعالج فوراً. أقل بنق ممكن، بس يستهلك معالج أكثر.",
       "den": "Every packet is processed the instant it arrives. Lowest possible ping, at the cost of more CPU.",
-      "apply": [ { "ps": "Get-NetAdapter -Physical | ForEach-Object { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword '*InterruptModeration' -RegistryValue 0 -NoRestart }" } ],
-      "revert": [ { "ps": "Get-NetAdapter -Physical | ForEach-Object { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword '*InterruptModeration' -RegistryValue 1 -NoRestart }" } ]
+      "apply": [
+        {
+          "ps": "Get-NetAdapter -Physical | ForEach-Object { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword '*InterruptModeration' -RegistryValue 0 -NoRestart }"
+        }
+      ],
+      "revert": [
+        {
+          "ps": "Get-NetAdapter -Physical | ForEach-Object { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword '*InterruptModeration' -RegistryValue 1 -NoRestart }"
+        }
+      ]
     },
-
     {
-      "id": "power.ultimate", "cat": "power", "tier": 1, "risk": 0,
-      "ar": "خطة الطاقة القصوى (Ultimate Performance)", "en": "Ultimate Performance Power Plan",
+      "id": "power.ultimate",
+      "cat": "power",
+      "tier": 1,
+      "risk": 0,
+      "ar": "خطة الطاقة القصوى (Ultimate Performance)",
+      "en": "Ultimate Performance Power Plan",
       "dar": "يفعّل خطة الطاقة المخفية من مايكروسوفت اللي تشيل كل أنواع التوفير.",
       "den": "Activates Microsoft's hidden power plan that removes every power-saving delay.",
-      "apply": [ { "ps": "$o = powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61; if ($o -match '([0-9a-fA-F-]{36})') { powercfg -setactive $matches[1] }" } ],
-      "revert": [ { "cmd": "powercfg -setactive 381b4222-f694-41f0-9685-ff5bb260df2e" } ]
+      "apply": [
+        {
+          "ps": "$o = powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61; if ($o -match '([0-9a-fA-F-]{36})') { powercfg -setactive $matches[1] }"
+        }
+      ],
+      "revert": [
+        {
+          "cmd": "powercfg -setactive 381b4222-f694-41f0-9685-ff5bb260df2e"
+        }
+      ]
     },
     {
-      "id": "power.usbsuspend", "cat": "power", "tier": 1, "risk": 0,
-      "ar": "إيقاف تعليق منافذ USB", "en": "Disable USB Selective Suspend",
+      "id": "power.usbsuspend",
+      "cat": "power",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف تعليق منافذ USB",
+      "en": "Disable USB Selective Suspend",
       "dar": "يمنع ويندوز من فصل الطاقة عن الماوس والكيبورد لتوفير الكهرباء.",
       "den": "Stops Windows cutting power to your mouse and keyboard to save energy.",
-      "apply": [ { "cmd": "powercfg -setacvalueindex scheme_current 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0 & powercfg -setactive scheme_current" } ],
-      "revert": [ { "cmd": "powercfg -setacvalueindex scheme_current 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1 & powercfg -setactive scheme_current" } ]
+      "apply": [
+        {
+          "cmd": "powercfg -setacvalueindex scheme_current 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0 & powercfg -setactive scheme_current"
+        }
+      ],
+      "revert": [
+        {
+          "cmd": "powercfg -setacvalueindex scheme_current 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 1 & powercfg -setactive scheme_current"
+        }
+      ]
     },
     {
-      "id": "power.usbdevices", "cat": "power", "tier": 1, "risk": 0,
-      "ar": "إيقاف توفير الطاقة لأجهزة USB", "en": "Disable Power Saving on USB Devices",
+      "id": "power.usbdevices",
+      "cat": "power",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف توفير الطاقة لأجهزة USB",
+      "en": "Disable Power Saving on USB Devices",
       "dar": "يلغي خيار (السماح للكمبيوتر بإيقاف هذا الجهاز لتوفير الطاقة) لكل أجهزة USB.",
       "den": "Unticks \"Allow the computer to turn off this device to save power\" on every USB device.",
-      "apply": [ { "ps": "Get-CimInstance -Namespace root\\wmi -ClassName MSPower_DeviceEnable | Where-Object { $_.InstanceName -match 'USB|HID' } | Set-CimInstance -Property @{ Enable = $false }" } ],
-      "revert": [ { "ps": "Get-CimInstance -Namespace root\\wmi -ClassName MSPower_DeviceEnable | Where-Object { $_.InstanceName -match 'USB|HID' } | Set-CimInstance -Property @{ Enable = $true }" } ]
+      "apply": [
+        {
+          "ps": "Get-CimInstance -Namespace root\\wmi -ClassName MSPower_DeviceEnable | Where-Object { $_.InstanceName -match 'USB|HID' } | Set-CimInstance -Property @{ Enable = $false }"
+        }
+      ],
+      "revert": [
+        {
+          "ps": "Get-CimInstance -Namespace root\\wmi -ClassName MSPower_DeviceEnable | Where-Object { $_.InstanceName -match 'USB|HID' } | Set-CimInstance -Property @{ Enable = $true }"
+        }
+      ]
     },
     {
-      "id": "power.hibernate", "cat": "power", "tier": 1, "risk": 0,
-      "ar": "إيقاف السبات والإقلاع السريع", "en": "Disable Hibernation & Fast Startup",
+      "id": "power.hibernate",
+      "cat": "power",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف السبات والإقلاع السريع",
+      "en": "Disable Hibernation & Fast Startup",
       "dar": "يحرر مساحة من الهارد بحجم الرام، ويخلي كل تشغيل يبدأ نظيف بدون مشاكل الإقلاع السريع.",
       "den": "Frees disk space equal to your RAM and makes every boot a clean start, without Fast Startup glitches.",
-      "apply": [ { "cmd": "powercfg -h off" }, { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", "n": "HiberbootEnabled", "dw": 0 } ],
-      "revert": [ { "cmd": "powercfg -h on" }, { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", "n": "HiberbootEnabled", "dw": 1 } ]
+      "apply": [
+        {
+          "cmd": "powercfg -h off"
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+          "n": "HiberbootEnabled",
+          "dw": 0
+        }
+      ],
+      "revert": [
+        {
+          "cmd": "powercfg -h on"
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+          "n": "HiberbootEnabled",
+          "dw": 1
+        }
+      ]
     },
-
     {
-      "id": "lat.timer", "cat": "latency", "tier": 2, "risk": 0,
-      "ar": "دقة المؤقت العالية (Timer Resolution)", "en": "High Timer Resolution",
+      "id": "lat.timer",
+      "cat": "latency",
+      "tier": 2,
+      "risk": 0,
+      "ar": "دقة المؤقت العالية (Timer Resolution)",
+      "en": "High Timer Resolution",
       "dar": "يسمح للألعاب تستخدم مؤقت النظام بأعلى دقة (0.5 ملي ثانية) في ويندوز 11.",
       "den": "Lets games use the system timer at its highest precision (0.5 ms) on Windows 11.",
-      "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel", "n": "GlobalTimerResolutionRequests", "dw": 1 } ],
-      "revert": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel", "n": "GlobalTimerResolutionRequests", "del": true } ],
+      "apply": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel",
+          "n": "GlobalTimerResolutionRequests",
+          "dw": 1
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel",
+          "n": "GlobalTimerResolutionRequests",
+          "del": true
+        }
+      ],
       "reboot": true
     },
     {
-      "id": "lat.coalesce", "cat": "latency", "tier": 2, "risk": 0,
-      "ar": "إيقاف تجميع المؤقتات", "en": "Disable Timer Coalescing",
+      "id": "lat.coalesce",
+      "cat": "latency",
+      "tier": 2,
+      "risk": 0,
+      "ar": "إيقاف تجميع المؤقتات",
+      "en": "Disable Timer Coalescing",
       "dar": "يمنع ويندوز من تأخير المهام عشان يجمعها مع بعض لتوفير الطاقة.",
       "den": "Stops Windows delaying tasks so it can batch them together to save power.",
       "apply": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power", "n": "CoalescingTimerInterval", "dw": 0 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", "n": "CoalescingTimerInterval", "dw": 0 }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power",
+          "n": "CoalescingTimerInterval",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+          "n": "CoalescingTimerInterval",
+          "dw": 0
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power", "n": "CoalescingTimerInterval", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power", "n": "CoalescingTimerInterval", "del": true }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power",
+          "n": "CoalescingTimerInterval",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+          "n": "CoalescingTimerInterval",
+          "del": true
+        }
       ]
     },
     {
-      "id": "lat.responsive", "cat": "latency", "tier": 1, "risk": 0,
-      "ar": "تسريع استجابة الويندوز", "en": "Snappier Windows Response",
+      "id": "lat.responsive",
+      "cat": "latency",
+      "tier": 1,
+      "risk": 0,
+      "ar": "تسريع استجابة الويندوز",
+      "en": "Snappier Windows Response",
       "dar": "يلغي تأخير القوائم ويسرّع إغلاق البرامج المعلقة.",
       "den": "Removes menu delay and closes hung apps faster.",
       "apply": [
-        { "reg": "HKCU\\Control Panel\\Desktop", "n": "MenuShowDelay", "sz": "0" },
-        { "reg": "HKCU\\Control Panel\\Desktop", "n": "AutoEndTasks", "sz": "1" },
-        { "reg": "HKCU\\Control Panel\\Desktop", "n": "HungAppTimeout", "sz": "1000" },
-        { "reg": "HKCU\\Control Panel\\Desktop", "n": "WaitToKillAppTimeout", "sz": "2000" },
-        { "reg": "HKCU\\Control Panel\\Desktop", "n": "LowLevelHooksTimeout", "sz": "1000" },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "WaitToKillServiceTimeout", "sz": "2000" },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize", "n": "StartupDelayInMSec", "dw": 0 }
+        {
+          "reg": "HKCU\\Control Panel\\Desktop",
+          "n": "MenuShowDelay",
+          "sz": "0"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Desktop",
+          "n": "AutoEndTasks",
+          "sz": "1"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Desktop",
+          "n": "HungAppTimeout",
+          "sz": "1000"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Desktop",
+          "n": "WaitToKillAppTimeout",
+          "sz": "2000"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Desktop",
+          "n": "LowLevelHooksTimeout",
+          "sz": "1000"
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+          "n": "WaitToKillServiceTimeout",
+          "sz": "2000"
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+          "n": "StartupDelayInMSec",
+          "dw": 0
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\Control Panel\\Desktop", "n": "MenuShowDelay", "sz": "400" },
-        { "reg": "HKCU\\Control Panel\\Desktop", "n": "AutoEndTasks", "del": true },
-        { "reg": "HKCU\\Control Panel\\Desktop", "n": "HungAppTimeout", "del": true },
-        { "reg": "HKCU\\Control Panel\\Desktop", "n": "WaitToKillAppTimeout", "del": true },
-        { "reg": "HKCU\\Control Panel\\Desktop", "n": "LowLevelHooksTimeout", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control", "n": "WaitToKillServiceTimeout", "sz": "5000" },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize", "n": "StartupDelayInMSec", "del": true }
+        {
+          "reg": "HKCU\\Control Panel\\Desktop",
+          "n": "MenuShowDelay",
+          "sz": "400"
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Desktop",
+          "n": "AutoEndTasks",
+          "del": true
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Desktop",
+          "n": "HungAppTimeout",
+          "del": true
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Desktop",
+          "n": "WaitToKillAppTimeout",
+          "del": true
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Desktop",
+          "n": "LowLevelHooksTimeout",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control",
+          "n": "WaitToKillServiceTimeout",
+          "sz": "5000"
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+          "n": "StartupDelayInMSec",
+          "del": true
+        }
       ]
     },
     {
-      "id": "lat.usbprio", "cat": "latency", "tier": 3, "risk": 1,
-      "ar": "أعلى أولوية لمعالجة USB وكرت الشاشة", "en": "Max Thread Priority for USB & GPU Drivers",
-      "dar": "يرفع أولوية تعريفات USB وكرت إنفيديا لأعلى مستوى. ممكن يقلل الديلاي بس جربه وراقب الثبات.",
-      "den": "Raises USB and NVIDIA driver thread priority to the maximum. Can lower delay; test it and watch for instability.",
+      "id": "lat.usbprio",
+      "cat": "latency",
+      "tier": 3,
+      "risk": 1,
+      "ar": "أعلى أولوية لمعالجة منافذ USB",
+      "en": "Max Thread Priority for USB Drivers",
+      "dar": "يرفع أولوية تعريفات منافذ USB لأعلى مستوى، فتنقرأ حركة الماوس والكيبورد أسرع. جربه وراقب الثبات.",
+      "den": "Raises USB driver thread priority to the maximum so mouse and keyboard input is handled sooner. Test it and watch for instability.",
       "apply": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\usbxhci\\Parameters", "n": "ThreadPriority", "dw": 31 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\USBHUB3\\Parameters", "n": "ThreadPriority", "dw": 31 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Parameters", "n": "ThreadPriority", "dw": 31 }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\usbxhci\\Parameters",
+          "n": "ThreadPriority",
+          "dw": 31
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\USBHUB3\\Parameters",
+          "n": "ThreadPriority",
+          "dw": 31
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\usbxhci\\Parameters", "n": "ThreadPriority", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\USBHUB3\\Parameters", "n": "ThreadPriority", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Parameters", "n": "ThreadPriority", "del": true }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\usbxhci\\Parameters",
+          "n": "ThreadPriority",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\USBHUB3\\Parameters",
+          "n": "ThreadPriority",
+          "del": true
+        }
       ],
       "reboot": true
     },
-
     {
-      "id": "win.visual", "cat": "windows", "tier": 1, "risk": 0,
-      "ar": "إيقاف الشفافية والحركات", "en": "Disable Transparency & Animations",
+      "id": "win.visual",
+      "cat": "windows",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف الشفافية والحركات",
+      "en": "Disable Transparency & Animations",
       "dar": "يوقف الشفافية وحركات شريط المهام والظلال، فيخف الضغط على كرت الشاشة.",
       "den": "Turns off transparency, taskbar animations and shadows to ease load on the GPU.",
       "apply": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", "n": "EnableTransparency", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "n": "TaskbarAnimations", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "n": "ListviewShadow", "dw": 0 },
-        { "reg": "HKCU\\Control Panel\\Desktop\\WindowMetrics", "n": "MinAnimate", "sz": "0" }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "n": "EnableTransparency",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "n": "TaskbarAnimations",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "n": "ListviewShadow",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Desktop\\WindowMetrics",
+          "n": "MinAnimate",
+          "sz": "0"
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", "n": "EnableTransparency", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "n": "TaskbarAnimations", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "n": "ListviewShadow", "dw": 1 },
-        { "reg": "HKCU\\Control Panel\\Desktop\\WindowMetrics", "n": "MinAnimate", "sz": "1" }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+          "n": "EnableTransparency",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "n": "TaskbarAnimations",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "n": "ListviewShadow",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\Control Panel\\Desktop\\WindowMetrics",
+          "n": "MinAnimate",
+          "sz": "1"
+        }
       ]
     },
     {
-      "id": "win.bgapps", "cat": "windows", "tier": 1, "risk": 0,
-      "ar": "إيقاف تطبيقات الخلفية", "en": "Disable Background Apps",
+      "id": "win.bgapps",
+      "cat": "windows",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف تطبيقات الخلفية",
+      "en": "Disable Background Apps",
       "dar": "يمنع تطبيقات المتجر من الاشتغال بالخلفية وأكل الرام والمعالج.",
       "den": "Stops Store apps running in the background and eating RAM and CPU.",
       "apply": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications", "n": "GlobalUserDisabled", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search", "n": "BackgroundAppGlobalToggle", "dw": 0 }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+          "n": "GlobalUserDisabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search",
+          "n": "BackgroundAppGlobalToggle",
+          "dw": 0
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications", "n": "GlobalUserDisabled", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search", "n": "BackgroundAppGlobalToggle", "dw": 1 }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications",
+          "n": "GlobalUserDisabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search",
+          "n": "BackgroundAppGlobalToggle",
+          "dw": 1
+        }
       ]
     },
     {
-      "id": "win.suggest", "cat": "windows", "tier": 1, "risk": 0,
-      "ar": "إيقاف الإعلانات والاقتراحات والتطبيقات المفروضة", "en": "Disable Ads, Suggestions & Auto-Installed Apps",
+      "id": "win.suggest",
+      "cat": "windows",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف الإعلانات والاقتراحات والتطبيقات المفروضة",
+      "en": "Disable Ads, Suggestions & Auto-Installed Apps",
       "dar": "يوقف الإعلانات في قائمة ابدأ، والاقتراحات، وتنزيل التطبيقات بدون إذنك.",
       "den": "Stops Start menu ads, tips and apps installing without your permission.",
       "apply": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SilentInstalledAppsEnabled", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SystemPaneSuggestionsEnabled", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SubscribedContent-338388Enabled", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SubscribedContent-338389Enabled", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SubscribedContent-338393Enabled", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SubscribedContent-353694Enabled", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "n": "ShowSyncProviderNotifications", "dw": 0 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent", "n": "DisableWindowsConsumerFeatures", "dw": 1 }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SilentInstalledAppsEnabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SystemPaneSuggestionsEnabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SubscribedContent-338388Enabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SubscribedContent-338389Enabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SubscribedContent-338393Enabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SubscribedContent-353694Enabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "n": "ShowSyncProviderNotifications",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "n": "DisableWindowsConsumerFeatures",
+          "dw": 1
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SilentInstalledAppsEnabled", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SystemPaneSuggestionsEnabled", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SubscribedContent-338388Enabled", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SubscribedContent-338389Enabled", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SubscribedContent-338393Enabled", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager", "n": "SubscribedContent-353694Enabled", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", "n": "ShowSyncProviderNotifications", "dw": 1 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent", "n": "DisableWindowsConsumerFeatures", "del": true }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SilentInstalledAppsEnabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SystemPaneSuggestionsEnabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SubscribedContent-338388Enabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SubscribedContent-338389Enabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SubscribedContent-338393Enabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+          "n": "SubscribedContent-353694Enabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "n": "ShowSyncProviderNotifications",
+          "dw": 1
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "n": "DisableWindowsConsumerFeatures",
+          "del": true
+        }
       ]
     },
     {
-      "id": "win.bing", "cat": "windows", "tier": 1, "risk": 0,
-      "ar": "إيقاف بحث Bing في قائمة ابدأ", "en": "Disable Bing in Start Search",
+      "id": "win.bing",
+      "cat": "windows",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف بحث Bing في قائمة ابدأ",
+      "en": "Disable Bing in Start Search",
       "dar": "البحث في قائمة ابدأ يدور في جهازك بس، فيصير أسرع.",
       "den": "Start menu search only looks on your PC, so it's faster.",
       "apply": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search", "n": "BingSearchEnabled", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer", "n": "DisableSearchBoxSuggestions", "dw": 1 }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search",
+          "n": "BingSearchEnabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer",
+          "n": "DisableSearchBoxSuggestions",
+          "dw": 1
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search", "n": "BingSearchEnabled", "del": true },
-        { "reg": "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer", "n": "DisableSearchBoxSuggestions", "del": true }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search",
+          "n": "BingSearchEnabled",
+          "del": true
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer",
+          "n": "DisableSearchBoxSuggestions",
+          "del": true
+        }
       ]
     },
     {
-      "id": "win.services", "cat": "windows", "tier": 2, "risk": 0,
-      "ar": "إيقاف خدمات ويندوز غير الضرورية", "en": "Disable Unneeded Windows Services",
+      "id": "win.services",
+      "cat": "windows",
+      "tier": 2,
+      "risk": 0,
+      "ar": "إيقاف خدمات ويندوز غير الضرورية",
+      "en": "Disable Unneeded Windows Services",
       "dar": "يوقف خدمات ما يحتاجها أغلب اللاعبين: الخرائط، وضع العرض في المحلات، الموقع الجغرافي، تقارير الأخطاء، المحفظة، الهاتف.",
       "den": "Turns off services most gamers never use: Maps, Retail Demo, Geolocation, Error Reporting, Wallet, Phone.",
       "apply": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\MapsBroker", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\RetailDemo", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\lfsvc", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WerSvc", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WalletService", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\PhoneSvc", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\diagnosticshub.standardcollector.service", "n": "Start", "dw": 4 }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\MapsBroker",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\RetailDemo",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\lfsvc",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WerSvc",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WalletService",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\PhoneSvc",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\diagnosticshub.standardcollector.service",
+          "n": "Start",
+          "dw": 4
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\MapsBroker", "n": "Start", "dw": 2 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\RetailDemo", "n": "Start", "dw": 3 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\lfsvc", "n": "Start", "dw": 3 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WerSvc", "n": "Start", "dw": 3 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WalletService", "n": "Start", "dw": 3 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\PhoneSvc", "n": "Start", "dw": 3 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\diagnosticshub.standardcollector.service", "n": "Start", "dw": 3 }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\MapsBroker",
+          "n": "Start",
+          "dw": 2
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\RetailDemo",
+          "n": "Start",
+          "dw": 3
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\lfsvc",
+          "n": "Start",
+          "dw": 3
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WerSvc",
+          "n": "Start",
+          "dw": 3
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\WalletService",
+          "n": "Start",
+          "dw": 3
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\PhoneSvc",
+          "n": "Start",
+          "dw": 3
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\diagnosticshub.standardcollector.service",
+          "n": "Start",
+          "dw": 3
+        }
       ],
       "reboot": true
     },
     {
-      "id": "win.spooler", "cat": "windows", "tier": 3, "risk": 1, "nopack": true,
-      "ar": "إيقاف خدمة الطابعة", "en": "Disable Print Spooler",
+      "id": "win.spooler",
+      "cat": "windows",
+      "tier": 3,
+      "risk": 1,
+      "nopack": true,
+      "ar": "إيقاف خدمة الطابعة",
+      "en": "Disable Print Spooler",
       "dar": "فعّله بس إذا ما عندك طابعة. الطباعة توقف لين ترجعه.",
       "den": "Only use this if you have no printer. Printing stops until you revert it.",
-      "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Spooler", "n": "Start", "dw": 4 }, { "ps": "Stop-Service Spooler -Force" } ],
-      "revert": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Spooler", "n": "Start", "dw": 2 }, { "ps": "Start-Service Spooler" } ]
+      "apply": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Spooler",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "ps": "Stop-Service Spooler -Force"
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\Spooler",
+          "n": "Start",
+          "dw": 2
+        },
+        {
+          "ps": "Start-Service Spooler"
+        }
+      ]
     },
     {
-      "id": "win.maintenance", "cat": "windows", "tier": 2, "risk": 0,
-      "ar": "إيقاف الصيانة التلقائية وسط اللعب", "en": "Disable Automatic Maintenance",
+      "id": "win.maintenance",
+      "cat": "windows",
+      "tier": 2,
+      "risk": 0,
+      "ar": "إيقاف الصيانة التلقائية وسط اللعب",
+      "en": "Disable Automatic Maintenance",
       "dar": "يمنع ويندوز من تشغيل الصيانة التلقائية (فحص وإلغاء تجزئة) اللي تسبب لاق مفاجئ.",
       "den": "Stops Windows running automatic maintenance (scans, defrag) that causes sudden lag.",
-      "apply": [ { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\Maintenance", "n": "MaintenanceDisabled", "dw": 1 } ],
-      "revert": [ { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\Maintenance", "n": "MaintenanceDisabled", "del": true } ]
+      "apply": [
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\Maintenance",
+          "n": "MaintenanceDisabled",
+          "dw": 1
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\Maintenance",
+          "n": "MaintenanceDisabled",
+          "del": true
+        }
+      ]
     },
-
     {
-      "id": "priv.telemetry", "cat": "privacy", "tier": 1, "risk": 0,
-      "ar": "إيقاف التتبع وإرسال البيانات (Telemetry)", "en": "Disable Telemetry",
+      "id": "priv.telemetry",
+      "cat": "privacy",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف التتبع وإرسال البيانات (Telemetry)",
+      "en": "Disable Telemetry",
       "dar": "يوقف إرسال بيانات استخدامك لمايكروسوفت ويوقف خدماته اللي تشتغل بالخلفية.",
       "den": "Stops sending your usage data to Microsoft and the background services that collect it.",
       "apply": [
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection", "n": "AllowTelemetry", "dw": 0 },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection", "n": "AllowTelemetry", "dw": 0 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\DiagTrack", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\dmwappushservice", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\SQMClient\\Windows", "n": "CEIPEnable", "dw": 0 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppCompat", "n": "AITEnable", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Siuf\\Rules", "n": "NumberOfSIUFInPeriod", "dw": 0 },
-        { "ps": "Stop-Service DiagTrack -Force" }
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+          "n": "AllowTelemetry",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection",
+          "n": "AllowTelemetry",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\DiagTrack",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\dmwappushservice",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\SQMClient\\Windows",
+          "n": "CEIPEnable",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppCompat",
+          "n": "AITEnable",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Siuf\\Rules",
+          "n": "NumberOfSIUFInPeriod",
+          "dw": 0
+        },
+        {
+          "ps": "Stop-Service DiagTrack -Force"
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection", "n": "AllowTelemetry", "del": true },
-        { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection", "n": "AllowTelemetry", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\DiagTrack", "n": "Start", "dw": 2 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\dmwappushservice", "n": "Start", "dw": 3 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\SQMClient\\Windows", "n": "CEIPEnable", "del": true },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppCompat", "n": "AITEnable", "del": true },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Siuf\\Rules", "n": "NumberOfSIUFInPeriod", "del": true },
-        { "ps": "Start-Service DiagTrack" }
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+          "n": "AllowTelemetry",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection",
+          "n": "AllowTelemetry",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\DiagTrack",
+          "n": "Start",
+          "dw": 2
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\dmwappushservice",
+          "n": "Start",
+          "dw": 3
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\SQMClient\\Windows",
+          "n": "CEIPEnable",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppCompat",
+          "n": "AITEnable",
+          "del": true
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Siuf\\Rules",
+          "n": "NumberOfSIUFInPeriod",
+          "del": true
+        },
+        {
+          "ps": "Start-Service DiagTrack"
+        }
       ]
     },
     {
-      "id": "priv.ads", "cat": "privacy", "tier": 1, "risk": 0,
-      "ar": "إيقاف معرّف الإعلانات والتخصيص", "en": "Disable Advertising ID & Tailored Experiences",
+      "id": "priv.ads",
+      "cat": "privacy",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف معرّف الإعلانات والتخصيص",
+      "en": "Disable Advertising ID & Tailored Experiences",
       "dar": "يمنع ويندوز يتتبعك عشان يعرض لك إعلانات مخصصة.",
       "den": "Stops Windows tracking you to show personalized ads.",
       "apply": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo", "n": "Enabled", "dw": 0 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo", "n": "DisabledByGroupPolicy", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy", "n": "TailoredExperiencesWithDiagnosticDataEnabled", "dw": 0 },
-        { "reg": "HKCU\\Control Panel\\International\\User Profile", "n": "HttpAcceptLanguageOptOut", "dw": 1 }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo",
+          "n": "Enabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo",
+          "n": "DisabledByGroupPolicy",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy",
+          "n": "TailoredExperiencesWithDiagnosticDataEnabled",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\Control Panel\\International\\User Profile",
+          "n": "HttpAcceptLanguageOptOut",
+          "dw": 1
+        }
       ],
       "revert": [
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo", "n": "Enabled", "dw": 1 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo", "n": "DisabledByGroupPolicy", "del": true },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy", "n": "TailoredExperiencesWithDiagnosticDataEnabled", "dw": 1 },
-        { "reg": "HKCU\\Control Panel\\International\\User Profile", "n": "HttpAcceptLanguageOptOut", "del": true }
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo",
+          "n": "Enabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo",
+          "n": "DisabledByGroupPolicy",
+          "del": true
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy",
+          "n": "TailoredExperiencesWithDiagnosticDataEnabled",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\Control Panel\\International\\User Profile",
+          "n": "HttpAcceptLanguageOptOut",
+          "del": true
+        }
       ]
     },
     {
-      "id": "priv.activity", "cat": "privacy", "tier": 1, "risk": 0,
-      "ar": "إيقاف سجل النشاط والكتابة", "en": "Disable Activity History & Typing Collection",
+      "id": "priv.activity",
+      "cat": "privacy",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف سجل النشاط والكتابة",
+      "en": "Disable Activity History & Typing Collection",
       "dar": "يوقف حفظ سجل نشاطك وجمع بيانات الكتابة والحبر.",
       "den": "Stops saving your activity history and collecting typing and inking data.",
       "apply": [
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "n": "EnableActivityFeed", "dw": 0 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "n": "PublishUserActivities", "dw": 0 },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "n": "UploadUserActivities", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization", "n": "RestrictImplicitTextCollection", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization", "n": "RestrictImplicitInkCollection", "dw": 1 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization\\TrainedDataStore", "n": "HarvestContacts", "dw": 0 }
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "n": "EnableActivityFeed",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "n": "PublishUserActivities",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "n": "UploadUserActivities",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization",
+          "n": "RestrictImplicitTextCollection",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization",
+          "n": "RestrictImplicitInkCollection",
+          "dw": 1
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization\\TrainedDataStore",
+          "n": "HarvestContacts",
+          "dw": 0
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "n": "EnableActivityFeed", "del": true },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "n": "PublishUserActivities", "del": true },
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System", "n": "UploadUserActivities", "del": true },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization", "n": "RestrictImplicitTextCollection", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization", "n": "RestrictImplicitInkCollection", "dw": 0 },
-        { "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization\\TrainedDataStore", "n": "HarvestContacts", "dw": 1 }
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "n": "EnableActivityFeed",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "n": "PublishUserActivities",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System",
+          "n": "UploadUserActivities",
+          "del": true
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization",
+          "n": "RestrictImplicitTextCollection",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization",
+          "n": "RestrictImplicitInkCollection",
+          "dw": 0
+        },
+        {
+          "reg": "HKCU\\SOFTWARE\\Microsoft\\InputPersonalization\\TrainedDataStore",
+          "n": "HarvestContacts",
+          "dw": 1
+        }
       ]
     },
-
     {
-      "id": "sto.lastaccess", "cat": "storage", "tier": 1, "risk": 0,
-      "ar": "إيقاف تسجيل آخر وصول للملفات", "en": "Disable Last-Access Timestamps",
+      "id": "sto.lastaccess",
+      "cat": "storage",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف تسجيل آخر وصول للملفات",
+      "en": "Disable Last-Access Timestamps",
       "dar": "يوقف كتابة وقت فتح كل ملف على الهارد، فتقل عمليات الكتابة ويسرع فتح الملفات.",
       "den": "Stops writing an access time on every file you open, cutting disk writes and speeding up file access.",
-      "apply": [ { "cmd": "fsutil behavior set disablelastaccess 1" } ],
-      "revert": [ { "cmd": "fsutil behavior set disablelastaccess 2" } ]
+      "apply": [
+        {
+          "cmd": "fsutil behavior set disablelastaccess 1"
+        }
+      ],
+      "revert": [
+        {
+          "cmd": "fsutil behavior set disablelastaccess 2"
+        }
+      ]
     },
     {
-      "id": "sto.8dot3", "cat": "storage", "tier": 2, "risk": 0,
-      "ar": "إيقاف الأسماء القصيرة القديمة (8.3)", "en": "Disable Legacy 8.3 Short Names",
+      "id": "sto.8dot3",
+      "cat": "storage",
+      "tier": 2,
+      "risk": 0,
+      "ar": "إيقاف الأسماء القصيرة القديمة (8.3)",
+      "en": "Disable Legacy 8.3 Short Names",
       "dar": "يوقف إنشاء أسماء ملفات قديمة من أيام DOS لكل ملف جديد.",
       "den": "Stops creating DOS-era short names for every new file.",
-      "apply": [ { "cmd": "fsutil behavior set disable8dot3 1" } ],
-      "revert": [ { "cmd": "fsutil behavior set disable8dot3 2" } ]
+      "apply": [
+        {
+          "cmd": "fsutil behavior set disable8dot3 1"
+        }
+      ],
+      "revert": [
+        {
+          "cmd": "fsutil behavior set disable8dot3 2"
+        }
+      ]
     },
     {
-      "id": "sto.memusage", "cat": "storage", "tier": 2, "risk": 0, "minRam": 16,
-      "ar": "زيادة ذاكرة نظام الملفات", "en": "Increase File System Memory",
+      "id": "sto.memusage",
+      "cat": "storage",
+      "tier": 2,
+      "risk": 0,
+      "minRam": 16,
+      "ar": "زيادة ذاكرة نظام الملفات",
+      "en": "Increase File System Memory",
       "dar": "يعطي نظام الملفات NTFS رام أكثر للكاش. لأجهزة 16 جيجا وفوق.",
       "den": "Gives NTFS more RAM for caching. For 16 GB and above.",
-      "apply": [ { "cmd": "fsutil behavior set memoryusage 2" } ],
-      "revert": [ { "cmd": "fsutil behavior set memoryusage 1" } ]
+      "apply": [
+        {
+          "cmd": "fsutil behavior set memoryusage 2"
+        }
+      ],
+      "revert": [
+        {
+          "cmd": "fsutil behavior set memoryusage 1"
+        }
+      ]
     },
-
     {
-      "id": "adv.mitigations", "cat": "advanced", "tier": 3, "risk": 2,
-      "ar": "إيقاف حمايات Spectre و Meltdown", "en": "Disable Spectre & Meltdown Mitigations",
+      "id": "adv.mitigations",
+      "cat": "advanced",
+      "tier": 3,
+      "risk": 2,
+      "ar": "إيقاف حمايات Spectre و Meltdown",
+      "en": "Disable Spectre & Meltdown Mitigations",
       "dar": "يرجع أداء المعالج اللي أخذته حمايات Spectre/Meltdown (خصوصاً المعالجات القديمة). يقلل حماية جهازك من هجمات معينة.",
       "den": "Recovers CPU performance lost to Spectre/Meltdown mitigations (mostly on older CPUs). Lowers your PC's protection against certain attacks.",
       "apply": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management", "n": "FeatureSettingsOverride", "dw": 3 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management", "n": "FeatureSettingsOverrideMask", "dw": 3 }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+          "n": "FeatureSettingsOverride",
+          "dw": 3
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+          "n": "FeatureSettingsOverrideMask",
+          "dw": 3
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management", "n": "FeatureSettingsOverride", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management", "n": "FeatureSettingsOverrideMask", "del": true }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+          "n": "FeatureSettingsOverride",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+          "n": "FeatureSettingsOverrideMask",
+          "del": true
+        }
       ],
       "reboot": true
     },
     {
-      "id": "adv.vbs", "cat": "advanced", "tier": 3, "risk": 2,
-      "ar": "إيقاف عزل النواة (VBS / Memory Integrity)", "en": "Disable Core Isolation (VBS / Memory Integrity)",
-      "dar": "يوقف المحاكاة الافتراضية للحماية. يرفع الفريمات بشكل ملحوظ خصوصاً في ويندوز 11، لكن يقلل حماية الجهاز. بعض أنظمة مكافحة الغش ممكن تطلبه مفعّل.",
-      "den": "Turns off virtualization-based security. Noticeably raises FPS, especially on Windows 11, but lowers system protection. Some anti-cheats may require it on.",
-      "apply": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard", "n": "EnableVirtualizationBasedSecurity", "dw": 0 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity", "n": "Enabled", "dw": 0 }
-      ],
-      "revert": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard", "n": "EnableVirtualizationBasedSecurity", "del": true },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity", "n": "Enabled", "dw": 1 }
-      ],
-      "reboot": true
-    },
-    {
-      "id": "adv.sehop", "cat": "advanced", "tier": 3, "risk": 2,
-      "ar": "إيقاف حماية SEHOP", "en": "Disable SEHOP Protection",
-      "dar": "يوقف فحص إضافي يسويه ويندوز على الأخطاء داخل البرامج. فرق أداء بسيط مقابل تقليل الحماية.",
-      "den": "Turns off an extra exception check Windows runs inside programs. Small speed gain in exchange for lower protection.",
-      "apply": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel", "n": "DisableExceptionChainValidation", "dw": 1 }, { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel", "n": "KernelSEHOPEnabled", "dw": 0 } ],
-      "revert": [ { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel", "n": "DisableExceptionChainValidation", "del": true }, { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel", "n": "KernelSEHOPEnabled", "del": true } ],
-      "reboot": true
-    },
-    {
-      "id": "adv.uac", "cat": "advanced", "tier": 3, "risk": 2,
-      "ar": "إيقاف التحكم في حساب المستخدم (UAC)", "en": "Disable User Account Control (UAC)",
+      "id": "adv.uac",
+      "cat": "advanced",
+      "tier": 3,
+      "risk": 2,
+      "ar": "إيقاف التحكم في حساب المستخدم (UAC)",
+      "en": "Disable User Account Control (UAC)",
       "dar": "يوقف نافذة (هل تسمح لهذا البرنامج) نهائياً. تنبيه: بعض تطبيقات المتجر ما تفتح والـ UAC مقفل، وأي برنامج يقدر يشتغل بصلاحيات كاملة.",
       "den": "Removes the \"Allow this app\" prompt entirely. Warning: some Store apps won't open with UAC off, and any program can run with full rights.",
-      "apply": [ { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "n": "EnableLUA", "dw": 0 } ],
-      "revert": [ { "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "n": "EnableLUA", "dw": 1 } ],
+      "apply": [
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+          "n": "EnableLUA",
+          "dw": 0
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+          "n": "EnableLUA",
+          "dw": 1
+        }
+      ],
       "reboot": true
     },
     {
-      "id": "adv.wupdate", "cat": "advanced", "tier": 3, "risk": 2,
-      "ar": "تحديثات الويندوز", "en": "Windows Update",
+      "id": "adv.wupdate",
+      "cat": "advanced",
+      "tier": 3,
+      "risk": 2,
+      "ar": "تحديثات الويندوز",
+      "en": "Windows Update",
       "dar": "تحكم بتحديثات ويندوز: خلّها تلقائية، أو تنبيه فقط قبل التنزيل، أو إيقاف كامل. الإيقاف الكامل يمنع وصول تحديثات الأمان.",
       "den": "Control Windows Update: automatic, notify before downloading, or fully off. Fully off also blocks security updates.",
       "options": [
-        { "ar": "تلقائي (افتراضي)", "en": "Automatic (Default)", "def": true, "apply": [
-          { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU", "n": "NoAutoUpdate", "del": true },
-          { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU", "n": "AUOptions", "del": true },
-          { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\wuauserv", "n": "Start", "dw": 3 },
-          { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\UsoSvc", "n": "Start", "dw": 2 } ] },
-        { "ar": "تنبيه فقط (بدون تنزيل تلقائي)", "en": "Notify Only (No Auto Download)", "apply": [
-          { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU", "n": "NoAutoUpdate", "dw": 0 },
-          { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU", "n": "AUOptions", "dw": 2 },
-          { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\wuauserv", "n": "Start", "dw": 3 },
-          { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\UsoSvc", "n": "Start", "dw": 2 } ] },
-        { "ar": "إيقاف كامل", "en": "Fully Disabled", "apply": [
-          { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU", "n": "NoAutoUpdate", "dw": 1 },
-          { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU", "n": "AUOptions", "dw": 1 },
-          { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\wuauserv", "n": "Start", "dw": 4 },
-          { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\UsoSvc", "n": "Start", "dw": 4 },
-          { "ps": "Stop-Service wuauserv,UsoSvc -Force" } ] }
+        {
+          "ar": "تلقائي (افتراضي)",
+          "en": "Automatic (Default)",
+          "def": true,
+          "apply": [
+            {
+              "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+              "n": "NoAutoUpdate",
+              "del": true
+            },
+            {
+              "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+              "n": "AUOptions",
+              "del": true
+            },
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\wuauserv",
+              "n": "Start",
+              "dw": 3
+            },
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\UsoSvc",
+              "n": "Start",
+              "dw": 2
+            }
+          ]
+        },
+        {
+          "ar": "تنبيه فقط (بدون تنزيل تلقائي)",
+          "en": "Notify Only (No Auto Download)",
+          "apply": [
+            {
+              "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+              "n": "NoAutoUpdate",
+              "dw": 0
+            },
+            {
+              "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+              "n": "AUOptions",
+              "dw": 2
+            },
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\wuauserv",
+              "n": "Start",
+              "dw": 3
+            },
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\UsoSvc",
+              "n": "Start",
+              "dw": 2
+            }
+          ]
+        },
+        {
+          "ar": "إيقاف كامل",
+          "en": "Fully Disabled",
+          "apply": [
+            {
+              "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+              "n": "NoAutoUpdate",
+              "dw": 1
+            },
+            {
+              "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU",
+              "n": "AUOptions",
+              "dw": 1
+            },
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\wuauserv",
+              "n": "Start",
+              "dw": 4
+            },
+            {
+              "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\UsoSvc",
+              "n": "Start",
+              "dw": 4
+            },
+            {
+              "ps": "Stop-Service wuauserv,UsoSvc -Force"
+            }
+          ]
+        }
       ]
     },
     {
-      "id": "adv.xbox", "cat": "advanced", "tier": 3, "risk": 1,
-      "ar": "إيقاف خدمات Xbox", "en": "Disable Xbox Services",
+      "id": "adv.xbox",
+      "cat": "advanced",
+      "tier": 3,
+      "risk": 1,
+      "ar": "إيقاف خدمات Xbox",
+      "en": "Disable Xbox Services",
       "dar": "يوقف خدمات Xbox بالخلفية. تنبيه: ألعاب Game Pass وتسجيل دخول Xbox ويد Xbox ممكن ما تشتغل لين ترجعها.",
       "den": "Turns off Xbox background services. Warning: Game Pass games, Xbox sign-in and Xbox controllers may not work until you revert it.",
       "apply": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XblAuthManager", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XblGameSave", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxNetApiSvc", "n": "Start", "dw": 4 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxGipSvc", "n": "Start", "dw": 4 }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XblAuthManager",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XblGameSave",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxNetApiSvc",
+          "n": "Start",
+          "dw": 4
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxGipSvc",
+          "n": "Start",
+          "dw": 4
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XblAuthManager", "n": "Start", "dw": 3 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XblGameSave", "n": "Start", "dw": 3 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxNetApiSvc", "n": "Start", "dw": 3 },
-        { "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxGipSvc", "n": "Start", "dw": 3 }
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XblAuthManager",
+          "n": "Start",
+          "dw": 3
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XblGameSave",
+          "n": "Start",
+          "dw": 3
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxNetApiSvc",
+          "n": "Start",
+          "dw": 3
+        },
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\XboxGipSvc",
+          "n": "Start",
+          "dw": 3
+        }
       ],
       "reboot": true
     },
     {
-      "id": "adv.defender", "cat": "advanced", "tier": 3, "risk": 2,
-      "ar": "إيقاف الحماية الفورية لـ Windows Defender", "en": "Disable Windows Defender Real-Time Protection",
+      "id": "adv.defender",
+      "cat": "advanced",
+      "tier": 3,
+      "risk": 2,
+      "ar": "إيقاف الحماية الفورية لـ Windows Defender",
+      "en": "Disable Windows Defender Real-Time Protection",
       "dar": "يوقف الفحص الفوري اللي ياكل من المعالج والهارد. لازم تقفل (الحماية من العبث) من إعدادات أمان ويندوز أول. جهازك يصير بدون مكافح فيروسات لين ترجعها.",
       "den": "Turns off real-time scanning that costs CPU and disk. You must turn off Tamper Protection in Windows Security first. Your PC has no antivirus until you revert it.",
       "apply": [
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection", "n": "DisableRealtimeMonitoring", "dw": 1 },
-        { "ps": "Set-MpPreference -DisableRealtimeMonitoring $true" }
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection",
+          "n": "DisableRealtimeMonitoring",
+          "dw": 1
+        },
+        {
+          "ps": "Set-MpPreference -DisableRealtimeMonitoring $true"
+        }
       ],
       "revert": [
-        { "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection", "n": "DisableRealtimeMonitoring", "del": true },
-        { "ps": "Set-MpPreference -DisableRealtimeMonitoring $false" }
+        {
+          "reg": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection",
+          "n": "DisableRealtimeMonitoring",
+          "del": true
+        },
+        {
+          "ps": "Set-MpPreference -DisableRealtimeMonitoring $false"
+        }
       ]
+    },
+    {
+      "id": "cpu.boost",
+      "cat": "cpu",
+      "tier": 2,
+      "risk": 0,
+      "ar": "تيربو المعالج بأقصى قوة (Turbo / Precision Boost)",
+      "en": "Aggressive CPU Boost (Turbo / Precision Boost)",
+      "dar": "يخلي المعالج يرفع سرعته بأسرع وقت ويبقى عليها وقت الشحن. يشتغل مع Intel و AMD.",
+      "den": "Lets the CPU boost as early and as long as possible on AC power. Works on Intel and AMD.",
+      "apply": [
+        {
+          "cmd": "powercfg -setacvalueindex scheme_current sub_processor PERFBOOSTMODE 2 & powercfg -setactive scheme_current"
+        }
+      ],
+      "revert": [
+        {
+          "cmd": "powercfg -setacvalueindex scheme_current sub_processor PERFBOOSTMODE 1 & powercfg -setactive scheme_current"
+        }
+      ]
+    },
+    {
+      "id": "nv.telemetry",
+      "cat": "gpu_nvidia",
+      "tier": 1,
+      "risk": 0,
+      "ar": "إيقاف تتبع NVIDIA",
+      "en": "Disable NVIDIA Telemetry",
+      "dar": "يوقف إرسال بيانات الاستخدام من تعريف NVIDIA ولوحة التحكم.",
+      "den": "Stops the NVIDIA driver and control panel sending usage data.",
+      "apply": [
+        {
+          "reg": "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client",
+          "n": "OptInOrOutPreference",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\FTS",
+          "n": "EnableRID44231",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\FTS",
+          "n": "EnableRID64640",
+          "dw": 0
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\FTS",
+          "n": "EnableRID66610",
+          "dw": 0
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client",
+          "n": "OptInOrOutPreference",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\FTS",
+          "n": "EnableRID44231",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\FTS",
+          "n": "EnableRID64640",
+          "del": true
+        },
+        {
+          "reg": "HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\FTS",
+          "n": "EnableRID66610",
+          "del": true
+        }
+      ]
+    },
+    {
+      "id": "nv.dpc",
+      "cat": "gpu_nvidia",
+      "tier": 2,
+      "risk": 0,
+      "reboot": true,
+      "ar": "توزيع مقاطعات NVIDIA على كل الأنوية",
+      "en": "Spread NVIDIA DPCs Across Cores",
+      "dar": "يخلي تعريف NVIDIA يوزع شغله على كل أنوية المعالج بدل نواة وحدة، فيقل الديلاي.",
+      "den": "Lets the NVIDIA driver spread its deferred work over every CPU core instead of one, lowering latency.",
+      "apply": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Parameters",
+          "n": "RmGpsPsEnablePerCpuCoreDpc",
+          "dw": 1
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Parameters",
+          "n": "RmGpsPsEnablePerCpuCoreDpc",
+          "del": true
+        }
+      ]
+    },
+    {
+      "id": "nv.prio",
+      "cat": "gpu_nvidia",
+      "tier": 3,
+      "risk": 1,
+      "reboot": true,
+      "ar": "أعلى أولوية لتعريف NVIDIA",
+      "en": "Max Thread Priority for the NVIDIA Driver",
+      "dar": "يرفع أولوية تعريف كرت NVIDIA لأعلى مستوى. ممكن يقلل الديلاي، جربه وراقب الثبات.",
+      "den": "Raises NVIDIA driver thread priority to the maximum. Can lower latency; test it and watch for instability.",
+      "apply": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Parameters",
+          "n": "ThreadPriority",
+          "dw": 31
+        }
+      ],
+      "revert": [
+        {
+          "reg": "HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Parameters",
+          "n": "ThreadPriority",
+          "del": true
+        }
+      ]
+    },
+    {
+      "id": "nv.powermizer",
+      "cat": "gpu_nvidia",
+      "tier": 3,
+      "risk": 1,
+      "reboot": true,
+      "ar": "كرت NVIDIA على أقصى أداء دايماً (PowerMizer)",
+      "en": "NVIDIA Always at Max Performance (PowerMizer)",
+      "dar": "يمنع الكرت ينزل سرعته لتوفير الطاقة، فما فيه تقطيع لما يبدأ اللعب. يزيد الحرارة والكهرباء شوي.",
+      "den": "Stops the card dropping clocks to save power, so there is no ramp-up stutter. Slightly more heat and power.",
+      "apply": [
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "PerfLevelSrc",
+          "dw": 8738
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "PowerMizerEnable",
+          "dw": 0
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "PowerMizerLevel",
+          "dw": 1
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "PowerMizerLevelAC",
+          "dw": 1
+        }
+      ],
+      "revert": [
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "PerfLevelSrc",
+          "del": true
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "PowerMizerEnable",
+          "del": true
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "PowerMizerLevel",
+          "del": true
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "PowerMizerLevelAC",
+          "del": true
+        }
+      ]
+    },
+    {
+      "id": "amd.aspm",
+      "cat": "gpu_amd",
+      "tier": 2,
+      "risk": 0,
+      "reboot": true,
+      "ar": "AMD: إيقاف توفير طاقة منفذ PCIe (ASPM)",
+      "en": "AMD: Disable PCIe Power Saving (ASPM)",
+      "dar": "يمنع كرت AMD من تخفيف طاقة منفذ PCIe، فما يتأخر وهو يصحى.",
+      "den": "Stops the AMD card lowering PCIe link power, so it never lags while waking up.",
+      "apply": [
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "EnableAspmL0s",
+          "dw": 0
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "EnableAspmL1",
+          "dw": 0
+        }
+      ],
+      "revert": [
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "EnableAspmL0s",
+          "del": true
+        },
+        {
+          "each": "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}",
+          "n": "EnableAspmL1",
+          "del": true
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "cpu",
+      "ar": "المعالج",
+      "en": "Processor",
+      "icon": ""
+    },
+    {
+      "id": "gpu",
+      "ar": "كرت الشاشة",
+      "en": "Graphics Card",
+      "icon": ""
     }
   ]
 }

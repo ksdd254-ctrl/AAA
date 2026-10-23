@@ -88,7 +88,7 @@ namespace JdoTweak
 
     public class Category
     {
-        public string Id, Ar, En, Icon;
+        public string Id, Ar, En, Icon, Group;   // Group: sections shown together as tabs (cpu, gpu)
         public string Title { get { return L.Pick(Ar, En); } }
     }
 
@@ -96,6 +96,7 @@ namespace JdoTweak
     {
         public string Version;
         public List<Category> Categories = new List<Category>();
+        public List<Category> Groups = new List<Category>();
         public List<Tweak> Tweaks = new List<Tweak>();
 
         public string LibraryVersion;
@@ -105,22 +106,92 @@ namespace JdoTweak
         static readonly HashSet<string> Merged = new HashSet<string> { "cpu", "ram", "gpu", "power", "gaming", "latency", "windows" };
         public static string MapCat(string c) { return c != null && Merged.Contains(c) ? "windows" : c; }
 
-        // Tweaks that only make sense on one hardware vendor get their own page, outside the plan boxes,
-        // so Intel driver settings never land on an AMD PC (and the other way round).
-        static readonly System.Text.RegularExpressions.Regex IntelRx = new System.Text.RegularExpressions.Regex(
-            @"\\services\\(intelppm|iastor|intel|igfx|ipf|dptf|heci|mei\w*|intelpmt)|\\software\\intel\\|igfxcui|\bintelppm\b",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
-        static readonly System.Text.RegularExpressions.Regex AmdRx = new System.Text.RegularExpressions.Regex(
-            @"\\services\\(amd|ati\w*\\)|\\software\\(amd|ati technologies)\\|radeon|\bamdppm\b|\{4d36e968-e325-11ce-bfc1-08002be10318\}\|(enableulps|pp_\w+|kmd_\w+|dal\w+)$",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+        // Tweaks that only make sense on one hardware vendor get their own section (Processor: Intel / AMD Ryzen,
+        // Graphics card: NVIDIA / AMD Radeon / Intel), outside the plan boxes, so one vendor's driver settings
+        // never land on another vendor's PC.
+        const System.Text.RegularExpressions.RegexOptions RxOpt = System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled;
+        const string DisplayClass = @"\{4d36e968-e325-11ce-bfc1-08002be10318\}";
+        static readonly System.Text.RegularExpressions.Regex GpuNvidiaRx = new System.Text.RegularExpressions.Regex(
+            @"\\services\\(nvlddmkm|nvhda|nvstor|nvsvc|nvtelemetry\w*|nvcontainer\w*|nvdisplay\w*)|\\software\\nvidia corporation\\|\\nvtweak\\|" + DisplayClass + @"\|(rm\w+|nv\w+|powermizer\w*|perflevelsrc)$", RxOpt);
+        static readonly System.Text.RegularExpressions.Regex GpuAmdRx = new System.Text.RegularExpressions.Regex(
+            @"\\services\\(amdkmdag|amdkmdap|amdwddmg|amdgpuv|amdkmpfd|atikmdag|atikmpag|amdfendr\w*|amdacpbus|amdlog|amdxe|amdwdm\w*)|\\software\\(amd|ati technologies)\\|radeon|" + DisplayClass + @"\|(enableulps\w*|pp_\w+|kmd_\w+|dal\w+|enableaspm\w+|stuttermode|main3d\w*)$", RxOpt);
+        static readonly System.Text.RegularExpressions.Regex GpuIntelRx = new System.Text.RegularExpressions.Regex(
+            @"\\services\\(igfx\w*|cphs|intelgfx\w*)|\\software\\intel\\(display|gmm|igfx\w*)|igfxcui|\\intel\\gmm", RxOpt);
+        static readonly System.Text.RegularExpressions.Regex CpuIntelRx = new System.Text.RegularExpressions.Regex(
+            @"\\services\\(intelppm|intelpep|iastor\w*|ipf\w*|dptf\w*|heci\w*|mei\w*|intelpmt|intelide|intel\w*)|\bintelppm\b", RxOpt);
+        static readonly System.Text.RegularExpressions.Regex CpuAmdRx = new System.Text.RegularExpressions.Regex(
+            @"\\services\\(amdppm|amdi2c|amdgpio\w*|amdpsp|amdsata\w*|amdxata|amdsbs|amdpcidev|amdmicropep|amd\w*)|\bamdppm\b", RxOpt);
 
         public static string VendorCat(string cat, string keyOrText, string name)
         {
             string s = (keyOrText ?? "") + "|" + (name ?? "");
-            if (IntelRx.IsMatch(s)) return "intel";
-            if (AmdRx.IsMatch(s)) return "amd";
+            // graphics first: "amd..." services include both Radeon drivers and Ryzen chipset drivers
+            if (GpuNvidiaRx.IsMatch(s)) return "gpu_nvidia";
+            if (GpuAmdRx.IsMatch(s)) return "gpu_amd";
+            if (GpuIntelRx.IsMatch(s)) return "gpu_intel";
+            if (CpuIntelRx.IsMatch(s)) return "cpu_intel";
+            if (CpuAmdRx.IsMatch(s)) return "cpu_amd";
             return cat;
         }
+
+        // Settings that game anti-cheats (Vanguard, EasyAntiCheat, BattlEye, FACEIT) depend on or watch:
+        // their own processes and services, driver signing, exploit protection (DEP / ASLR / CFG / SEHOP),
+        // injection points, VBS / HVCI / Secure Boot / TPM, and per-game executable overrides.
+        // Anything matching is left out of the app entirely.
+        static readonly System.Text.RegularExpressions.Regex AntiCheatRx = new System.Text.RegularExpressions.Regex(
+            @"\\services\\(vgk|vgc|easyanticheat\w*|beservice|bedaisy|faceit\w*|esportal\w*|xigncode\w*|nprotect\w*|gameguard\w*|mhyprot\w*)(\\|\||$)" +
+            @"|\\image file execution options\\(vgc|vgk|vgtray|easyanticheat\w*|beservice\w*|faceit\w*|valorant\S*|fortniteclient\S*|r5apex\S*|cs2|csgo|cod\S*|modernwarfare\S*|tslgame\S*|rainbowsix\S*|overwatch\S*|eldenring\S*)\.exe" +
+            @"|\\image file execution options\\[^\\|]+\|(debugger|globalflag|verifierdlls|mitigationoptions|mitigationauditoptions)$" +
+            @"|appinit_dlls|loadappinit_dlls|requiresignedappinit" +
+            @"|\\control\\ci\\|testsigning|nointegritychecks|ddisable_integrity|driversigning|kerneldebug" +
+            @"|\\session manager\\kernel\|(mitigationoptions|mitigationauditoptions|disableexceptionchainvalidation|kernelsehopenabled)$" +
+            @"|\\configuration manager\|disableexceptionchainvalidation$|\\memory management\|moveimages$|set-processmitigation|\bnx\s+(alwaysoff|optout)" +
+            @"|\\deviceguard\\|\\deviceguard\||hypervisorenforcedcodeintegrity|enablevirtualizationbasedsecurity|credentialguard|lsacfgflags|systemguard|hypervisorlaunchtype" +
+            @"|secureboot|\\autologger\\tpm\w*\||\\services\\tpm(\\|\||$)", RxOpt);
+
+        public static bool AntiCheatUnsafe(string keyOrText, string name)
+        {
+            string s = (keyOrText ?? "") + "|" + (name ?? "");
+            if (s.IndexOf(@"\WINEVT\", StringComparison.OrdinalIgnoreCase) >= 0) return false;   // event-log channel settings only
+            return AntiCheatRx.IsMatch(s);
+        }
+        public int AntiCheatRemoved;
+
+        // Plans by share of each section's library: Basic gets the most-used 40%, Elite 70%, Ultimate everything.
+        // Hand-picked tweaks keep the tier they were written with.
+        // Shares are worked out separately for what goes into the plan boxes and for the rest,
+        // so the boxes themselves come out at 40% / 70% / 100%.
+        void Retier()
+        {
+            foreach (var g in Tweaks.Where(t => t.Library).GroupBy(t => t.Cat + "|" + BoxEligible(t)))
+            {
+                var list = g.OrderByDescending(t => t.Packs).ThenBy(t => t.Id, StringComparer.Ordinal).ToList();
+                for (int i = 0; i < list.Count; i++)
+                {
+                    double share = (i + 1) / (double)list.Count;
+                    list[i].Tier = share <= 0.40 ? 1 : share <= 0.70 ? 2 : 3;
+                }
+            }
+        }
+
+        // Library settings safe to switch on in bulk from a plan box: registry only (exact undo), no risk flag,
+        // used by 2+ packs, and never an address setting (DNS / IP / gateway / DHCP).
+        static readonly System.Text.RegularExpressions.Regex AddressRx = new System.Text.RegularExpressions.Regex(
+            @"\\(nameserver|dhcpnameserver|searchlist|domain|dhcpdomain|ipaddress|subnetmask|defaultgateway|enabledhcp|dhcpserver|registrationenabled)$", RxOpt);
+        public static bool AddressSetting(Tweak t) { return t.Path != null && AddressRx.IsMatch(t.Path); }
+        public static bool BoxEligible(Tweak t)
+        {
+            return t.Library && t.Risk == 0 && !t.NoUndo && t.Packs >= 2 && t.Id != null && t.Id.StartsWith("s.") && !AddressSetting(t);
+        }
+
+        // Paths copied from regedit start with "Computer\"; anything not starting at a real hive is broken.
+        static string FixKey(string key)
+        {
+            if (key.StartsWith(@"Computer\", StringComparison.OrdinalIgnoreCase)) key = key.Substring(9);
+            return System.Text.RegularExpressions.Regex.IsMatch(key, @"^HKEY_(LOCAL_MACHINE|CURRENT_USER|USERS|CLASSES_ROOT|CURRENT_CONFIG)\\", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+                && key.IndexOf('$') < 0 && key.IndexOf("{}", StringComparison.Ordinal) < 0 ? key : null;
+        }
+        public int BrokenRemoved;
 
         readonly HashSet<string> curatedSettings = new HashSet<string>();
         readonly HashSet<string> curatedCommands = new HashSet<string>();
@@ -170,7 +241,10 @@ namespace JdoTweak
             if (curated) Version = Str(root, "version"); else LibraryVersion = Str(root, "version");
             if (root.ContainsKey("categories"))
                 foreach (Dictionary<string, object> d in (object[])root["categories"])
-                    Categories.Add(new Category { Id = Str(d, "id"), Ar = Str(d, "ar"), En = Str(d, "en"), Icon = Str(d, "icon") });
+                    Categories.Add(new Category { Id = Str(d, "id"), Ar = Str(d, "ar"), En = Str(d, "en"), Icon = Str(d, "icon"), Group = Str(d, "group") });
+            if (root.ContainsKey("groups"))
+                foreach (Dictionary<string, object> d in (object[])root["groups"])
+                    Groups.Add(new Category { Id = Str(d, "id"), Ar = Str(d, "ar"), En = Str(d, "en"), Icon = Str(d, "icon") });
             var known = new HashSet<string>(Tweaks.Select(x => x.Id));
             foreach (Dictionary<string, object> d in (object[])root["tweaks"])
             {
@@ -223,6 +297,10 @@ namespace JdoTweak
                         bool each = f[5] == "1";
                         string key = f[6], name = f[7], src = f[8];
                         if (key.IndexOf('!') >= 0 || key.IndexOf('%') >= 0) continue;   // unexpanded script variable, not a real path
+                        key = FixKey(key);
+                        if (key == null) { BrokenRemoved++; continue; }
+                        f[6] = key;
+                        if (AntiCheatUnsafe(key, name)) { AntiCheatRemoved++; continue; }
                         t.Cat = VendorCat(t.Cat, key, name);
                         if (curatedSettings.Contains(NormPath(key, name))) { DuplicatesRemoved++; continue; }   // already a hand-picked tweak
                         t.Id = "s." + StableHash((each ? "*" : "") + key + "|" + name);
@@ -238,12 +316,15 @@ namespace JdoTweak
                             var p = f[i].Split('\x1F');
                             var a = new TAction { Kind = each ? "each" : "reg", Key = key, Name = name, Type = p[0] };
                             if (p[0] == "dw" || p[0] == "qw") a.Value = long.Parse(p[1]);
+                            if (p[0] == "dw" && ((long)a.Value < 0 || (long)a.Value > 0xFFFFFFFFL)) continue;   // doesn't fit a DWORD: broken value
+                            if (p[0] == "bin" && !System.Text.RegularExpressions.Regex.IsMatch(p[1], "^([0-9a-fA-F]{1,2},?)*$")) continue;
                             else if (p[0] == "msz") a.Value = p[1].Replace('\x1E', '\0');
                             else if (p[0] != "del" && p[0] != "delkey") a.Value = p[1];
                             int uses; int.TryParse(p.Length > 2 ? p[2] : "1", out uses);
                             string label = ValueLabel(a);
                             opts.Add(new TOption { Ar = label + (opts.Count == 0 && f.Length > 10 ? "  ★" : ""), En = label + (opts.Count == 0 && f.Length > 10 ? "  ★" : ""), Uses = uses, Apply = new List<TAction> { a } });
                         }
+                        if (opts.Count == 0) { BrokenRemoved++; continue; }   // every value was broken
                         if (opts.Count == 1) t.Apply = opts[0].Apply;   // single value: on/off switch, off restores the original
                         else
                         {
@@ -255,6 +336,7 @@ namespace JdoTweak
                     {
                         string text = f[6];
                         if (curatedCommands.Contains(NormCmd(text))) { DuplicatesRemoved++; continue; }
+                        if (AntiCheatUnsafe(text, null)) { AntiCheatRemoved++; continue; }
                         t.Cat = VendorCat(t.Cat, text, null);
                         t.Id = "c." + StableHash(text.ToLowerInvariant());
                         t.Ar = t.En = text.Length > 110 ? text.Substring(0, 107) + "..." : text;
@@ -286,6 +368,7 @@ namespace JdoTweak
                 }
                 catch { }
             }
+            Retier();
         }
 
         public static string ValueLabel(TAction a)

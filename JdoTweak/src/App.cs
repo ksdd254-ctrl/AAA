@@ -25,6 +25,11 @@ namespace JdoTweak
         {
 #if DEV
             if (args.Length >= 2 && args[0] == "--snap") { Snapshot(args[1], args.Length > 2 && args[2] == "en"); return; }
+            if (args.Length >= 2 && args[0] == "--audit")
+            {
+                Catalog = LoadCatalog();
+                Environment.Exit(Audit.Run(args[1]));
+            }
             if (args.Length >= 2 && args[0] == "--selftest")
             {
                 var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -124,7 +129,7 @@ namespace JdoTweak
             Catalog = LoadCatalog();
             License.Login(null, null, null, Hardware.Hwid());
             Directory.CreateDirectory(dir);
-            var pages = new[] { "login", "register", "dashboard", "cat:windows", "cat:intel", "cat:amd", "cat:mouse", "cat:network", "cat:advanced", "repair", "polling", "account", "settings", "owner" };
+            var pages = new[] { "login", "register", "dashboard", "cat:windows", "grp:cpu", "grp:gpu", "cat:mouse", "cat:network", "cat:advanced", "repair", "polling", "account", "settings", "owner" };
             int i = 0;
             Window w = null;
             var t = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };

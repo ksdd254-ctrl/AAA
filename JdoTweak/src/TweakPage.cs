@@ -28,21 +28,31 @@ namespace JdoTweak
         static int UserTier { get { return License.Current == null ? 0 : License.Current.Tier; } }
 
         // Intel / AMD pages: does this PC have that vendor's processor or graphics?
-        public static bool HasVendor(string vendor)
+        // Vendor sections: does this PC have that CPU or GPU?
+        public static bool HasVendor(string section)
         {
             var hw = App.Hardware;
             if (hw == null) return true;
-            string v = vendor == "intel" ? "intel" : "amd";
-            if (hw.GpuVendor == v) return true;
-            return hw.Devices.Any(d => (d.Kind == "cpu" || d.Kind == "gpu") && d.Name.IndexOf(v == "intel" ? "Intel" : "AMD", StringComparison.OrdinalIgnoreCase) >= 0);
+            Func<string, string, bool> has = (kind, word) => hw.Devices.Any(d => d.Kind == kind && d.Name.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0);
+            switch (section)
+            {
+                case "cpu_intel": return has("cpu", "Intel");
+                case "cpu_amd": return has("cpu", "AMD");
+                case "gpu_nvidia": return hw.GpuVendor == "nvidia" || has("gpu", "NVIDIA");
+                case "gpu_amd": return has("gpu", "AMD") || has("gpu", "Radeon");
+                case "gpu_intel": return has("gpu", "Intel");
+                default: return true;
+            }
         }
 
-        bool VendorMissing { get { return (category.Id == "intel" || category.Id == "amd") && !HasVendor(category.Id); } }
+        public static bool IsVendorSection(string id) { return id != null && (id.StartsWith("cpu_") || id.StartsWith("gpu_")); }
+
+        bool VendorMissing { get { return IsVendorSection(category.Id) && !HasVendor(category.Id); } }
 
         public TweakPage(MainWindow w, Category c, bool embedded = false)
         {
             win = w; category = c; this.embedded = embedded;
-            showAll = c.Id == "intel" || c.Id == "amd";   // vendor pages have few hand-picked items: list everything
+            showAll = IsVendorSection(c.Id);   // vendor sections have few hand-picked items: list everything
             var all = App.Catalog.Tweaks.Where(t => t.Cat == c.Id).ToList();
             best = all.Where(t => t.Curated).ToList();
             options = all.Where(t => !t.Curated && t.HasOptions).OrderByDescending(t => t.Packs).ToList();
@@ -50,16 +60,17 @@ namespace JdoTweak
 
             var page = new StackPanel();
             if (!embedded) page.Children.Add(MainWindow.Header(c.Icon, c.Title, L.T("pageSub")));
-            if (c.Id == "intel" || c.Id == "amd")
+            if (IsVendorSection(c.Id))
             {
                 bool has = HasVendor(c.Id);
-                string cpu = App.Hardware == null ? "" : App.Hardware.Devices.Where(d => d.Kind == "cpu").Select(d => d.Name).FirstOrDefault() ?? "";
+                string kind = c.Id.StartsWith("cpu_") ? "cpu" : "gpu";
+                string cpu = App.Hardware == null ? "" : string.Join("  ·  ", App.Hardware.Devices.Where(d => d.Kind == kind).Select(d => d.Name));
                 var row = new DockPanel();
                 var ic = UI.Icon(has ? "" : "", 18, has ? "Good" : "Warn"); ic.Margin = new Thickness(0, 0, 12, 0);
                 row.Children.Add(ic);
                 var txt = new StackPanel();
                 txt.Children.Add(UI.Text(L.T(has ? "vendorYes" : "vendorNo").Replace("{0}", c.En), 14, "Text", true));
-                var cpuLine = UI.Text(L.T("cpu") + ": " + cpu, 12, "Muted"); cpuLine.FlowDirection = FlowDirection.LeftToRight; cpuLine.TextAlignment = L.Ar ? TextAlignment.Right : TextAlignment.Left;
+                var cpuLine = UI.Text(L.T(kind) + ": " + cpu, 12, "Muted"); cpuLine.FlowDirection = FlowDirection.LeftToRight; cpuLine.TextAlignment = L.Ar ? TextAlignment.Right : TextAlignment.Left;
                 txt.Children.Add(cpuLine);
                 txt.Children.Add(UI.Text(L.T("vendorD"), 12, "Muted"));
                 row.Children.Add(txt);

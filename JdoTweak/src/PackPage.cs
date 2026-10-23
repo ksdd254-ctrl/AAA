@@ -52,11 +52,16 @@ namespace JdoTweak
         // by at least two packs. Commands (no automatic undo) and risky items stay out.
         public static List<Tweak> InPack(Catalog cat, string catId, HardwareInfo hw)
         {
-            return cat.Tweaks.Where(t => t.Cat == catId && !t.NoPack && (
+            // the boxes cover Windows performance and, by plan, the network settings
+            return cat.Tweaks.Where(t => (t.Cat == catId || t.Cat == "network") && !t.NoPack && (
                     (t.Curated && t.Risk <= 1 && (t.MinRam == 0 || hw == null || hw.RamGb >= t.MinRam) && (t.Vendor == null || hw == null || t.Vendor == hw.GpuVendor))
-                    || (t.Library && t.Risk == 0 && !t.NoUndo && t.Packs >= 2 && t.Id.StartsWith("s."))))
+                    || Catalog.BoxEligible(t)))
                 .ToList();
         }
+
+        // DNS servers, IP addresses, gateways and DHCP switches copied from someone else's pack would cut the
+        // connection; they stay available one by one but never ride along in a box.
+        public static bool AddressSetting(Tweak t) { return Catalog.AddressSetting(t); }
 
         IEnumerable<Tweak> Level(int k) { return pack.Where(t => t.Tier <= k); }
 
@@ -233,7 +238,7 @@ namespace JdoTweak
         async Task RevertEverything(Button b)
         {
             var cat = App.Catalog;
-            var todo = Engine.BackedUpIds().Select(id => cat.Find(id)).Where(t => t != null && t.Cat == "windows").ToList();
+            var todo = Engine.BackedUpIds().Select(id => cat.Find(id)).Where(t => t != null && (t.Cat == "windows" || t.Cat == "network")).ToList();
             b.IsEnabled = false;
             await Task.Run(() =>
             {

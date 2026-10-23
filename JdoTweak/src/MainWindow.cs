@@ -72,7 +72,14 @@ namespace JdoTweak
             var navList = new StackPanel();
             navList.Children.Add(Nav("dashboard", "", L.T("dashboard")));
             navList.Children.Add(Section(L.T("tweaks")));
-            foreach (var c in cat.Categories) navList.Children.Add(Nav("cat:" + c.Id, c.Icon, c.Title));
+            var groupsShown = new HashSet<string>();
+            foreach (var c in cat.Categories)
+            {
+                if (c.Group == null) { navList.Children.Add(Nav("cat:" + c.Id, c.Icon, c.Title)); continue; }
+                if (!groupsShown.Add(c.Group)) continue;
+                var g = cat.Groups.FirstOrDefault(x => x.Id == c.Group);
+                if (g != null) navList.Children.Add(Nav("grp:" + g.Id, g.Icon, g.Title));
+            }
             navList.Children.Add(Section(L.T("tools")));
             navList.Children.Add(Nav("repair", "", L.T("repair")));
             navList.Children.Add(Nav("polling", "", L.T("pollTitle")));
@@ -148,6 +155,7 @@ namespace JdoTweak
             FrameworkElement el;
             if (id == "dashboard") el = Dashboard();
             else if (id == "cat:windows") el = new PackPage(this, cat.Categories.First(c => c.Id == "windows"));
+            else if (id.StartsWith("grp:") && cat.Groups.Any(g => g.Id == id.Substring(4))) el = new VendorPage(this, cat.Groups.First(g => g.Id == id.Substring(4)));
             else if (id.StartsWith("cat:") && cat.Categories.Any(c => c.Id == id.Substring(4))) el = new TweakPage(this, cat.Categories.First(c => c.Id == id.Substring(4)));
             else if (id == "repair") el = RepairPage();
             else if (id == "polling") el = PollingPage();
