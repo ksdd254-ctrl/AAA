@@ -83,8 +83,6 @@ namespace JdoTweak
             if (user != null && user.IsOwner) foot.Children.Add(Nav("owner", "", L.T("owner")));
             foot.Children.Add(Nav("account", "", L.T("account")));
             foot.Children.Add(Nav("settings", "", L.T("settings")));
-            DockPanel.SetDock(foot, Dock.Bottom);
-            side.Children.Add(foot);
 
             var navList = new StackPanel();
             navList.Children.Add(Nav("dashboard", "", L.T("dashboard")));
@@ -100,6 +98,8 @@ namespace JdoTweak
             navList.Children.Add(Section(L.T("tools")));
             navList.Children.Add(Nav("repair", "", L.T("repair")));
             navList.Children.Add(Nav("polling", "", L.T("pollTitle")));
+            // account / settings scroll with the list, so on a short screen no item is cut in half under them
+            navList.Children.Add(foot);
             side.Children.Add(new ScrollViewer { Content = navList, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
             root.Children.Add(side);
 
@@ -309,8 +309,15 @@ var stat = UI.Text(active + " " + L.T("tweaksActive"), 13.5, "Muted");
                 UI.Ask(this, L.T("restorePoint"), ok ? L.T("rpDone") : L.T("failed"), false);
             });
             DockPanel.SetDock(rp, Dock.Right);
+            // its own row above the device cards, lined up with the title, never sitting on a card's edge
+            rp.VerticalAlignment = VerticalAlignment.Center;
+            rp.Margin = new Thickness(12, 0, 12, 0);
             hwHead.Children.Add(rp);
-            hwHead.Children.Add(SectionTitle(L.T("hwTitle")));
+            var hwTitle = SectionTitle(L.T("hwTitle"));
+            hwTitle.VerticalAlignment = VerticalAlignment.Center;
+            hwTitle.Margin = new Thickness(0);
+            hwHead.Children.Add(hwTitle);
+            hwHead.Margin = new Thickness(0, 0, 0, 14);
             sp.Children.Add(hwHead);
             var grid = new UniformGrid { Columns = 2 };
             var order = new[] { "cpu", "gpu", "ram", "board", "disk", "mouse", "keyboard", "monitor", "net", "os" };

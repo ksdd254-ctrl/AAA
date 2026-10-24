@@ -48,6 +48,8 @@ switch ($Action) {
     # test files for the VM's USB drive
     Copy-Item 'E:\JDO\JdoTweak\dist\JdoTweak.exe', "$here\vm\boxtest.ps1", "$here\vm\b.cmd" $share -Force
     Set-Content (Join-Path $share 'mode.txt') $Mode -Encoding ASCII
+    $pp = 'E:\JDO\Release\Gaming Performance Power Plan.cmd'
+    if (Test-Path $pp) { Copy-Item $pp (Join-Path $share 'power.cmd') -Force }
     if (Test-Path $overlay) { Remove-Item $overlay -Force }
     & "$q\qemu-img.exe" create -f qcow2 -b $base -F qcow2 $overlay | Out-Null
     $args = @(

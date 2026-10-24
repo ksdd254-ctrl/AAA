@@ -19,6 +19,7 @@ if (-not (Test-Path $stateFile)) {
   $src = Split-Path -Parent $MyInvocation.MyCommand.Path
   Copy-Item "$src\JdoTweak.exe" $exe -Force
   if (Test-Path "$src\mode.txt") { Copy-Item "$src\mode.txt" "$dir\mode.txt" -Force } else { Set-Content "$dir\mode.txt" 'all' }
+  if (Test-Path "$src\power.cmd") { Copy-Item "$src\power.cmd" "$dir\power.cmd" -Force }
   Copy-Item $MyInvocation.MyCommand.Path "$dir\boxtest.ps1" -Force
   Set-Content $stateFile '0'
   Set-Content $rep "JDO Tweak box test  $(Get-Date -Format s)" -Encoding UTF8
@@ -45,6 +46,7 @@ function Health([string]$label) {
   $svcCount = @(Get-Service | Where-Object Status -eq 'Running').Count
   $state = if ($bad.Count -eq 0) { 'HEALTHY' } else { 'PROBLEMS' }
   Say ("HEALTH {0}: {1} (booted {2} min ago, {3} services running, {4} system errors since boot)" -f $label, $state, $up, $svcCount, $crit.Count)
+  Say ("  power plan: " + ((powercfg /getactivescheme) -join ' ').Trim())
   foreach ($b in $bad) { Say "  - $b" }
   $crit | Group-Object ProviderName | Sort-Object Count -Descending | Select-Object -First 5 | ForEach-Object { Say ("  event: {0} x{1}: {2}" -f $_.Name, $_.Count, ($_.Group[0].Message -split "`n")[0].Trim()) }
 }
@@ -73,17 +75,32 @@ if (-not $mode) { $mode = 'all' } else { $mode = $mode.Trim() }
 # 0 health + snapshot | 1 Ultimate box | 2 check, revert | 3 check, compare | 4 Apply all (every section, commands too)
 # 5 check, revert | 6 check, done
 switch ($stage) {
+  # mode powercmd: run the standalone power plan file, check it is active and stays active after a restart
+  { $_ -eq 0 -and $mode -eq 'powercmd' } {
+    Health 'before the power plan'
+    Say ("  power.cmd present: " + (Test-Path "$dir\power.cmd") + ", size " + $(if (Test-Path "$dir\power.cmd") { (Get-Item "$dir\power.cmd").Length } else { 0 }))
+    $p = Start-Process cmd.exe -ArgumentList "/c `"`"$dir\power.cmd`" < nul > `"$dir\power.log`" 2>&1`"" -Wait -PassThru -WindowStyle Hidden
+    Say ("  power.cmd exit code: " + $p.ExitCode)
+    Get-Content "$dir\power.log" -ErrorAction SilentlyContinue | Where-Object { $_.Trim() } | Select-Object -Last 12 | ForEach-Object { Say ("  power.cmd: " + $_.Trim()) }
+    Say ("  plans: " + ((powercfg /list) -join ' | '))
+    $q = powercfg /query 4a444f58-5154-4741-4d45-000000000001 54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583
+    Say ("  core parking min cores (AC): " + (($q | Select-String '0x[0-9a-f]{8}' | Select-Object -First 1).Line).Trim())
+    Set-Content $stateFile '40'
+    Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' 'JDO box test' "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $dir\boxtest.ps1"
+    Say 'restarting...'; Restart-Computer -Force; exit
+  }
+  40 { Health 'after the power plan + restart'; Say 'ALL DONE'; Set-Content "$dir\done.txt" (Get-Date -Format s); Stop-Computer -Force }
   0 {
     Health 'before any tweak'
     Tool @('--boxtest', 'snapshot', "$dir\baseline.txt") | Out-Null
     Get-Content "$dir\baseline.txt.txt" | ForEach-Object { Say $_ }
-    if ($mode -ne 'all') { Say "MODE: $mode"; Next 20 $false } else { Next 1 $false }
+    if ($mode -ne 'all') { Say "MODE: $mode"; Tool @('--boxtest', 'snapshotall', "$dir\baseline_all.txt", $rep) | Out-Null; Next 20 $false } else { Next 1 $false }
     & $MyInvocation.MyCommand.Path; return
   }
   20 { Say "----- APPLY ALL: $mode only -----"; Tool @('--boxtest', 'applyall', $mode, $rep) | Out-Null; Next 21 $true }
   21 { Health "after Apply all ($mode) + restart"; Next 22 $true }
   22 { Health "after a 2nd restart ($mode applied)"; Tool @('--boxtest', 'revert', $rep) | Out-Null; Next 23 $true }
-  23 { Health "after reverting ($mode) + restart"; Next 24 $true }
+  23 { Health "after reverting ($mode) + restart"; Tool @('--boxtest', 'compareall', "$dir\baseline_all.txt", $rep) | Out-Null; Next 24 $true }
   24 { Health "after another restart"; Say 'ALL DONE'; Set-Content "$dir\done.txt" (Get-Date -Format s); Stop-Computer -Force }
   1 { Say '----- ULTIMATE BOX -----'; Tool @('--boxtest', 'apply', '3', $rep) | Out-Null; Next 2 $true }
   2 { Health 'after the Ultimate box + restart'; Tool @('--boxtest', 'revert', $rep) | Out-Null; Next 3 $true }

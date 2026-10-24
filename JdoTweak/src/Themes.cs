@@ -77,25 +77,17 @@ namespace JdoTweak
             tt.BeginAnimation(TranslateTransform.YProperty, move);
         }
 
-        // Lift and glow on hover.
+        // Accent border on hover. No shadow effect and no lift: an effect on a card renders all its text
+        // as a soft bitmap, and a half-pixel move blurs it too.
         public static void Hover(FrameworkElement card)
         {
-            var glow = new System.Windows.Media.Effects.DropShadowEffect { Color = Themes.AccentColor, BlurRadius = 0, ShadowDepth = 0, Opacity = 0 };
-            card.Effect = glow;
-            card.MouseEnter += (o, e) =>
-            {
-                glow.BeginAnimation(System.Windows.Media.Effects.DropShadowEffect.OpacityProperty, new DoubleAnimation(0.35, TimeSpan.FromMilliseconds(200)));
-                glow.BeginAnimation(System.Windows.Media.Effects.DropShadowEffect.BlurRadiusProperty, new DoubleAnimation(22, TimeSpan.FromMilliseconds(200)));
-                var tt = card.RenderTransform as TranslateTransform;
-                if (tt != null && !tt.IsFrozen) tt.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(-2, TimeSpan.FromMilliseconds(180)) { EasingFunction = Ease });
-            };
-            card.MouseLeave += (o, e) =>
-            {
-                glow.BeginAnimation(System.Windows.Media.Effects.DropShadowEffect.OpacityProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(250)));
-                glow.BeginAnimation(System.Windows.Media.Effects.DropShadowEffect.BlurRadiusProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(250)));
-                var tt = card.RenderTransform as TranslateTransform;
-                if (tt != null && !tt.IsFrozen) tt.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(220)) { EasingFunction = Ease });
-            };
+            var bd = card as System.Windows.Controls.Border;
+            if (bd == null) return;
+            var normal = bd.BorderBrush;
+            var hot = new SolidColorBrush(Color.FromArgb(150, Themes.AccentColor.R, Themes.AccentColor.G, Themes.AccentColor.B));
+            hot.Freeze();
+            card.MouseEnter += (o, e) => bd.BorderBrush = hot;
+            card.MouseLeave += (o, e) => bd.BorderBrush = normal;
         }
 
         // Logo gradient. Static on purpose: an endless animation keeps WPF redrawing the window

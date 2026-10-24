@@ -54,10 +54,13 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Button">
-          <Border x:Name="b" CornerRadius="10" Padding="{TemplateBinding Padding}" Background="{DynamicResource AccentGrad}" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="sc"/></Border.RenderTransform><Border.Effect><DropShadowEffect x:Name="glow" Color="{DynamicResource GlowColor}" BlurRadius="16" ShadowDepth="0" Opacity="0.45"/></Border.Effect>
-            
-            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-          </Border>
+          <!-- the glow sits on its own layer behind the button: an effect on the text's parent would blur the text -->
+          <Grid x:Name="b">
+            <Border CornerRadius="10" Background="{DynamicResource AccentGrad}"><Border.Effect><DropShadowEffect x:Name="glow" Color="{DynamicResource GlowColor}" BlurRadius="16" ShadowDepth="0" Opacity="0.45"/></Border.Effect></Border>
+            <Border CornerRadius="10" Padding="{TemplateBinding Padding}" Background="{DynamicResource AccentGrad}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+          </Grid>
           <ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Opacity" Value="0.9"/></Trigger>
             <Trigger Property="IsPressed" Value="True"><Setter TargetName="b" Property="Opacity" Value="0.75"/></Trigger>

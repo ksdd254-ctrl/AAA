@@ -153,6 +153,7 @@ namespace JdoTweak
                 }
                 log.WriteLine("  settings whose value climbs with the plan: " + climb.Count);
                 climb.Take(8).ToList().ForEach(s => log.WriteLine("    " + s));
+                File.WriteAllLines(Path.Combine(Path.GetDirectoryName(outFile), "ladder.txt"), climb);
                 Check("plans: Basic, Elite and Ultimate pick stronger values as the plan goes up (" + climb.Count + " settings)", climb.Count > 0);
 
                 // 5f) services: only well-known ones may be switched off; no other tool's branding
@@ -163,6 +164,14 @@ namespace JdoTweak
                 svcBad.Take(5).ToList().ForEach(s => log.WriteLine("    " + s));
                 var brand = cat.Tweaks.Count(t => !t.Curated && System.Text.RegularExpressions.Regex.IsMatch((t.Path ?? "") + " " + t.En + " " + string.Join(" ", t.Apply.Select(a => Convert.ToString(a.Value) + a.Command)), @"3ntr|discord\.gg|productname|oeminformation|\\computername\\", System.Text.RegularExpressions.RegexOptions.IgnoreCase));
                 Check("branding: nothing renames Windows or the PC, or adds another tool's name (" + brand + ")", brand == 0);
+
+                // 5g) every tweak can be shown and used: a title, something to apply, no option listed twice
+                int noTitle = cat.Tweaks.Count(t => string.IsNullOrWhiteSpace(t.Ar) || string.IsNullOrWhiteSpace(t.En));
+                int nothing = cat.Tweaks.Count(t => !t.HasOptions && t.Apply.Count == 0);
+                int twice = cat.Tweaks.Count(t => t.HasOptions && t.Options.Where(o => !o.IsDefault).GroupBy(o => string.Join(";", o.Apply.Select(x => x.Type + ":" + Convert.ToString(x.Value)))).Any(g => g.Count() > 1));
+                int noDefault = cat.Tweaks.Count(t => t.HasOptions && t.Library && !t.Options.Any(o => o.IsDefault));
+                Check("tweaks: every one has a title (" + noTitle + " without), something to apply (" + nothing + " empty), no repeated option (" + twice + "), and a way back (" + noDefault + " without)",
+                      noTitle == 0 && nothing == 0 && twice == 0 && noDefault == 0);
 
                 // 5d) no separate Advanced section: every tweak sits in a section that is on the menu
                 var shown = new HashSet<string>(cat.Categories.Select(c => c.Id));

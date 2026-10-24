@@ -72,7 +72,7 @@ namespace JdoTweak
         // further, Ultimate takes the strongest value. {basic, elite, ultimate}; a missing value falls back to the plan below.
         static readonly Dictionary<string, string[]> Ladder = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
         {
-            { "Win32PrioritySeparation", new[] { "26", "38", "40" } },
+            { "Win32PrioritySeparation", new[] { "38", "38", "38" } },
             { "MouseDataQueueSize", new[] { "50", "25", "20" } },
             { "KeyboardDataQueueSize", new[] { "50", "25", "20" } },
             { "SystemResponsiveness", new[] { "10", "5", "0" } },
@@ -82,6 +82,22 @@ namespace JdoTweak
             { "WaitToKillAppTimeout", new[] { "5000", "3000", "2000" } },
             { "HungAppTimeout", new[] { "3000", "2000", "1000" } },
             { "TcpTimedWaitDelay", new[] { "60", "30", "30" } },
+            { "MaxUserPorts", new[] { "16384", "32768", "65534" } },
+            { "ForegroundLockTimeout", new[] { "100000", "50000", "0" } },
+            { "LowLevelHooksTimeout", new[] { "2000", "1000", "1000" } },
+        };
+
+        // Numbers a setting can really take; pack values outside them are typos or copy errors and are dropped.
+        public static readonly Dictionary<string, long[]> ValidRange = new Dictionary<string, long[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "TcpDelAckTicks", new long[] { 0, 6 } }, { "TCPNoDelay", new long[] { 0, 1 } }, { "TcpAckFrequency", new long[] { 1, 255 } },
+            { "MouseDataQueueSize", new long[] { 1, 100 } }, { "KeyboardDataQueueSize", new long[] { 1, 100 } },
+            { "SystemResponsiveness", new long[] { 0, 100 } }, { "Win32PrioritySeparation", new long[] { 0, 63 } },
+            { "NetworkThrottlingIndex", new long[] { 1, 0xFFFFFFFFL } }, { "DefaultTTL", new long[] { 1, 255 } },
+            { "MaxUserPorts", new long[] { 5000, 65534 } }, { "TcpTimedWaitDelay", new long[] { 30, 240 } },
+            { "TcpMaxDupAcks", new long[] { 1, 3 } }, { "Tcp1323Opts", new long[] { 0, 3 } }, { "SackOpts", new long[] { 0, 1 } },
+            { "MenuShowDelay", new long[] { 0, 4000 } }, { "MouseHoverTime", new long[] { 0, 4000 } },
+            { "HwSchMode", new long[] { 1, 2 } },
         };
 
         // The option for a plan level (1 Basic, 2 Elite, 3 Ultimate): the ladder above when the setting has one.
@@ -97,8 +113,27 @@ namespace JdoTweak
                         int i = Options.FindIndex(o => !o.IsDefault && o.Apply.Count > 0 && Convert.ToString(o.Apply[0].Value) == steps[k - 1]);
                         if (i >= 0) return i;
                     }
+                int s = StrengthOption(tier);
+                if (s >= 0) return s;
             }
             return RecommendedOption(hw);
+        }
+
+        // A setting with a known best value for games and several numbers on the way to it: the numbers are put in
+        // order of strength (towards the best one) and Basic takes the one 30% of the way, Elite 60%, Ultimate the best.
+        public int StrengthOption(int tier)
+        {
+            if (!HasOptions || !Options[0].Game || tier >= 3) return -1;
+            Func<TOption, long?> num = o => !o.IsDefault && o.Apply.Count == 1 && (o.Apply[0].Type == "dw" || o.Apply[0].Type == "qw") ? (long?)Convert.ToInt64(o.Apply[0].Value) : null;
+            long? best = num(Options[0]);
+            if (best == null) return -1;
+            var nums = Options.Select((o, i) => new { I = i, V = num(o) }).Where(x => x.V != null).ToList();
+            if (nums.Select(x => x.V).Distinct().Count() < 3) return -1;
+            bool up = nums.All(x => x.V <= best), down = nums.All(x => x.V >= best);
+            if (!up && !down) return -1;   // the best value sits in the middle: no single direction to climb
+            var order = (up ? nums.OrderBy(x => x.V) : nums.OrderByDescending(x => x.V)).GroupBy(x => x.V).Select(g => g.First()).ToList();
+            int pos = (int)Math.Ceiling(order.Count * (tier <= 1 ? 0.3 : 0.6)) - 1;
+            return order[Math.Max(0, Math.Min(order.Count - 1, pos))].I;
         }
 
         // Index of the option the user should pick by default (RAM size, recommended, etc.)
@@ -239,10 +274,24 @@ namespace JdoTweak
             @"\\software\\(wow6432node\\)?(sysinternals|hone|openshell|classicshell|google|mozilla|valve|epic games|discord|spotify|microsoft\\office|bluestacks\w*|smartgaga|ldplayer\w*|memu\w*|nox\w*|mojang|officialhawk|ibluecombo|roblox|echox|lav|tencent|txgameassistant|garena|netease)(\\|\||$)" +
             @"|\\directx\\usergpupreferences\|(?!directxuserglobalsettings$)|\\directx\\graphicssettings\|(?!swapeffectupgrade)|\\directx\\\{|\\direct3d\\drivers(\\|\|)" +
             @"|\\joystick\\oem(\\|\||$)|\\gameinput\\devices(\\|\||$)" +   // someone else's controllers, by device ID
+            @"|\\windowsruntime(\\|\|)|\\gameconfigstore\\(parents|children)(\\|\|)|\\software\\classes\\appx[0-9a-z]+(\\|\|)|\|maxtelemetryallowed$" +   // other people's game entries and apps, values Windows writes itself
             @"|\\policies\\(google|mozilla|brave\w*)(\\|\||$)|\\gameconfigstore\\children\\|\\resourcepolicystore\\|\\currentversion\\qualitycompat(\\|\|)|\\backgroundmodel(\\|\|)" +
-            @"|\\interfaces\\\{[0-9a-f-]+\}(\\|\||$)|\\probe\\\{|\\services\\(vxd|class|adf|msftproxy)(\\|\||$)|\\services\\tcpip\\mojang|\\currentcontrolset\\software\\|\\control\\class\{" +
+            @"|\\interfaces\\\{[0-9a-f-]+\}(\\|\||$)|\\tcpip6?\\parameters\\interfaces\\[^\\|]+|\|svchostsplitdisable$|" +
+            // keys Windows locks even for administrators: writing them only fails
+            @"\\control\\diagnostics\\performance(\\|\|)|\\component based servicing(\\|\|)|\\autologger\\(netcore|radiomgr)(\\|\|)|\\control panel\\settings\\network(\\|\|)|" +
+            // a setting written to a key that never reads it (TCP values outside Tcpip, mouse values in the keyboard driver)
+            @"^(?!.*\\tcpip6?\\).*\|(tcpnodelay|tcpackfrequency|tcpdelackticks)$|\\kbdclass\\.*\|mousedataqueuesize$|\\mouclass\\.*\|keyboarddataqueuesize$|\\probe\\\{|\\services\\(vxd|class|adf|msftproxy)(\\|\||$)|\\services\\tcpip\\mojang|\\currentcontrolset\\software\\|\\control\\class\{" +
             @"|^hkey_local_machine\\system\||\\currentversion\\(run|runonce|runservices|runservicesonce)(\\|\|)|\\explorer\\startupapproved\\|^hkey_current_user\\environment\||\\appcompatflags\\layers(\\|\|)" +
             @"|\|(proxyserver|proxyoverride|autoconfigurl|hostname|nv hostname|computername)$|\\(user )?shell folders(\\|\|)|\\currentversion\\ext(\\|\|)|\\microsoft\\directx\|" +
+            // broken paths: a second registry root pasted inside the key ("Control Panel\Mouse\HKLM\System\...") or a placeholder like <GUID>
+            @"|^hkey_[a-z_]+\\.+\\(hklm|hkcu|hkcr|hku|hkey_[a-z_]+)\\|[<>]" +
+            // keys Windows itself owns and refuses to let anyone else write (components, MDM policy store, crash records)
+            @"|^hkey_classes_root\\|\\software\\(wow6432node\\)?classes\\(wow6432node\\)?clsid\\|\\policymanager\\|\\windows error reporting\\termreason(\\|\|)" +
+            @"|\\explorer\\(commandstore|controlpanel\\namespace|mycomputer\\namespace|desktop\\namespace)(\\|\|)|\\control\\filesystem\\" +
+            // per network adapter Windows reads only the delayed-ACK trio; other values there do nothing
+            @"|\\tcpip\\parameters\\interfaces(\\\{[^\\|]+\})?\|(?!(tcpackfrequency|tcpnodelay|tcpdelackticks)$)" +
+            // TCP keys only take TCP values: anything else there (mouse speeds, numbers as names) is never read by Windows
+            @"|\\services\\tcpip6?\\parameters(\\interfaces)?\|(?!(tcpackfrequency|tcpnodelay|tcpdelackticks|defaultttl|tcptimedwaitdelay|maxuserports|tcp1323opts|sackopts|tcpmaxdupacks|enablepmtudiscovery|enablepmtubhdetect|tcpmaxdataretransmissions|keepalivetime|keepaliveinterval|maxfreetcbs|maxhashtablesize|tcpnumconnections|numtcbtablepartitions|maxconnectionsperserver|maxconnectionsper1_0server|globalmaxtcpwindowsize|tcpwindowsize|tcpmaxconnectretransmissions|tcpfinwait2delay|disabletaskoffload|enabledca|enablerss|enabletcpa|enableicmpredirect|disableipsourcerouting|synattackprotect|enableconnectionratelimiting|tcpcreateandconnecttcbratelimitdepth|disableusertossetting|tcpmaxsendfree|stricttimewaitseqcheck|enablewsd|enableheuristics|tcpmaxconnectresponseretransmissions|tcpusrfc1122urgentpointer|tcpinitialrtt|disabledcomponents|deadgwdetectdefault|enablepmtubhdetect|tcpmaxhalfopen|tcpmaxhalfopenretried|enablerss)$)" +
             // another tool's branding: Windows' name, owner, OEM / support info, computer name, its own right-click menu entries
             @"|\\windows nt\\currentversion\|(productname|registeredowner|registeredorganization|editionid|displayversion|releaseid|currentbuild\w*|buildlab\w*|installationtype)$|\\oeminformation(\\|\|)|\\computername\\" +
             @"|\\(directory\\background|desktopbackground|directory|folder|drive|allfilesystemobjects|\*|lnkfile|exefile)\\shell(ex)?(\\|\|)|\\group policy\\datastore(\\|\|)" +
@@ -304,8 +353,10 @@ namespace JdoTweak
         // that cut the connection, file types of programs). Removed from the app entirely.
         static readonly System.Text.RegularExpressions.Regex DangerRx = new System.Text.RegularExpressions.Regex(
             @"\\control\\(session manager|processor|class|graphicsdrivers|video|safeboot|nsi|networkprovider|servicegrouporder|grouporderlist|pnp|deviceclasses|criticaldevicedatabase|firmwareresources|bootdriverflags|storport|usbflags|kernel-power|ci|deviceguard)(\\|\||$)" +
-            @"|\\control\\power\\(powersettings|user)(\\|\|)|\\featuremanagement(\\|\|)" +
-            @"|\\services\\(dxgkrnl|ndis|pci|acpi\w*|usb\w*|storport|stornvme|storahci|disk|partmgr|volmgr\w*|volsnap|iastor\w*|nvme\w*|vdrvroot|compositebus|umbus|msisadrv|hdaudbus|basicrender|basicdisplay|monitor|xinputhid|tsddd|tdx|wfplwfs|rdyboost|fvevol|ehstorclass|ntfs|fltmgr|xusb\w*|bthport|bthusb|bthenum|hidusb|hidclass|hidparse|gpuenergydrv|pshed)(\\|\|)" +
+            // every power key below Control\Power (schemes, policy overlays, definitions): the Gaming Performance plan covers
+            // power; pack values there made Windows throw the active plan away at boot
+            @"|\\control\\power(\\|\|)|\\featuremanagement(\\|\|)" +
+            @"|\\services\\(dxgkrnl|ndis|pci|acpi\w*|usb\w*|storport|stornvme|storahci|disk|partmgr|volmgr\w*|volsnap|iastor\w*|nvme\w*|vdrvroot|compositebus|umbus|msisadrv|hdaudbus|basicrender|basicdisplay|monitor|xinputhid|tsddd|tdx|wfplwfs|rdyboost|fvevol|ehstorclass|ntfs|fltmgr|xusb\w*|bthport|bthusb|bthenum|hidusb|hidclass|hidparse|gpuenergydrv|pshed|netbt|smb\w*|mrxsmb\w*|rdbss|lanmanworkstation|lanmanserver)(\\|\|)" +
             @"|\\services\\(" + CriticalServices + @")\|start$" +
             @"|\\services\\[^\\|]+\|(dependonservice|dependongroup|imagepath|type|group|tag|errorcontrol|objectname|servicedll|servicesidtype|requiredprivileges|failureactions|launchprotected|description|displayname)$|\\services\\[^\\|]+\\security(\\|\|)" +
             @"|\|dmaremappingcompatible\w*$|\\linkage(\\|\|)|\\winsock2?(\\|\|)|\\parameters\\protocol_catalog|\\image file execution options\\|\\winlogon(\\|\|)" +
@@ -326,6 +377,7 @@ namespace JdoTweak
             @"|\\firewallpolicy(\\|\|)|\\policies\\microsoft\\windowsfirewall(\\|\|)" +
             // app permissions (microphone for Discord, camera, ...): one by one only, never forced off in bulk
             @"|\\appprivacy(\\|\|)|\\consentstore\\(microphone|webcam)(\\|\|)" +
+            @"|\\wtds(\\|\|)|webthreatdefense|\\security center(\\|\||$)" +
             @"|\\services\\(" + ProtectionServices + @")(\\|\||$)", RxOpt);
 
         // ---------------------------------------------------------------- commands
@@ -338,11 +390,29 @@ namespace JdoTweak
             @"|^sc(\.exe)?\s+config\s+""?(" + CriticalServices + @")""?\s|set-service\b.*-name\s+""?(" + CriticalServices + @")""?(\s|$)" +
             @"|^schtasks(\.exe)?\b.*/(delete|create|run|end|query)\b" +
             @"|^dism(\.exe)?\b.*/(remove-|cleanup-image|add-|get-|enable-feature\s*/featurename:\W?netfx3)|^dism(\.exe)?\s*(\||$)" +
+            @"|^dism(\.exe)?\b.*disable-feature.*printtopdf" +   // "Microsoft Print to PDF" is how people save PDFs
+
             @"|^fsutil\b.*\b(query|usn|deletejournal|disabledeletenotify\s+(refs\s+)?1|repair|hardlink|setzerodata)\b|^fsutil\s+(file|volume)\b" +
             @"|^powercfg(\.exe)?\b.*\s[-/](setactive|s|delete|d|import|duplicatescheme|restoredefaultschemes|changename|export|h|hibernate)(\s|$)|^powercfg\.cpl" +
+            // the hand-picked Gaming Performance plan sets every power value; pack commands changing the active plan would undo it
+            @"|^powercfg(\.exe)?\s+[-/](setacvalueindex|setdcvalueindex|change|x)\b" +
+            // packs also write options with no dash or an en dash ("powercfg restoredefaultschemes", "powercfg –import"):
+            // every pack powercfg line goes, except showing hidden settings
+            @"|^powercfg(\.exe)?\b(?!.*\s[-/]attributes\b)" +
             @"|^(start-sleep|start-transcript|stop-transcript|add-type|new-psdrive|remove-psdrive|set-executionpolicy|new-service|remove-service|start-process|stop-process|start-service|stop-service|restart-service|suspend-service|restart-computer|stop-computer|takeown\S*|remove-item|new-item|copy-item|move-item|rename-item|remove-appx\S*|get-\S+|write-\S+|invoke-\S+|new-folderforced|remove-keys|start-debloat|stop-edgepdf|set-windowssearchsetting|set-timerresolution|set-physicaldisk|clear-\S+|read-host|out-\S+|if|foreach|for|function|try|catch|return|exit|param|import-\S+|install-\S+|uninstall-\S+|enable-computerrestore|checkpoint-computer|disable-computerrestore)\b|^[\$\{\}\(\)#]" +
             @"|activescripteventconsumer|__eventfilter|downloadstring|downloadfile|\biex\b|frombase64|encodedcommand|bcdedit|\bdel\s|\brd\s|rmdir|shutdown|restart-computer" +
-            @"|(set|new)-itemproperty\b.*(session manager|memory management|\\services\\|control\\class|graphicsdrivers|control\\power|winlogon|image file execution|linkage|winsock|safeboot)", RxOpt);
+            @"|(set|new)-itemproperty\b.*(session manager|memory management|\\services\\|control\\class|graphicsdrivers|control\\power|winlogon|image file execution|linkage|winsock|safeboot)" +
+            // network is changed by the Network page's registry tweaks only: no netsh / adapter / DNS / firewall commands
+            @"|^(netsh|ipconfig|route|arp|nbtstat|set-net\S*|enable-net\S*|disable-net\S*|set-dnsclient\S*|new-netfirewallrule|remove-netfirewallrule)\b" +
+            // two versions of the same switch: the pack lines that put Windows back ("/Enable", "enable-feature", State:Enabled)
+            // are weaker than the ones that switch it off, so only the off version stays
+            @"|^schtasks(\.exe)?\b.*\s/enable\b|^dism(\.exe)?\b.*/enable-feature|set-reservedstoragestate\s+/state:enabled" +
+            // Windows' own upkeep that games need working: sound, clock, restore points, Task Manager, SSD trim, licences,
+            // keyboard languages, Wi-Fi, firewall, search, privacy switches (mic), Xbox cloud saves
+            @"|^schtasks(\.exe)?\b.*\\?(multimedia|time synchronization|time zone|systemrestore|task manager|defrag|clip\\|softwareprotectionplatform|tpm\\|staterepository|brokerinfrastructure|indexerautomaticmaintenance|plug and play|nlasvc|wcm\\|wlansvc|wininet|windows filtering platform|capabilityaccessmanager|windows\\security|appid\\|subscription\\|license manager|languagecomponentsinstaller|international\\|mui\\|xblgamesave|chkdsk|recoveryenvironment|registry\\regidlebackup|printing\\)" +
+            @"|^dism(\.exe)?\b.*disable-feature.*(printing-foundation|searchengine-client|internet-printing|mediaplayback|windowsmediaplayer|directplay|legacycomponents)" +
+            // clearing every event log, log permissions and hiding power settings do nothing for speed
+            @"|^wevtutil(\.exe)?\s+(cl|el|clear-log|enum-logs)\b|^wevtutil(\.exe)?\b.*\s/ca:|^powercfg\b|%\d?\s*$", RxOpt);
         // Kept one by one only: network commands (they can cut the connection) and anything that turns off protection / Update / Store.
         static readonly System.Text.RegularExpressions.Regex CmdNoBulkRx = new System.Text.RegularExpressions.Regex(
             @"^(netsh|ipconfig|route|arp|nbtstat|nslookup)\b|-net(adapter|tcp|ipinterface|ipv4|ipv6|offload|firewall|qos|transport|route|neighbor|lbfo)\w*|dnsclient|-netadapter" +
@@ -368,7 +438,7 @@ namespace JdoTweak
             new System.Text.RegularExpressions.Regex(@"^powercfg(?:\.exe)?\s+[-/]set(?:ac|dc)valueindex\s+(\S+\s+\S+\s+\S+)", RxOpt),
             new System.Text.RegularExpressions.Regex(@"^powercfg(?:\.exe)?\s+[-/](change\s+[-/]?\S+)", RxOpt),
             new System.Text.RegularExpressions.Regex(@"^powercfg(?:\.exe)?\s+[-/]attributes\s+(\S+\s+\S+)", RxOpt),
-            new System.Text.RegularExpressions.Regex(@"^wevtutil(?:\.exe)?\s+sl\s+""?([^""]+?)""?\s+/", RxOpt),
+            new System.Text.RegularExpressions.Regex(@"^wevtutil(?:\.exe)?\s+(?:sl|set-log)\s+""?([^""]+?)""?\s+/", RxOpt),
             new System.Text.RegularExpressions.Regex(@"^(?:set|new)-itemproperty\s+(?:-path\s+)?[""']?([^""']+?)[""']?\s+(?:-name\s+)?[""']?([^""'\s]+)", RxOpt),
             new System.Text.RegularExpressions.Regex(@"^dism(?:\.exe)?\b.*?/(set-reservedstoragestate)", RxOpt),
         };
@@ -417,6 +487,15 @@ namespace JdoTweak
             return null;
         }
 
+        // fsutil behavior setting -> the Control\FileSystem value it writes
+        static readonly Dictionary<string, string> FsutilValue = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "mftzone", "NtfsMftZoneReservation" }, { "disablelastaccess", "NtfsDisableLastAccessUpdate" }, { "disable8dot3", "NtfsDisable8dot3NameCreation" },
+            { "encryptpagingfile", "NtfsEncryptPagingFile" }, { "disablecompression", "NtfsDisableCompression" }, { "disableencryption", "NtfsDisableEncryption" },
+            { "memoryusage", "NtfsMemoryUsage" }, { "disabledeletenotify", "DisableDeleteNotification" }, { "bugcheckoncorrupt", "NtfsBugcheckOnCorrupt" },
+            { "symlinkevaluation", "SymlinkLocalToLocalEvaluation" },
+        };
+
         public static string CommandTarget(string c) { return CmdTarget(c); }
         static string CmdTarget(string c)
         {
@@ -462,6 +541,12 @@ namespace JdoTweak
             foreach (var g in Tweaks.Where(t => t.Library && t.NoUndo).Select(t => new { T = t, K = CmdTarget(t.Apply[0].Command) }).Where(x => x.K != null).GroupBy(x => x.K))
             {
                 if (g.Key.StartsWith("0:") && startKeys.Contains(g.Key.Substring(2))) { foreach (var x in g) drop.Add(x.T); continue; }
+                // "fsutil behavior set X" writes a value under Control\FileSystem; when that value is a registry tweak too,
+                // the command would run after it and record the tweaked value as the original - keep the registry tweak only
+                string fsVal;
+                if (g.Key.StartsWith("5:") && FsutilValue.TryGetValue(g.Key.Substring(2).Replace(" refs", ""), out fsVal)
+                    && regValues.Contains(NormPath(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem", fsVal)))
+                { foreach (var x in g) drop.Add(x.T); continue; }
                 if (g.Key.StartsWith("10:"))
                 {
                     // Set-ItemProperty of a value that is already a registry tweak (which can be undone exactly)
@@ -505,6 +590,15 @@ namespace JdoTweak
                     l.Add(a);
                 }
             var drop = new HashSet<Tweak>();
+            // a pack that deletes a whole key a hand-picked tweak writes into would wipe that tweak out
+            var pickedKeys = Tweaks.Where(t => t.Curated).SelectMany(t => t.Apply.Concat(t.Options == null ? new List<TAction>() : t.Options.SelectMany(o => o.Apply)))
+                .Where(a => a.IsRegistry).Select(a => NormPath(a.Key, "").TrimEnd('|')).Distinct().ToList();
+            foreach (var t in Tweaks.Where(t => t.Library))
+                foreach (var a in t.Apply.Concat(t.Options == null ? new List<TAction>() : t.Options.SelectMany(o => o.Apply)).Where(a => a.Type == "delkey"))
+                {
+                    string k = NormPath(a.Key, "").TrimEnd('|');
+                    if (pickedKeys.Any(p => p == k || p.StartsWith(k + "\\"))) { drop.Add(t); break; }
+                }
             foreach (var t in Tweaks.Where(t => t.Library && (t.Id.StartsWith("s.") || (t.Id.StartsWith("c.") && !t.NoUndo))))
             {
                 int r = t.HasOptions ? t.RecommendedOption(null) : -1;
@@ -686,6 +780,8 @@ namespace JdoTweak
                             var a = new TAction { Kind = each ? "each" : "reg", Key = key, Name = name, Type = p[0] };
                             if (p[0] == "dw" || p[0] == "qw") a.Value = long.Parse(p[1]);
                             if (p[0] == "dw" && ((long)a.Value < 0 || (long)a.Value > 0xFFFFFFFFL)) continue;   // doesn't fit a DWORD: broken value
+                            long[] range;
+                            if (p[0] == "dw" && Tweak.ValidRange.TryGetValue(name, out range) && ((long)a.Value < range[0] || (long)a.Value > range[1])) continue;
                             if (p[0] == "bin" && !System.Text.RegularExpressions.Regex.IsMatch(p[1], "^([0-9a-fA-F]{1,2},?)*$")) continue;
                             else if (p[0] == "msz") a.Value = p[1].Replace('\x1E', '\0');
                             else if (p[0] != "del" && p[0] != "delkey") a.Value = p[1];
@@ -719,8 +815,8 @@ namespace JdoTweak
                         t.Id = "c." + StableHash(text.ToLowerInvariant());
                         t.Ar = t.En = text.Length > 110 ? text.Substring(0, 107) + "..." : text;
                         t.Path = text.Length > 110 ? text : null;
-                        t.DescAr = "أمر " + (f[5] == "ps" ? "PowerShell" : "CMD") + "  ·  من: " + f[7] + (Engine.CanUndo(text) ? "  ·  ينرجع بزر \"إرجاع الكل\"" : "  ·  ما ينرجع تلقائياً (ينرجع من نقطة الاستعادة)");
-                        t.DescEn = (f[5] == "ps" ? "PowerShell" : "CMD") + " command  ·  From: " + f[7] + (Engine.CanUndo(text) ? "  ·  undone by \"Revert all\"" : "  ·  no automatic undo (the restore point covers it)");
+                        t.DescAr = "أمر " + (f[5] == "ps" ? "PowerShell" : "CMD") + (Engine.CanUndo(text) ? "  ·  ينرجع بزر \"إرجاع الكل\"" : "  ·  ما ينرجع تلقائياً (ينرجع من نقطة الاستعادة)");
+                        t.DescEn = (f[5] == "ps" ? "PowerShell" : "CMD") + " command" + (Engine.CanUndo(text) ? "  ·  undone by \"Revert all\"" : "  ·  no automatic undo (the restore point covers it)");
                         t.Apply = new List<TAction> { new TAction { Kind = f[5] == "ps" ? "ps" : "cmd", Command = text } };
                         t.NoUndo = true;
                         // Commands that only set a registry value or a service's startup become registry tweaks,
@@ -735,8 +831,8 @@ namespace JdoTweak
                             t.Apply = asReg;
                             t.NoUndo = false;
                             t.NoBulk |= ProtectRx.IsMatch(rk);
-                            t.DescAr = "إعداد من أمر " + (f[5] == "ps" ? "PowerShell" : "CMD") + "  ·  من: " + f[7] + "  ·  ينرجع للأصل بضغطة";
-                            t.DescEn = "Setting from a " + (f[5] == "ps" ? "PowerShell" : "CMD") + " command  ·  From: " + f[7] + "  ·  can be undone in one click";
+                            t.DescAr = "إعداد من أمر " + (f[5] == "ps" ? "PowerShell" : "CMD") + "  ·  ينرجع للأصل بضغطة";
+                            t.DescEn = "Setting from a " + (f[5] == "ps" ? "PowerShell" : "CMD") + " command" + "  ·  can be undone in one click";
                         }
                     }
                     else continue;
@@ -773,7 +869,7 @@ namespace JdoTweak
         static readonly Dictionary<string, string> GameBest = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             // CPU / scheduler
-            { "Win32PrioritySeparation", "26" }, { "SystemResponsiveness", "0" }, { "NetworkThrottlingIndex", "4294967295" },
+            { "Win32PrioritySeparation", "38" }, { "SystemResponsiveness", "0" }, { "NetworkThrottlingIndex", "4294967295" },
             { "GPU Priority", "8" }, { "Priority", "6" }, { "Scheduling Category", "High" }, { "SFIO Priority", "High" }, { "Background Only", "False" },
             { "PowerThrottlingOff", "1" }, { "GlobalTimerResolutionRequests", "1" },
             // memory
@@ -1054,6 +1150,12 @@ namespace JdoTweak
             using (var b = Hive(path, out sub)) b.DeleteSubKeyTree(sub, false);
         }
 
+        static bool CanWrite(string path)
+        {
+            try { string sub; using (var b = Hive(path, out sub)) using (var k = b.OpenSubKey(sub, true)) return k != null; }
+            catch { return false; }
+        }
+
         static bool KeyExists(string path)
         {
             try { string sub; using (var b = Hive(path, out sub)) using (var k = b.OpenSubKey(sub)) return k != null; }
@@ -1073,6 +1175,8 @@ namespace JdoTweak
             foreach (var n in names)
             {
                 if (n.Equals("Properties", StringComparison.OrdinalIgnoreCase) || n.Equals("Configuration", StringComparison.OrdinalIgnoreCase)) continue;
+                // a subkey Windows protects (some adapters' keys) can't take the value: skip it rather than fail the tweak
+                if (!CanWrite(a.Key + "\\" + n)) continue;
                 yield return a.Key + "\\" + n;
             }
         }

@@ -19,6 +19,12 @@ namespace JdoTweak
             return PackPage.InPack(App.Catalog, "windows", App.Hardware);
         }
 
+        // every section that has an "Apply all" button (processor / graphics only where this PC has them)
+        static IEnumerable<string> AllSections()
+        {
+            return App.Catalog.Categories.Where(c => c.Id != "mouse" && c.Id != "keyboard" && TweakPage.HasVendor(c.Id)).Select(c => c.Id);
+        }
+
         static bool IsOn(Tweak t)
         {
             try
@@ -110,6 +116,35 @@ namespace JdoTweak
                 }
                 lines.Add("  write errors: " + Engine.Log.Count);
                 foreach (var e in Engine.Log.Take(15)) lines.Add("  write error: " + e);
+
+                // every setting checked one by one: is its value really there now?
+                var all = AllSections().SelectMany(TweakPage.AllApplicable).Where(t => t.Apply.Concat(t.HasOptions ? t.Options.SelectMany(o => o.Apply) : new List<TAction>()).Any(x => x.IsRegistry)).ToList();
+                var notOn = all.Where(t => !IsOn(t)).ToList();
+                lines.Add(string.Format("CHECK every setting: {0} checked, {1} in place, {2} not in place", all.Count, all.Count - notOn.Count, notOn.Count));
+                File.WriteAllLines(Path.Combine(Path.GetDirectoryName(a[a.Length - 1]), "notapplied.txt"), notOn.Select(t => t.Id + "\t" + t.Cat + "\t" + (t.Path ?? t.En)));
+                foreach (var t in notOn.Take(12)) lines.Add("  not in place: " + t.Id + "  " + (t.Path ?? t.En));
+            }
+            else if (mode == "snapshotall")
+            {
+                // which "Apply all" settings are already on before the test (the PC's own state)
+                var on = AllSections().SelectMany(TweakPage.AllApplicable).Where(IsOn).Select(t => t.Id).ToList();
+                File.WriteAllLines(a[2], on);
+                File.AppendAllLines(a[a.Length - 1], new[] { "snapshot: " + on.Count + " Apply-all settings already on" });
+                return 0;
+            }
+            else if (mode == "compareall")
+            {
+                // after revert: every setting must be exactly as the snapshot found it
+                var baseline = new HashSet<string>(File.ReadAllLines(a[2]));
+                var now = new HashSet<string>(AllSections().SelectMany(TweakPage.AllApplicable).Where(IsOn).Select(t => t.Id));
+                var stillOn = now.Where(id => !baseline.Contains(id)).ToList();
+                var lost = baseline.Where(id => !now.Contains(id)).ToList();
+                lines.Add(string.Format("COMPARE all settings with the original: left on by the test {0}, original lost {1}", stillOn.Count, lost.Count));
+                foreach (var id in stillOn.Take(12)) lines.Add("  still on: " + id + "  " + (App.Catalog.Find(id) ?? new Tweak()).Path);
+                foreach (var id in lost.Take(12)) lines.Add("  lost: " + id + "  " + (App.Catalog.Find(id) ?? new Tweak()).Path);
+                File.WriteAllLines(Path.Combine(Path.GetDirectoryName(a[a.Length - 1]), "notreverted.txt"), stillOn.Concat(lost));
+                File.AppendAllLines(a[a.Length - 1], lines);
+                return stillOn.Count + lost.Count;
             }
             else if (mode == "revert")
             {

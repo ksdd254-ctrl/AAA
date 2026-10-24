@@ -23,6 +23,7 @@ namespace JdoTweak
         [STAThread]
         public static void Main(string[] args)
         {
+            CrispText();
 #if DEV
             if (args.Length >= 2 && args[0] == "--snap") { Snapshot(args[1], args.Length > 2 && args[2] == "en"); return; }
             if (args.Length >= 3 && args[0] == "--boxtest") { Environment.Exit(BoxTest.Run(args)); }
@@ -119,6 +120,14 @@ namespace JdoTweak
                 using (var r = new StreamReader(new GZipStream(s, CompressionMode.Decompress)))
                     c.LoadTsv(r);
             return c;
+        }
+
+        // Every window: text drawn on whole pixels (sharp, not smudged), and layout snapped to whole pixels.
+        static void CrispText()
+        {
+            System.Windows.Media.TextOptions.TextFormattingModeProperty.OverrideMetadata(typeof(Window), new FrameworkPropertyMetadata(System.Windows.Media.TextFormattingMode.Display, FrameworkPropertyMetadataOptions.Inherits));
+            System.Windows.Media.TextOptions.TextRenderingModeProperty.OverrideMetadata(typeof(Window), new FrameworkPropertyMetadata(System.Windows.Media.TextRenderingMode.ClearType, FrameworkPropertyMetadataOptions.Inherits));
+            FrameworkElement.UseLayoutRoundingProperty.OverrideMetadata(typeof(Window), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.Inherits));
         }
 
 #if DEV
