@@ -127,8 +127,9 @@ if (Test-Path $adExe) {
   if (-not (Test-Path $lnk) -and -not (Test-Path (Join-Path ([Environment]::GetFolderPath('Desktop')) 'AnyDesk.lnk'))) {
     $s = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk); $s.TargetPath = $adExe; $s.Save()
   }
-  # its background service only runs while AnyDesk is open: no extra process at idle
-  if (Get-Service AnyDesk -ErrorAction SilentlyContinue) { Set-Service AnyDesk -StartupType Manual -ErrorAction SilentlyContinue; Ok 'AnyDesk service: only when AnyDesk is open (no idle process)' }
+  # its background service stays automatic (as AnyDesk installs it): set to manual, AnyDesk never starts it itself and
+  # shows no address (seen on a real PC)
+  if (Get-Service AnyDesk -ErrorAction SilentlyContinue) { Set-Service AnyDesk -StartupType Automatic -ErrorAction SilentlyContinue; Start-Service AnyDesk -ErrorAction SilentlyContinue; Ok 'AnyDesk service running (your AnyDesk address shows)' }
 }
 
 # ---- Microsoft Store: update the Store and its apps ----
